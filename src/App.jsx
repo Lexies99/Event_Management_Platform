@@ -6,7 +6,9 @@ import OrganizerDashboard from './components/Organizer/OrganizerDashboard';
 import CheckInStation from './components/CheckIn/CheckInStation';
 import AttendeePortal from './components/Attendee/AttendeePortal';
 import EventChat from './components/Chat/EventChat';
-import { Sparkles, ShieldCheck, Heart } from 'lucide-react';
+import CompanyRegistrationModal from './components/CompanyRegistration/CompanyRegistrationModal';
+import LoginModal from './components/Auth/LoginModal';
+import PublicLandingPage from './components/Landing/PublicLandingPage';
 
 export default function App() {
   // Initialize storage defaults on first load
@@ -26,6 +28,32 @@ export default function App() {
   const [plans, setPlans] = useState(() => Storage.getPlans());
   const [events, setEvents] = useState(() => Storage.getEvents());
 
+  // Top-Level View Mode:
+  // 'landing' = Public Commercial Website (Default for website visitors)
+  // 'app' = Internal System Dashboard (when signed in or using direct role/tenant links)
+  const [viewMode, setViewMode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tenant') || params.get('role') || params.get('operator') === 'true' || params.get('app') === 'true') {
+      return 'app';
+    }
+    const saved = sessionStorage.getItem('emp_auth_session');
+    return saved ? 'app' : 'landing';
+  });
+
+  const [authSession, setAuthSession] = useState(() => {
+    const saved = sessionStorage.getItem('emp_auth_session');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isCompanyRegOpen, setIsCompanyRegOpen] = useState(false);
+
+  // Platform Operator PIN authentication state
+  const [isOperatorUnlocked, setIsOperatorUnlocked] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('operator') === 'true' || authSession?.role === 'super-admin';
+  });
+
   // Reload state from Storage
   const refreshState = () => {
     const freshTenants = Storage.getTenants();
@@ -39,11 +67,14 @@ export default function App() {
     setEvents(Storage.getEvents());
   };
 
-  // URL query parameter parsing for private tenant links (e.g. ?tenant=acme or ?role=staff)
+  // URL query parameter parsing
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tenantSlug = params.get('tenant');
     const roleParam = params.get('role');
+    const registerParam = params.get('register-company') || params.get('apply');
+    const loginParam = params.get('login');
+    const operatorParam = params.get('operator');
 
     if (tenantSlug) {
       const match = tenants.find(t => t.slug === tenantSlug);
@@ -53,9 +84,21 @@ export default function App() {
       }
     }
 
-    if (roleParam && ['super-admin', 'organizer', 'staff', 'attendee', 'chat'].includes(roleParam)) {
+    if (registerParam === 'true') {
+      setIsCompanyRegOpen(true);
+    }
+
+    if (loginParam === 'true') {
+      setIsLoginModalOpen(true);
+    }
+
+    if (operatorParam === 'true' || roleParam === 'super-admin') {
+      setIsOperatorUnlocked(true);
+      setActiveRole('super-admin');
+      setViewMode('app');
+    } else if (roleParam && ['organizer', 'staff', 'attendee', 'chat'].includes(roleParam)) {
       setActiveRole(roleParam);
-      Storage.setActiveRole(roleParam);
+      setViewMode('app');
     }
   }, [tenants]);
 
@@ -84,13 +127,72 @@ export default function App() {
   };
 
   const handleRoleChange = (role) => {
+    if (role === 'super-admin' && !isOperatorUnlocked) {
+      alert("Platform Super-Admin view requires Operator PIN.");
+      return;
+    }
     setActiveRole(role);
     Storage.setActiveRole(role);
   };
 
-  // CheckIn execution handler
-  const handleCheckInByCode = (ticketCode, staffUser = "Staff", offlineFlag = isOffline) => {
-    const result = Storage.checkInByCode(ticketCode, staffUser, offlineFlag);
+  // Login as Company Organizer
+  const handleLoginCompany = (tenant) => {
+    const session = {
+      role: 'company',
+      tenantId: tenant.id,
+      tenantSlug: tenant.slug,
+      user: tenant.organizer.name
+    };
+    setAuthSession(session);
+    sessionStorage.setItem('emp_auth_session', JSON.stringify(session));
+
+    Storage.setActiveTenantId(tenant.id);
+    setActiveTenant(tenant);
+    setActiveRole('organizer');
+    Storage.setActiveRole('organizer');
+    setIsOperatorUnlocked(false);
+    setViewMode('app');
+  };
+
+  // Login as System Super-Admin
+  const handleLoginSuperAdmin = () => {
+    const session = {
+      role: 'super-admin',
+      user: 'Platform Administrator'
+    };
+    setAuthSession(session);
+    sessionStorage.setItem('emp_auth_session', JSON.stringify(session));
+
+    setIsOperatorUnlocked(true);
+    setActiveRole('super-admin');
+    Storage.setActiveRole('super-admin');
+    setViewMode('app');
+  };
+
+  // Sign out back to public website
+  const handleSignOut = () => {
+    setAuthSession(null);
+    sessionStorage.removeItem('emp_auth_session');
+    setIsOperatorUnlocked(false);
+    setViewMode('landing');
+    window.history.pushState({}, '', window.location.pathname);
+  };
+
+  // 1-Click Launch Demo from public landing page
+  const handleLaunchDemo = (slug = 'acme') => {
+    const demoTenant = tenants.find(t => t.slug === slug) || tenants[0];
+    handleLoginCompany(demoTenant);
+  };
+
+  // CheckIn execution handler with multi-day support
+  const handleCheckInByCode = (
+    ticketCode, 
+    staffUser = "Staff", 
+    offlineFlag = isOffline, 
+    currentDayId = "day-1", 
+    currentDayLabel = "Day 1"
+  ) => {
+    const result = Storage.checkInByCode(ticketCode, staffUser, offlineFlag, currentDayId, currentDayLabel);
     refreshState();
     return result;
   };
@@ -109,13 +211,58 @@ export default function App() {
     return res;
   };
 
+  // Self-Service Company Registration handler
+  const handleCompanyRegistered = (tenantData) => {
+    const newTenant = Storage.addTenant(tenantData);
+    refreshState();
+    handleLoginCompany(newTenant);
+    return newTenant;
+  };
+
   // Active event for the selected tenant
   const activeEvent = events.find(e => e.tenantId === activeTenant?.id) || events[0];
 
+  // =========================================================================
+  // VIEW MODE 1: PUBLIC COMMERCIAL WEBSITE
+  // Rendered for any visitor at root before signing in
+  // =========================================================================
+  if (viewMode === 'landing') {
+    return (
+      <>
+        <PublicLandingPage
+          onOpenLogin={() => setIsLoginModalOpen(true)}
+          onOpenRegisterCompany={() => setIsCompanyRegOpen(true)}
+          onLaunchDemo={handleLaunchDemo}
+          tenants={tenants}
+        />
+
+        {/* Global Modals */}
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          tenants={tenants}
+          onLoginCompany={handleLoginCompany}
+          onLoginSuperAdmin={handleLoginSuperAdmin}
+          onOpenRegisterCompany={() => setIsCompanyRegOpen(true)}
+        />
+
+        <CompanyRegistrationModal
+          isOpen={isCompanyRegOpen}
+          onClose={() => setIsCompanyRegOpen(false)}
+          onCompanyRegistered={handleCompanyRegistered}
+          plans={plans}
+        />
+      </>
+    );
+  }
+
+  // =========================================================================
+  // VIEW MODE 2: LOGGED-IN SYSTEM DASHBOARDS (Company Section or Super-Admin Fleet)
+  // =========================================================================
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       
-      {/* Top Navbar & Role Switcher */}
+      {/* Top Navbar with Strict Workspace & Role Scoping */}
       <Navbar
         activeRole={activeRole}
         setActiveRole={handleRoleChange}
@@ -126,13 +273,18 @@ export default function App() {
         setIsOffline={setIsOffline}
         offlineQueueCount={offlineQueue.length}
         onSyncOffline={handleSyncOffline}
+        onOpenCompanyRegistration={() => setIsCompanyRegOpen(true)}
+        isOperatorUnlocked={isOperatorUnlocked}
+        setIsOperatorUnlocked={setIsOperatorUnlocked}
+        onSignOut={handleSignOut}
+        onGoToLanding={() => setViewMode('landing')}
       />
 
       {/* Main Container View */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
-        {/* Role 1: Super-Admin Control Plane */}
-        {activeRole === 'super-admin' && (
+        {/* Role 1: Super-Admin Control Plane (System Admin only) */}
+        {activeRole === 'super-admin' && isOperatorUnlocked && (
           <SuperAdminDashboard
             tenants={tenants}
             activeTenant={activeTenant}
@@ -153,7 +305,7 @@ export default function App() {
           />
         )}
 
-        {/* Role 2: Organizer Console */}
+        {/* Role 2: Organizer Console (The Company's Section) */}
         {activeRole === 'organizer' && (
           <OrganizerDashboard
             tenant={activeTenant}
@@ -179,7 +331,7 @@ export default function App() {
           />
         )}
 
-        {/* Role 4: Attendee Portal (Registration & Ticket) */}
+        {/* Role 4: Attendee Portal (Registration & Digital Ticket) */}
         {activeRole === 'attendee' && (
           <AttendeePortal
             tenant={activeTenant}
@@ -227,17 +379,41 @@ export default function App() {
 
       </main>
 
-      {/* Footer */}
+      {/* Global Modals */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        tenants={tenants}
+        onLoginCompany={handleLoginCompany}
+        onLoginSuperAdmin={handleLoginSuperAdmin}
+        onOpenRegisterCompany={() => setIsCompanyRegOpen(true)}
+      />
+
+      <CompanyRegistrationModal
+        isOpen={isCompanyRegOpen}
+        onClose={() => setIsCompanyRegOpen(false)}
+        onCompanyRegistered={handleCompanyRegistered}
+        plans={plans}
+      />
+
+      {/* Authenticated Dashboard Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-slate-300">EventFlow Cloud Platform</span>
             <span>•</span>
-            <span>Multi-Tenant Architecture</span>
+            <span>Strict Multi-Tenant Isolation</span>
             <span>•</span>
             <span className="text-emerald-400 font-mono">Row-Level Security Active</span>
           </div>
-          <div className="flex items-center gap-2 text-slate-400">
+          <div className="flex items-center gap-3 text-slate-400">
+            <button
+              onClick={() => setViewMode('landing')}
+              className="text-cyan-400 hover:text-cyan-300 underline font-medium"
+            >
+              Public Commercial Website
+            </button>
+            <span>•</span>
             <span>Version 1.0 Production Architecture</span>
           </div>
         </div>

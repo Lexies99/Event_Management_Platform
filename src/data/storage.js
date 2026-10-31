@@ -5,7 +5,7 @@ import {
   INITIAL_REGISTRATIONS,
   INITIAL_CHAT_MESSAGES,
   INITIAL_AUDIT_LOGS
-} from './mockData';
+} from './mockData.js';
 
 const STORAGE_KEYS = {
   TENANTS: 'emp_tenants_v1',
@@ -248,6 +248,9 @@ export const Storage = {
       organization: regData.organization || "Independent",
       jobTitle: regData.jobTitle || "Attendee",
       category: regData.category || "Attendee",
+      passType: regData.passType || "full_week",
+      selectedDays: regData.selectedDays || ["day-1", "day-2", "day-3", "day-4", "day-5"],
+      dailyAttendance: regData.dailyAttendance || {},
       status: "registered",
       ticketCode,
       photoUrl: regData.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
@@ -270,8 +273,8 @@ export const Storage = {
     return newReg;
   },
 
-  // Check-In Logic
-  checkInByCode(ticketCode, staffName = "Check-in Staff", isOffline = false) {
+  // Check-In Logic with Multi-Day Date Validation (FR-2)
+  checkInByCode(ticketCode, staffName = "Check-in Staff", isOffline = false, currentDayId = "day-1", currentDayLabel = "Day 1") {
     const regs = safeGet(STORAGE_KEYS.REGISTRATIONS, INITIAL_REGISTRATIONS);
     const regIndex = regs.findIndex(r => r.ticketCode.trim().toUpperCase() === ticketCode.trim().toUpperCase());
 
@@ -281,12 +284,26 @@ export const Storage = {
 
     const attendee = regs[regIndex];
 
-    // Duplicate Check warning
-    if (attendee.status === "attended") {
+    // MULTI-DAY PASS VALIDATION: Check if attendee has access to today
+    if (attendee.selectedDays && attendee.selectedDays.length > 0 && !attendee.selectedDays.includes(currentDayId)) {
       return {
         success: false,
-        reason: "ALREADY_CHECKED_IN",
-        message: `DUPLICATE SCAN: ${attendee.name} was already checked in at ${new Date(attendee.checkedInAt).toLocaleTimeString()} by ${attendee.checkedInBy || 'Staff'}.`,
+        notPermittedToday: true,
+        reason: "DAY_NOT_INCLUDED",
+        message: `⛔ ACCESS DENIED: Ticket Not Valid for Today (${currentDayLabel}). Attendee has access to: ${attendee.selectedDays.join(', ')}.`,
+        attendee
+      };
+    }
+
+    // MULTI-DAY DUPLICATE CHECK: Has attendee already checked in specifically for today?
+    const daily = attendee.dailyAttendance || {};
+    if (daily[currentDayId]) {
+      const existingScan = daily[currentDayId];
+      return {
+        success: false,
+        alreadyCheckedIn: true,
+        reason: "ALREADY_CHECKED_IN_TODAY",
+        message: `⚠️ DUPLICATE SCAN FOR TODAY: ${attendee.name} was already checked in for ${currentDayLabel} at ${new Date(existingScan.timestamp).toLocaleTimeString()} by ${existingScan.checkedInBy || 'Staff'}.`,
         attendee
       };
     }
@@ -297,24 +314,34 @@ export const Storage = {
       const offlineRecord = {
         ticketCode,
         staffName,
+        currentDayId,
         timestamp: new Date().toISOString()
       };
       safeSet(STORAGE_KEYS.OFFLINE_QUEUE, [...queue, offlineRecord]);
       return {
         success: true,
         isOfflineQueue: true,
-        message: `Offline mode: ${attendee.name} queued for sync.`,
+        message: `Offline mode: ${attendee.name} queued for sync for ${currentDayLabel}.`,
         attendee: { ...attendee, status: "attended" }
       };
     }
 
-    // Live update
+    // Live update with dailyAttendance record
     const updatedAttendee = {
       ...attendee,
       status: "attended",
       checkedInAt: new Date().toISOString(),
       checkedInBy: staffName,
-      badgePrintedCount: (attendee.badgePrintedCount || 0) + 1
+      badgePrintedCount: (attendee.badgePrintedCount || 0) + 1,
+      dailyAttendance: {
+        ...daily,
+        [currentDayId]: {
+          attended: true,
+          checkedIn: true,
+          timestamp: new Date().toISOString(),
+          checkedInBy: staffName
+        }
+      }
     };
 
     regs[regIndex] = updatedAttendee;
@@ -324,13 +351,13 @@ export const Storage = {
       tenantId: attendee.tenantId,
       user: staffName,
       action: "CHECKIN_RECORDED",
-      target: `${attendee.name} (${attendee.ticketCode})`
+      target: `${attendee.name} (${attendee.ticketCode}) on ${currentDayLabel}`
     });
 
     return {
       success: true,
       reason: "SUCCESS",
-      message: `Check-in successful! Welcome, ${attendee.name}.`,
+      message: `Access Granted for ${currentDayLabel}! Welcome, ${attendee.name}.`,
       attendee: updatedAttendee
     };
   },

@@ -29,6 +29,7 @@ import {
 import { generateQrDataUrl } from '../../utils/qr';
 import confetti from 'canvas-confetti';
 import CertificateModal from '../Common/CertificateModal';
+import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 
 const PRESET_AVATARS = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
@@ -52,6 +53,8 @@ export default function AttendeePortal({
   });
   const [copiedRegLink, setCopiedRegLink] = useState(false);
   
+  const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
+
   // Registration form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -59,6 +62,8 @@ export default function AttendeePortal({
   const [organization, setOrganization] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [category, setCategory] = useState(event?.categories?.[0] || 'Attendee');
+  const [passType, setPassType] = useState('full_week'); // 'full_week' | 'three_day' | 'custom'
+  const [selectedDays, setSelectedDays] = useState(() => (event?.eventDays || DEFAULT_EVENT_DAYS).map(d => d.id));
   const [photoUrl, setPhotoUrl] = useState(PRESET_AVATARS[0]);
   const [consentAccepted, setConsentAccepted] = useState(true);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -97,6 +102,11 @@ export default function AttendeePortal({
       return;
     }
 
+    if (!selectedDays || selectedDays.length === 0) {
+      setFormError("Please select at least one event day to attend.");
+      return;
+    }
+
     try {
       const newReg = onAddRegistration({
         tenantId: tenant.id,
@@ -108,7 +118,9 @@ export default function AttendeePortal({
         jobTitle,
         category,
         photoUrl,
-        consentAccepted
+        consentAccepted,
+        passType,
+        selectedDays
       });
 
       confetti({
@@ -371,6 +383,51 @@ export default function AttendeePortal({
               <h3 className="text-lg font-extrabold text-white">{currentAttendee.name}</h3>
               <p className="text-xs text-slate-300 font-medium">{currentAttendee.jobTitle}</p>
               <p className="text-xs text-indigo-400 font-semibold">{currentAttendee.organization}</p>
+
+              {/* Multi-Day Pass & Valid Days (FR-1.7) */}
+              <div className="mt-4 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-center gap-1.5 mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                    Pass Type:
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    {currentAttendee.passType === 'full_week' 
+                      ? 'Full Week All-Access Pass (5 Days)' 
+                      : currentAttendee.passType === 'three_day'
+                      ? '3-Day Summit Pass (Days 1–3)'
+                      : `Custom Pass (${currentAttendee.selectedDays?.length || 1} Days)`}
+                  </span>
+                </div>
+
+                {/* Day Access Matrix Badges */}
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  {eventDays.map((d) => {
+                    const isPermitted = (currentAttendee.selectedDays || []).includes(d.id);
+                    const isCheckedInToday = (currentAttendee.dailyAttendance?.[d.id]?.checkedIn || currentAttendee.dailyAttendance?.[d.id]?.attended || !!currentAttendee.dailyAttendance?.[d.id]);
+                    return (
+                      <span
+                        key={d.id}
+                        className={`px-2 py-0.5 rounded-md text-[9px] font-bold tracking-tight transition-all ${
+                          isPermitted
+                            ? isCheckedInToday
+                              ? 'bg-emerald-500 text-white shadow-sm font-extrabold'
+                              : 'bg-indigo-950 text-indigo-200 border border-indigo-500/40'
+                            : 'bg-slate-800/60 text-slate-500 line-through border border-slate-800'
+                        }`}
+                        title={
+                          isPermitted
+                            ? isCheckedInToday
+                              ? `${d.label}: Checked In at ${new Date(currentAttendee.dailyAttendance[d.id].timestamp).toLocaleTimeString()}`
+                              : `${d.label}: Permitted entry`
+                            : `${d.label}: Access not included in pass`
+                        }
+                      >
+                        {d.label.split(' ')[0]} {isPermitted ? (isCheckedInToday ? '✓ Checked' : '✓') : '✗'}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* QR Code Ticket Section (Single use check-in) */}
@@ -592,6 +649,158 @@ export default function AttendeePortal({
                     onChange={(e) => setJobTitle(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Multi-Day Pass Selection Section */}
+            <div className="pt-2 border-t border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-xs font-bold text-white flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-indigo-400" />
+                    <span>Select Multi-Day Pass & Attendance Schedule *</span>
+                  </label>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Choose whether you will attend all 5 days, a 3-day bundle, or custom days.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  {selectedDays.length} of {eventDays.length} Days Selected
+                </span>
+              </div>
+
+              {/* Pass Tier Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 1. Full Week Pass */}
+                <div
+                  onClick={() => {
+                    setPassType('full_week');
+                    setSelectedDays(eventDays.map(d => d.id));
+                  }}
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                    passType === 'full_week'
+                      ? 'bg-indigo-600/20 border-indigo-500 shadow-md shadow-indigo-500/10'
+                      : 'bg-slate-800/40 border-slate-700 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-extrabold text-white">Full Week Pass</span>
+                    <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      passType === 'full_week' ? 'border-indigo-400 bg-indigo-500' : 'border-slate-500'
+                    }`}>
+                      {passType === 'full_week' && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    All-access to all 5 event days (Mon - Fri) including gala.
+                  </p>
+                  <span className="mt-2 inline-block text-[10px] font-bold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded">
+                    5 Days Included
+                  </span>
+                </div>
+
+                {/* 2. Three Day Pass */}
+                <div
+                  onClick={() => {
+                    setPassType('three_day');
+                    setSelectedDays(['day-1', 'day-2', 'day-3']);
+                  }}
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                    passType === 'three_day'
+                      ? 'bg-indigo-600/20 border-indigo-500 shadow-md shadow-indigo-500/10'
+                      : 'bg-slate-800/40 border-slate-700 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-extrabold text-white">3-Day Pass</span>
+                    <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      passType === 'three_day' ? 'border-indigo-400 bg-indigo-500' : 'border-slate-500'
+                    }`}>
+                      {passType === 'three_day' && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Access to Day 1 to Day 3 (Opening Summit & Masterclasses).
+                  </p>
+                  <span className="mt-2 inline-block text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded">
+                    Days 1, 2, 3 Bundle
+                  </span>
+                </div>
+
+                {/* 3. Custom Individual Days */}
+                <div
+                  onClick={() => {
+                    setPassType('custom');
+                  }}
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                    passType === 'custom'
+                      ? 'bg-indigo-600/20 border-indigo-500 shadow-md shadow-indigo-500/10'
+                      : 'bg-slate-800/40 border-slate-700 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-extrabold text-white">Custom Days</span>
+                    <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      passType === 'custom' ? 'border-indigo-400 bg-indigo-500' : 'border-slate-500'
+                    }`}>
+                      {passType === 'custom' && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Pick and choose specific individual days according to schedule.
+                  </p>
+                  <span className="mt-2 inline-block text-[10px] font-bold text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded">
+                    Custom Schedule
+                  </span>
+                </div>
+              </div>
+
+              {/* Day Checkboxes (active always or when custom selected) */}
+              <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-2">
+                <span className="text-[11px] font-semibold text-slate-300 block">
+                  Select Days To Attend:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {eventDays.map((d) => {
+                    const isChecked = selectedDays.includes(d.id);
+                    return (
+                      <label
+                        key={d.id}
+                        className={`flex items-start gap-2.5 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                          isChecked
+                            ? 'bg-indigo-600/20 border-indigo-500/60 text-white font-medium'
+                            : 'bg-slate-800/30 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const updated = [...selectedDays, d.id];
+                              setSelectedDays(updated);
+                              if (updated.length === eventDays.length) {
+                                setPassType('full_week');
+                              } else {
+                                setPassType('custom');
+                              }
+                            } else {
+                              const updated = selectedDays.filter(id => id !== d.id);
+                              setSelectedDays(updated);
+                              setPassType('custom');
+                            }
+                          }}
+                          className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="leading-tight">
+                          <span className="font-bold block text-slate-200">{d.label}</span>
+                          <span className="text-[10px] text-slate-400 block">{d.name.split(' - ')[1] || d.name}</span>
+                          <span className="text-[10px] text-indigo-400/80 font-mono">{d.date}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             </div>

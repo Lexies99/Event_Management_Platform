@@ -118,6 +118,14 @@ export const INITIAL_TENANTS = [
   }
 ];
 
+export const DEFAULT_EVENT_DAYS = [
+  { id: "day-1", label: "Day 1 (Mon)", name: "Day 1 - Opening Summit & Keynotes", date: "2026-11-20" },
+  { id: "day-2", label: "Day 2 (Tue)", name: "Day 2 - Technical Tracks & AI", date: "2026-11-21" },
+  { id: "day-3", label: "Day 3 (Wed)", name: "Day 3 - Masterclasses & Workshops", date: "2026-11-22" },
+  { id: "day-4", label: "Day 4 (Thu)", name: "Day 4 - Showcase & Deal Rooms", date: "2026-11-23" },
+  { id: "day-5", label: "Day 5 (Fri)", name: "Day 5 - Executive Closing Gala", date: "2026-11-24" }
+];
+
 export const INITIAL_EVENTS = [
   {
     id: "evt-acme-1",
@@ -126,13 +134,14 @@ export const INITIAL_EVENTS = [
     tagline: "Frontiers in AI, Cloud Architecture & Scalable Platforms",
     description: "Join over 500 technologists, enterprise architects, and product innovators for two immersive days of keynotes, breakout tracks, and hands-on demonstrations.",
     venue: "Grand Ballroom, Accra International Conference Centre & Virtual",
-    startsAt: "2026-10-24T09:00",
-    endsAt: "2026-10-25T18:00",
+    startsAt: "2026-11-20T09:00",
+    endsAt: "2026-11-24T18:00",
     capacity: 500,
-    registrationDeadline: "2026-10-23T23:59",
+    registrationDeadline: "2026-11-19T23:59",
     currency: "USD",
     price: 0, // Free / RSVP
     categories: ["Attendee", "Speaker", "VIP", "Sponsor", "Press"],
+    eventDays: DEFAULT_EVENT_DAYS,
     badgeConfig: {
       badgeTitle: "SUMMIT PASS",
       showQr: true,
@@ -201,12 +210,17 @@ export const INITIAL_REGISTRATIONS = [
     organization: "CloudSphere Africa",
     jobTitle: "Lead Systems Architect",
     category: "Speaker",
+    passType: "full_week",
+    selectedDays: ["day-1", "day-2", "day-3", "day-4", "day-5"],
+    dailyAttendance: {
+      "day-1": { attended: true, timestamp: "2026-11-20T08:45:12Z", checkedInBy: "Kofi Boateng" }
+    },
     status: "attended",
     ticketCode: "TKT-ACM-8891",
     photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
     registeredAt: "2026-10-10T14:22:00Z",
-    checkedInAt: "2026-10-24T08:45:12Z",
-    checkedInBy: "Kofi Boateng (Staff #04)",
+    checkedInAt: "2026-11-20T08:45:12Z",
+    checkedInBy: "Kofi Boateng (Desk 1)",
     badgePrintedCount: 1,
     consentAccepted: true
   },
@@ -220,12 +234,17 @@ export const INITIAL_REGISTRATIONS = [
     organization: "Addis Ventures",
     jobTitle: "Managing Partner",
     category: "VIP",
+    passType: "three_day",
+    selectedDays: ["day-1", "day-2", "day-3"],
+    dailyAttendance: {
+      "day-1": { attended: true, timestamp: "2026-11-20T09:05:30Z", checkedInBy: "Ama Serwah" }
+    },
     status: "attended",
     ticketCode: "TKT-ACM-9104",
     photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
     registeredAt: "2026-10-12T09:14:00Z",
-    checkedInAt: "2026-10-24T09:05:30Z",
-    checkedInBy: "Ama Serwah (Staff #01)",
+    checkedInAt: "2026-11-20T09:05:30Z",
+    checkedInBy: "Ama Serwah (Desk 2)",
     badgePrintedCount: 1,
     consentAccepted: true
   },
@@ -239,12 +258,15 @@ export const INITIAL_REGISTRATIONS = [
     organization: "Nebula AI Labs",
     jobTitle: "VP of Engineering",
     category: "Speaker",
+    passType: "custom",
+    selectedDays: ["day-1", "day-2"], // Valid for Day 1 and Day 2 only!
+    dailyAttendance: {},
     status: "attended",
     ticketCode: "TKT-ACM-7032",
     photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
     registeredAt: "2026-10-14T11:45:00Z",
-    checkedInAt: "2026-10-24T09:12:15Z",
-    checkedInBy: "Ama Serwah (Staff #01)",
+    checkedInAt: "2026-11-20T09:12:15Z",
+    checkedInBy: "Ama Serwah (Desk 2)",
     badgePrintedCount: 2,
     consentAccepted: true
   },
@@ -258,6 +280,9 @@ export const INITIAL_REGISTRATIONS = [
     organization: "DataBank Capital",
     jobTitle: "Senior FinTech Analyst",
     category: "Attendee",
+    passType: "single_day",
+    selectedDays: ["day-1"], // Day 1 only
+    dailyAttendance: {},
     status: "attended",
     ticketCode: "TKT-ACM-5519",
     photoUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&auto=format&fit=crop&q=80",

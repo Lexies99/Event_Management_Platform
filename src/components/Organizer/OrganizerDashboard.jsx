@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   UserCheck, 
@@ -23,11 +23,18 @@ import {
   BarChart3,
   Copy,
   Share2,
-  ExternalLink
+  ExternalLink,
+  QrCode,
+  Smartphone,
+  Upload
 } from 'lucide-react';
 import { exportAttendeesToCSV } from '../../utils/export';
+import { generateQrDataUrl } from '../../utils/qr';
+import { Storage } from '../../data/storage';
 import BadgeModal from '../Common/BadgeModal';
 import CertificateModal from '../Common/CertificateModal';
+import RegistrationQrModal from './RegistrationQrModal';
+import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 
 export default function OrganizerDashboard({
   tenant,
@@ -41,8 +48,11 @@ export default function OrganizerDashboard({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [selectedPassType, setSelectedPassType] = useState('ALL'); // 'ALL' | 'full_week' | 'three_day' | 'custom'
   const [selectedAttendeeForBadge, setSelectedAttendeeForBadge] = useState(null);
   const [selectedAttendeeForCert, setSelectedAttendeeForCert] = useState(null);
+
+  const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
 
   // Communication message broadcast state
   const [broadcastTarget, setBroadcastTarget] = useState('ALL'); // 'ALL' | 'ATTENDED' | 'NOSHOW'
@@ -82,14 +92,28 @@ export default function OrganizerDashboard({
     
     const matchesCategory = selectedCategory === 'ALL' || r.category === selectedCategory;
     const matchesStatus = selectedStatus === 'ALL' || r.status === selectedStatus;
+    const matchesPassType = selectedPassType === 'ALL' || r.passType === selectedPassType;
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesStatus && matchesPassType;
   });
 
   const [exportNotice, setExportNotice] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [miniQrUrl, setMiniQrUrl] = useState(null);
 
   const registrationLink = `${window.location.origin}/?tenant=${tenant?.slug}&role=attendee&register=true`;
+
+  useEffect(() => {
+    if (registrationLink) {
+      generateQrDataUrl(registrationLink, {
+        width: 140,
+        margin: 1,
+        darkColor: '#0f172a',
+        lightColor: '#ffffff'
+      }).then(url => setMiniQrUrl(url));
+    }
+  }, [registrationLink]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(registrationLink);
@@ -132,6 +156,21 @@ export default function OrganizerDashboard({
     setTimeout(() => setBroadcastSentNotice(null), 5000);
   };
 
+  const handleUpdateLogo = (e) => {
+    const file = e.target.files?.[0];
+    if (file && tenant?.id) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image must be smaller than 5MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        Storage.updateTenant(tenant.id, { logoUrl: event.target.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="space-y-6">
       
@@ -165,11 +204,35 @@ export default function OrganizerDashboard({
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-md uppercase tracking-wider">
-                Organizer Console
-              </span>
-              <span className="text-xs text-white/80">• {tenant?.name}</span>
+            <div className="flex items-center gap-3.5 mb-3">
+              <div className="relative group shrink-0">
+                <img 
+                  src={tenant?.logoUrl} 
+                  alt={tenant?.name} 
+                  className="w-12 h-12 rounded-2xl object-cover border-2 border-white/40 shadow-lg bg-slate-900"
+                />
+                <label 
+                  className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-white" 
+                  title="Upload new company icon / logo"
+                >
+                  <Upload className="w-4 h-4 text-white" />
+                  <input type="file" accept="image/*" onChange={handleUpdateLogo} className="hidden" />
+                </label>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-md uppercase tracking-wider">
+                    Organizer Console
+                  </span>
+                  <span className="text-xs text-white/80">• {tenant?.name}</span>
+                </div>
+                <label className="text-[11px] text-white/80 hover:text-white underline cursor-pointer flex items-center gap-1 mt-0.5 font-medium">
+                  <Upload className="w-3 h-3 text-cyan-300" />
+                  <span>Upload Company Icon</span>
+                  <input type="file" accept="image/*" onChange={handleUpdateLogo} className="hidden" />
+                </label>
+              </div>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               {event?.title || 'Acme Global Tech Summit 2026'}
@@ -195,12 +258,21 @@ export default function OrganizerDashboard({
 
           <div className="flex flex-wrap items-center gap-2.5">
             <button
+              onClick={() => setIsQrModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs shadow-xl transition-all active:scale-95"
+              title="View Attendee Registration QR Code & Printable Entrance Sign"
+            >
+              <QrCode className="w-4 h-4 text-slate-950" />
+              <span>Registration QR & Sign</span>
+            </button>
+
+            <button
               onClick={handleCopyLink}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-900 font-bold text-xs shadow-xl hover:bg-slate-100 transition-all active:scale-95"
               title="Copy public attendee registration link to share"
             >
               <Copy className="w-4 h-4 text-indigo-600" />
-              <span>{copiedLink ? "Link Copied!" : "Copy Registration Link"}</span>
+              <span>{copiedLink ? "Link Copied!" : "Copy Link"}</span>
             </button>
 
             <button
@@ -212,6 +284,69 @@ export default function OrganizerDashboard({
               <span>Export CSV</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Prominent Attendee Registration QR Code & Entrance Sign Hub */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+        <div className="flex items-center gap-5">
+          {/* QR Thumbnail */}
+          <div 
+            onClick={() => setIsQrModalOpen(true)}
+            className="cursor-pointer group relative p-2 bg-white rounded-2xl shadow-xl border border-slate-700/60 transition-transform hover:scale-105 shrink-0"
+            title="Click to expand Registration QR Code & Print Sign"
+          >
+            {miniQrUrl ? (
+              <img src={miniQrUrl} alt="Registration QR Preview" className="w-20 h-20 object-contain rounded-lg" />
+            ) : (
+              <div className="w-20 h-20 bg-slate-200 animate-pulse rounded-lg" />
+            )}
+            <div className="absolute inset-0 bg-indigo-950/70 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">
+              Expand
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider">
+                Attendee Self-Registration Active
+              </span>
+              <span className="text-xs text-slate-400">• Mobile Optical Scan Ready</span>
+            </div>
+            <h3 className="text-base sm:text-lg font-black text-white">
+              Where Attendees Register: Scannable QR Code & Public Link
+            </h3>
+            <p className="text-xs text-slate-300 mt-0.5 max-w-xl leading-relaxed">
+              Delegates can scan this QR code with their mobile cameras or click the link to submit their details, upload a photo, and receive their instant digital ticket badge.
+            </p>
+            <div className="flex items-center gap-2 mt-2 font-mono text-[11px] text-cyan-400">
+              <span className="text-slate-400 font-sans">Public URL:</span>
+              <span className="bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800 truncate max-w-[260px] sm:max-w-md">
+                {registrationLink}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+          <button
+            onClick={() => setIsQrModalOpen(true)}
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 transition-all"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print Entrance Sign / Flyer</span>
+          </button>
+
+          <a
+            href={registrationLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Test Registration Page</span>
+          </a>
         </div>
       </div>
 
@@ -401,6 +536,57 @@ export default function OrganizerDashboard({
             </div>
           </div>
 
+          {/* Multi-Day Turnout Breakdown Section */}
+          <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-indigo-400" />
+                  <span>Multi-Day Turnout & Attendance Breakdown</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Daily tracking for week-long summit (Full Week vs 3-Day vs Custom Passes)
+                </p>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                5 Scheduled Days
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+              {eventDays.map((d) => {
+                const dayPermitted = eventRegistrations.filter(r => (r.selectedDays || []).includes(d.id)).length;
+                const dayCheckedIn = eventRegistrations.filter(r => (r.dailyAttendance?.[d.id]?.checkedIn || r.dailyAttendance?.[d.id]?.attended || !!r.dailyAttendance?.[d.id])).length;
+                const dayRate = dayPermitted > 0 ? Math.round((dayCheckedIn / dayPermitted) * 100) : 0;
+
+                return (
+                  <div key={d.id} className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-2 hover:border-slate-700 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-white">{d.label}</span>
+                      <span className="text-[10px] font-mono text-indigo-400">{d.date.slice(5)}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 truncate" title={d.name}>
+                      {d.name.split(' - ')[1] || d.name}
+                    </p>
+                    <div className="pt-1 flex items-baseline justify-between text-xs">
+                      <span className="text-emerald-400 font-extrabold">{dayCheckedIn} checked</span>
+                      <span className="text-slate-400 font-medium">/ {dayPermitted} valid</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${dayRate}%` }}
+                      />
+                    </div>
+                    <div className="text-right text-[10px] font-bold text-slate-400">
+                      {dayRate}% Turnout
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -446,6 +632,17 @@ export default function OrganizerDashboard({
                 <option value="registered">Registered (No-show)</option>
               </select>
 
+              <select
+                value={selectedPassType}
+                onChange={(e) => setSelectedPassType(e.target.value)}
+                className="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="ALL">All Pass Types</option>
+                <option value="full_week">Full Week Pass (5 Days)</option>
+                <option value="three_day">3-Day Pass (Days 1–3)</option>
+                <option value="custom">Custom Day Pass</option>
+              </select>
+
               <button
                 onClick={() => handleExportCSV(filteredAttendees)}
                 className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition-colors active:scale-95 shadow-sm"
@@ -466,6 +663,7 @@ export default function OrganizerDashboard({
                   <th className="py-3 px-3">Attendee</th>
                   <th className="py-3 px-3">Organization & Role</th>
                   <th className="py-3 px-3">Category</th>
+                  <th className="py-3 px-3">Pass & Permitted Days</th>
                   <th className="py-3 px-3">Ticket Code</th>
                   <th className="py-3 px-3">Status</th>
                   <th className="py-3 px-3">Check-in Details</th>
@@ -511,6 +709,40 @@ export default function OrganizerDashboard({
                           <span className="px-2 py-0.5 rounded font-bold text-[10px] uppercase bg-slate-800 text-indigo-300 border border-slate-700">
                             {att.category}
                           </span>
+                        </td>
+
+                        {/* Pass & Permitted Days */}
+                        <td className="py-3 px-3">
+                          <div className="space-y-1">
+                            <span className="inline-block px-2 py-0.5 rounded font-black text-[9px] uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                              {att.passType === 'full_week' 
+                                ? 'Full Week' 
+                                : att.passType === 'three_day' 
+                                ? '3-Day' 
+                                : `Custom (${att.selectedDays?.length || 1}D)`}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {eventDays.map((d, idx) => {
+                                const isPermitted = (att.selectedDays || []).includes(d.id);
+                                const isChecked = (att.dailyAttendance?.[d.id]?.checkedIn || att.dailyAttendance?.[d.id]?.attended || !!att.dailyAttendance?.[d.id]);
+                                return (
+                                  <span
+                                    key={d.id}
+                                    className={`w-4 h-4 rounded text-[8px] font-black flex items-center justify-center border ${
+                                      isPermitted
+                                        ? isChecked
+                                          ? 'bg-emerald-500 text-white border-emerald-400'
+                                          : 'bg-indigo-950 text-indigo-300 border-indigo-700/60'
+                                        : 'bg-slate-900 text-slate-600 border-slate-800 line-through'
+                                    }`}
+                                    title={`${d.label}: ${isPermitted ? (isChecked ? 'Checked In' : 'Valid') : 'No Access'}`}
+                                  >
+                                    {`D${idx + 1}`}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
                         </td>
 
                         {/* Ticket Code */}
@@ -774,6 +1006,14 @@ export default function OrganizerDashboard({
         attendee={selectedAttendeeForCert}
         event={event}
         tenant={tenant}
+      />
+
+      <RegistrationQrModal
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
+        tenant={tenant}
+        event={event}
+        registrationLink={registrationLink}
       />
 
     </div>

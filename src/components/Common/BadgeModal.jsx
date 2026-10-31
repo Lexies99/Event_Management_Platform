@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Printer, Shield, CheckCircle2, RotateCw } from 'lucide-react';
 import { generateQrDataUrl } from '../../utils/qr';
 import { printElementCleanly } from '../../utils/print';
+import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 
 export default function BadgeModal({ 
   isOpen, 
@@ -15,6 +16,8 @@ export default function BadgeModal({
   const [qrUrl, setQrUrl] = useState(null);
   const [reprintReason, setReprintReason] = useState('');
   const [showReasonBox, setShowReasonBox] = useState(false);
+
+  const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
 
   useEffect(() => {
     if (attendee?.ticketCode) {
@@ -138,6 +141,35 @@ export default function BadgeModal({
                   <p className="text-[9px] text-slate-500 mt-0.5">
                     {event?.venue?.split(',')[0] || 'Conference Centre'}
                   </p>
+                </div>
+              </div>
+
+              {/* Multi-Day Attendance Access Matrix */}
+              <div className="flex items-center justify-between px-4 py-1.5 mb-1.5 bg-slate-100 border-y border-slate-200">
+                <span className="text-[9px] font-black uppercase tracking-wider text-slate-700">
+                  {attendee.passType === 'full_week' 
+                    ? '★ FULL WEEK PASS' 
+                    : attendee.passType === 'three_day' 
+                    ? '★ 3-DAY PASS' 
+                    : `★ CUSTOM PASS (${attendee.selectedDays?.length || 1}D)`}
+                </span>
+                <div className="flex items-center gap-1">
+                  {eventDays.map((d, idx) => {
+                    const isPermitted = (attendee.selectedDays || []).includes(d.id);
+                    return (
+                      <span
+                        key={d.id}
+                        className={`w-5 h-4.5 rounded text-[9px] font-extrabold flex items-center justify-center border leading-none ${
+                          isPermitted
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-white text-slate-300 border-slate-200 line-through'
+                        }`}
+                        title={`${d.label}: ${isPermitted ? 'Permitted' : 'Not Included'}`}
+                      >
+                        {`D${idx + 1}`}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
 
