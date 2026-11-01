@@ -201,6 +201,32 @@ export const INITIAL_EVENTS = [
 
 export const INITIAL_REGISTRATIONS = [
   {
+    id: "reg-nana",
+    tenantId: "tenant-acme",
+    eventId: "evt-acme-1",
+    name: "Dr. Nana Assyne",
+    title: "Dr.",
+    country: "Ghana",
+    email: "nana.assyne@gimpa.edu.gh",
+    phone: "+233 24 555 0192",
+    organization: "GIMPA",
+    jobTitle: "Senior Lecturer & HR Strategist",
+    category: "Participant",
+    passType: "full_week",
+    selectedDays: ["day-1", "day-2", "day-3", "day-4", "day-5"],
+    dailyAttendance: {
+      "day-1": { attended: true, checkedIn: true, timestamp: "2026-11-20T08:30:00Z", checkedInBy: "Desk 1 - Main Entrance" }
+    },
+    status: "attended",
+    ticketCode: "TKT-ACM-1024",
+    photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
+    registeredAt: "2026-10-14T11:00:00Z",
+    checkedInAt: "2026-11-20T08:30:00Z",
+    checkedInBy: "Desk 1 - Main Entrance",
+    badgePrintedCount: 1,
+    consentAccepted: true
+  },
+  {
     id: "reg-1",
     tenantId: "tenant-acme",
     eventId: "evt-acme-1",

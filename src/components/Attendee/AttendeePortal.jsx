@@ -29,6 +29,7 @@ import {
 import { generateQrDataUrl } from '../../utils/qr';
 import confetti from 'canvas-confetti';
 import CertificateModal from '../Common/CertificateModal';
+import BadgeModal from '../Common/BadgeModal';
 import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 
 const PRESET_AVATARS = [
@@ -56,7 +57,9 @@ export default function AttendeePortal({
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
 
   // Registration form state
+  const [title, setTitle] = useState('');
   const [name, setName] = useState('');
+  const [country, setCountry] = useState('Ghana');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [organization, setOrganization] = useState('');
@@ -75,6 +78,7 @@ export default function AttendeePortal({
   // Active ticket QR code
   const [activeTicketQr, setActiveTicketQr] = useState(null);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
 
   const eventRegistrations = registrations.filter(r => r.eventId === event?.id);
   const currentAttendee = eventRegistrations.find(r => r.id === currentAttendeeId) || eventRegistrations[0];
@@ -111,7 +115,9 @@ export default function AttendeePortal({
       const newReg = onAddRegistration({
         tenantId: tenant.id,
         eventId: event.id,
-        name,
+        name: title && !name.startsWith(title) ? `${title} ${name.trim()}` : name.trim(),
+        title,
+        country,
         email,
         phone,
         organization,
@@ -469,6 +475,12 @@ export default function AttendeePortal({
 
           {/* Attendee Actions */}
           <div className="max-w-md mx-auto flex items-center justify-between gap-3">
+            <button
+              onClick={() => setIsBadgeModalOpen(true)}
+              className="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30 transition-all transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <span>🏷️ View Lanyard Tag Badge</span>
+            </button>
             <button
               onClick={() => window.print()}
               className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition-colors"
@@ -987,6 +999,14 @@ export default function AttendeePortal({
         attendee={currentAttendee}
         event={event}
         tenant={tenant}
+      />
+
+      <BadgeModal
+        isOpen={isBadgeModalOpen}
+        onClose={() => setIsBadgeModalOpen(false)}
+        attendee={currentAttendee}
+        tenant={tenant}
+        event={event}
       />
 
     </div>

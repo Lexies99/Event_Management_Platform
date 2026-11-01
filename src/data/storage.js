@@ -243,6 +243,8 @@ export const Storage = {
       tenantId: regData.tenantId,
       eventId: regData.eventId,
       name: regData.name,
+      title: regData.title || "",
+      country: regData.country || "Ghana",
       email: regData.email,
       phone: regData.phone || "",
       organization: regData.organization || "Independent",
