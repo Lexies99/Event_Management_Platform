@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --brand-500: #4f46e5;
-  --brand-600: #4338ca;
-  --brand-700: #3730a3;
+  --brand-500: #E0C97E;
+  --brand-600: #FB9378;
+  --brand-700: #AB6088;
 }
 
 html {
@@ -15,7 +15,7 @@ html {
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #0f172a;
+  background-color: #090A0D;
   color: #f8fafc;
   overflow-x: hidden;
 }
@@ -26,32 +26,83 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #090A0D;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #232530;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #393C4E;
+}
+
+/* Luxury Multi-color Palette Gradient Text: Mauve -> Coral -> Champagne -> Butter */
+.text-palette-gradient {
+  background: linear-gradient(90deg, #AB6088 0%, #FB9378 35%, #E0C97E 70%, #FCF8B3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Reverse Palette Gradient */
+.text-palette-gradient-rev {
+  background: linear-gradient(90deg, #FCF8B3 0%, #E0C97E 30%, #FB9378 70%, #AB6088 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Iridescent Gradient Border Pill / Button */
+.btn-gradient-border {
+  position: relative;
+  background: #090A0D;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  z-index: 1;
+}
+
+.btn-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #AB6088 0%, #FB9378 40%, #E0C97E 75%, #FCF8B3 100%);
+  z-index: -1;
+  opacity: 0.95;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.btn-gradient-border:hover::before {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px rgba(251, 147, 120, 0.45));
+}
+
+/* Card with subtle luxury styling */
+.card-luxury {
+  background: #111217;
+  border: 1px solid #1E202B;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-luxury:hover {
+  border-color: #323545;
+  transform: translateY(-2px);
 }
 
 /* Glassmorphism utilities */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(17, 18, 23, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-panel-subtle {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(9, 10, 13, 0.6);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glow-brand {
-  box-shadow: 0 0 25px -5px var(--brand-500, #4f46e5);
+  box-shadow: 0 0 25px -5px rgba(224, 201, 126, 0.3);
 }
 
 /* =========================================================

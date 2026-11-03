@@ -8,17 +8,26 @@ export default {
   theme: {
     extend: {
       colors: {
+        champagne: '#E0C97E',
+        butter: '#FCF8B3',
+        coral: '#FB9378',
+        mauve: '#AB6088',
+        midnight: {
+          DEFAULT: '#090A0D',
+          light: '#111217',
+          elevated: '#171821'
+        },
         brand: {
-          50: 'var(--brand-50, #eef2ff)',
-          100: 'var(--brand-100, #e0e7ff)',
-          200: 'var(--brand-200, #c7d2fe)',
-          300: 'var(--brand-300, #a5b4fc)',
-          400: 'var(--brand-400, #818cf8)',
-          500: 'var(--brand-500, #6366f1)',
-          600: 'var(--brand-600, #4f46e5)',
-          700: 'var(--brand-700, #4338ca)',
-          800: 'var(--brand-800, #3730a3)',
-          900: 'var(--brand-900, #312e81)',
+          50: '#fdfbf2',
+          100: '#faf5de',
+          200: '#f4e9b9',
+          300: '#ebd78b',
+          400: '#E0C97E',
+          500: '#d4b761',
+          600: '#bc9c4a',
+          700: '#9c7d3b',
+          800: '#806434',
+          900: '#6b532f',
         }
       },
       fontFamily: {
