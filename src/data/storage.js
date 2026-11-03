@@ -4,7 +4,8 @@ import {
   INITIAL_EVENTS,
   INITIAL_REGISTRATIONS,
   INITIAL_CHAT_MESSAGES,
-  INITIAL_AUDIT_LOGS
+  INITIAL_AUDIT_LOGS,
+  INITIAL_STAFF_MEMBERS
 } from './mockData.js';
 
 const STORAGE_KEYS = {
@@ -16,7 +17,8 @@ const STORAGE_KEYS = {
   OFFLINE_QUEUE: 'emp_offline_checkins_v1',
   ACTIVE_TENANT_ID: 'emp_active_tenant_id_v1',
   ACTIVE_ROLE: 'emp_active_role_v1',
-  CURRENT_ATTENDEE_ID: 'emp_current_attendee_id_v1'
+  CURRENT_ATTENDEE_ID: 'emp_current_attendee_id_v1',
+  STAFF_MEMBERS: 'emp_staff_members_v1'
 };
 
 function safeGet(key, defaultVal) {
@@ -453,6 +455,34 @@ export const Storage = {
       ip: "102.176.65.12"
     };
     safeSet(STORAGE_KEYS.AUDIT, [newLog, ...logs]);
+  },
+
+
+  // Staff Team Management (FR-2 multi-admin)
+  getStaffMembers(tenantId) {
+    const all = safeGet(STORAGE_KEYS.STAFF_MEMBERS, INITIAL_STAFF_MEMBERS);
+    if (!tenantId) return all;
+    return all.filter(s => s.tenantId === tenantId);
+  },
+
+  addStaffMember(staffData) {
+    const all = safeGet(STORAGE_KEYS.STAFF_MEMBERS, INITIAL_STAFF_MEMBERS);
+    const newStaff = {
+      id: `staff-${Date.now()}`,
+      scansCount: 0,
+      status: "active",
+      createdAt: new Date().toISOString(),
+      ...staffData
+    };
+    safeSet(STORAGE_KEYS.STAFF_MEMBERS, [newStaff, ...all]);
+    return newStaff;
+  },
+
+  removeStaffMember(staffId) {
+    const all = safeGet(STORAGE_KEYS.STAFF_MEMBERS, INITIAL_STAFF_MEMBERS);
+    const updated = all.filter(s => s.id !== staffId);
+    safeSet(STORAGE_KEYS.STAFF_MEMBERS, updated);
+    return true;
   },
 
   // Reset to seed data

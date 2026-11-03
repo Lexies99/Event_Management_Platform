@@ -615,3 +615,59 @@ export const INITIAL_AUDIT_LOGS = [
     ip: "192.168.1.104"
   }
 ];
+
+
+export const INITIAL_STAFF_MEMBERS = [
+  {
+    id: "staff-1",
+    tenantId: "tenant-test",
+    name: "Kofi Mensah",
+    email: "kofi.mensah@eventplan.cloud",
+    phone: "+233 24 555 0101",
+    station: "Desk 1 - Main Entrance (Kofi)",
+    role: "Lead Check-In Supervisor",
+    pin: "1044",
+    status: "active",
+    scansCount: 42,
+    createdAt: "2026-10-20T08:00:00Z"
+  },
+  {
+    id: "staff-2",
+    tenantId: "tenant-test",
+    name: "Ama Serwah",
+    email: "ama.serwah@eventplan.cloud",
+    phone: "+233 20 888 2345",
+    station: "Desk 2 - General Admission (Ama)",
+    role: "Check-In Scanner",
+    pin: "2289",
+    status: "active",
+    scansCount: 28,
+    createdAt: "2026-10-20T08:30:00Z"
+  },
+  {
+    id: "staff-3",
+    tenantId: "tenant-test",
+    name: "Sarah Quaye",
+    email: "sarah.quaye@eventplan.cloud",
+    phone: "+233 55 123 9988",
+    station: "Desk 3 - VIP & Speakers (Sarah)",
+    role: "VIP Concierge & Badge Printer",
+    pin: "7712",
+    status: "active",
+    scansCount: 15,
+    createdAt: "2026-10-21T09:00:00Z"
+  },
+  {
+    id: "staff-4",
+    tenantId: "tenant-acme",
+    name: "David Osei",
+    email: "david.o@acme.com",
+    phone: "+233 24 990 1122",
+    station: "Desk 1 - Main Entrance (David)",
+    role: "Check-In Scanner",
+    pin: "3301",
+    status: "active",
+    scansCount: 36,
+    createdAt: "2026-10-20T09:00:00Z"
+  }
+];
