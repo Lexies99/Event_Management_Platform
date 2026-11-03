@@ -154,40 +154,40 @@ export default function BadgeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto print:bg-transparent print:p-0 print:static print:overflow-visible">
-      <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-4 sm:p-6 my-4 text-slate-100 print:bg-transparent print:border-none print:shadow-none print:p-0 print:m-0">
+      <div className="relative w-full max-w-xl bg-[#1a1a19] border border-white/15 rounded-3xl shadow-2xl p-4 sm:p-6 my-4 text-white print:bg-transparent print:border-none print:shadow-none print:p-0 print:m-0">
         
         {/* Header Controls */}
-        <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800 print:hidden">
+        <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10 print:hidden">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FB9378]/15 text-[#FB9378] border border-[#FB9378]/30 uppercase tracking-wider font-mono">
                 Official Convention Tag
               </span>
-              <span className="text-xs text-slate-400">• High-DPI Thermal & Lanyard Print</span>
+              <span className="text-xs text-white/50">• High-DPI Thermal & Lanyard Print</span>
             </div>
-            <h3 className="text-lg font-extrabold text-white flex items-center gap-2 mt-1">
-              <Printer className="w-5 h-5 text-indigo-400" />
+            <h3 className="text-lg font-heading font-extrabold text-white flex items-center gap-2 mt-1">
+              <Printer className="w-5 h-5 text-[#FB9378]" />
               <span>Conference Badge Production</span>
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Top Action & Template Toggle Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800 mb-4 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-[#141413] p-2.5 rounded-2xl border border-white/10 mb-4 print:hidden">
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setBadgeTemplate('lanyard')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 badgeTemplate === 'lanyard'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-md'
+                  : 'bg-[#252523] text-white/60 hover:text-white'
               }`}
             >
               <span>🏷️ Conference Lanyard Tag (HR Café Style)</span>
@@ -198,8 +198,8 @@ export default function BadgeModal({
               onClick={() => setBadgeTemplate('photo_id')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 badgeTemplate === 'photo_id'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-md'
+                  : 'bg-[#252523] text-white/60 hover:text-white'
               }`}
             >
               <span>🪪 Executive Photo ID Pass</span>
@@ -210,10 +210,10 @@ export default function BadgeModal({
             <button
               type="button"
               onClick={handleLoadSampleFromPhoto}
-              className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-all"
+              className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-[#E0C97E]/15 hover:bg-[#E0C97E]/25 text-[#FCF8B3] border border-[#E0C97E]/30 flex items-center gap-1 transition-all"
               title="Instantly preview Dr. Nana Assyne badge exactly like the uploaded photo"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <Sparkles className="w-3.5 h-3.5 text-[#E0C97E]" />
               <span>Load Photo Sample (Nana Assyne)</span>
             </button>
 
@@ -222,8 +222,8 @@ export default function BadgeModal({
               onClick={() => setShowCustomizer(!showCustomizer)}
               className={`p-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-colors ${
                 showCustomizer 
-                  ? 'bg-indigo-600 text-white border-indigo-500' 
-                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  ? 'bg-[#FB9378] text-black border-[#FB9378]' 
+                  : 'bg-[#252523] text-white/70 border-white/10 hover:bg-[#323230]'
               }`}
               title="Edit Badge Text Fields"
             >
@@ -234,16 +234,16 @@ export default function BadgeModal({
 
         {/* Collapsible Badge Customizer Drawer */}
         {showCustomizer && (
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 mb-4 space-y-3 text-xs animate-fade-in print:hidden">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="bg-[#141413] border border-white/10 rounded-2xl p-4 mb-4 space-y-3 text-xs animate-fade-in print:hidden">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
               <span className="font-bold text-white flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+                <Sliders className="w-3.5 h-3.5 text-[#FB9378]" />
                 <span>Live Badge Text Customizer</span>
               </span>
               <button
                 type="button"
                 onClick={handleResetToAttendee}
-                className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1"
+                className="text-[11px] text-white/40 hover:text-white flex items-center gap-1"
               >
                 <RefreshCcw className="w-3 h-3" /> Reset to Attendee Data
               </button>
@@ -606,23 +606,23 @@ export default function BadgeModal({
         </div>
 
         {/* Audit Print Count & Duplicate Handling */}
-        <div className="bg-slate-800/70 rounded-2xl p-3.5 my-3 text-xs space-y-2 border border-slate-700/80 print:hidden">
-          <div className="flex justify-between items-center text-slate-300">
+        <div className="bg-[#141413] rounded-2xl p-3.5 my-3 text-xs space-y-2 border border-white/10 print:hidden">
+          <div className="flex justify-between items-center text-white/70">
             <span>Official Print Audit:</span>
-            <span className="font-bold text-white px-2 py-0.5 bg-slate-700 rounded-lg">
+            <span className="font-bold text-white px-2 py-0.5 bg-[#252523] rounded-lg border border-white/10">
               Printed {attendee.badgePrintedCount || 1} time(s)
             </span>
           </div>
           {attendee.badgePrintedCount > 1 && (
-            <p className="text-[11px] text-amber-400 flex items-center gap-1 font-medium">
-              <Shield className="w-3.5 h-3.5 shrink-0" />
+            <p className="text-[11px] text-[#FCF8B3] flex items-center gap-1 font-medium">
+              <Shield className="w-3.5 h-3.5 shrink-0 text-[#E0C97E]" />
               Note: Duplicate reprint recorded in platform audit trail for security.
             </p>
           )}
 
           {showReasonBox && (
-            <div className="pt-2 border-t border-slate-700 space-y-2">
-              <label className="block text-slate-300 font-semibold text-[11px]">
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <label className="block text-white/70 font-semibold text-[11px]">
                 Reason for Badge Reprint:
               </label>
               <input
@@ -630,11 +630,11 @@ export default function BadgeModal({
                 value={reprintReason}
                 onChange={(e) => setReprintReason(e.target.value)}
                 placeholder="e.g. Lost lanyard, typo correction, delegate requested replacement..."
-                className="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-[#1c1c1b] border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#FB9378]"
               />
               <button
                 onClick={handleReprintSubmit}
-                className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors"
+                className="w-full py-2 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <RotateCw className="w-3.5 h-3.5" /> Log Reprint & Print Badge
               </button>
@@ -648,7 +648,7 @@ export default function BadgeModal({
             <button
               type="button"
               onClick={() => setShowReasonBox(true)}
-              className="text-xs text-slate-400 hover:text-amber-400 flex items-center gap-1 font-medium underline"
+              className="text-xs text-white/50 hover:text-[#FB9378] flex items-center gap-1 font-medium underline"
             >
               <RotateCw className="w-3 h-3" /> Log Duplicate Reprint
             </button>
@@ -657,13 +657,13 @@ export default function BadgeModal({
           <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-white/70 hover:text-white rounded-xl bg-[#252523] hover:bg-[#323230] border border-white/10 transition-colors cursor-pointer"
             >
               Close
             </button>
             <button
               onClick={handlePrint}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              className="px-5 py-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-90 text-black rounded-xl text-xs font-extrabold shadow-lg shadow-[#FB9378]/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print Badge Now</span>
