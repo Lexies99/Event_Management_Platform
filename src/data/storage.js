@@ -71,7 +71,8 @@ export const Storage = {
 
   // State Getters
   getTenants() {
-    return safeGet(STORAGE_KEYS.TENANTS, INITIAL_TENANTS);
+    const list = safeGet(STORAGE_KEYS.TENANTS, INITIAL_TENANTS);
+    return list.map(t => (t.logoUrl && t.logoUrl.includes('photo-1618005182384-a83a8bd57fbe') ? { ...t, logoUrl: '' } : t));
   },
 
   getPlans() {
@@ -148,8 +149,8 @@ export const Storage = {
       id: newId,
       name: tenantData.name,
       slug: tenantData.slug,
-      brandColor: tenantData.brandColor || "#4f46e5",
-      logoUrl: tenantData.logoUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=160&auto=format&fit=crop&q=80",
+      brandColor: tenantData.brandColor || "#AB6088",
+      logoUrl: tenantData.logoUrl || "",
       planId: tenantData.planId || "growth",
       status: "active",
       createdAt: new Date().toISOString(),

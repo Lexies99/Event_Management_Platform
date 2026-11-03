@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TenantLogo from '../Common/TenantLogo';
 import { 
   Users, 
   UserCheck, 
@@ -208,11 +209,10 @@ export default function OrganizerDashboard({
           <div>
             <div className="flex items-center gap-3.5 mb-3">
               <div className="relative group shrink-0">
-                <img 
-                  src={tenant?.logoUrl} 
-                  alt={tenant?.name} 
-                  className="w-13 h-13 rounded-2xl object-cover border-2 border-[#E0C97E]/40 shadow-lg bg-[#141413]"
-                  style={{ width: '52px', height: '52px' }}
+                <TenantLogo 
+                  tenant={tenant} 
+                  size={52} 
+                  className="rounded-2xl shadow-lg" 
                 />
                 <label 
                   className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-white" 

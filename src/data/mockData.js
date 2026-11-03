@@ -72,7 +72,7 @@ export const INITIAL_TENANTS = [
     id: "tenant-acme",
     name: "Acme Global Tech",
     slug: "acme",
-    brandColor: "#4f46e5", // Indigo
+    brandColor: "#AB6088", // Mauve
     logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=160&auto=format&fit=crop&q=80",
     planId: "growth",
     status: "active",
@@ -88,7 +88,7 @@ export const INITIAL_TENANTS = [
     id: "tenant-apex",
     name: "Apex Health & Biotech",
     slug: "apex-health",
-    brandColor: "#059669", // Emerald
+    brandColor: "#FB9378", // Warm Coral
     logoUrl: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=160&auto=format&fit=crop&q=80",
     planId: "enterprise",
     status: "active",
@@ -104,7 +104,7 @@ export const INITIAL_TENANTS = [
     id: "tenant-fintech",
     name: "FinTech West Africa",
     slug: "fintech-wa",
-    brandColor: "#d97706", // Amber
+    brandColor: "#E0C97E", // Champagne Gold
     logoUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=160&auto=format&fit=crop&q=80",
     planId: "starter",
     status: "active",

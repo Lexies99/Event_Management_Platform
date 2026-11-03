@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LogOut, ChevronRight } from 'lucide-react';
 import { Storage } from './data/storage';
 import Sidebar from './components/Sidebar';
 import SuperAdminDashboard from './components/SuperAdmin/SuperAdminDashboard';
@@ -283,6 +284,37 @@ export default function App() {
 
       {/* Main Content Area (Right Side on Desktop) */}
       <div className="flex-1 min-w-0 flex flex-col min-h-screen bg-[#141413]">
+        
+        {/* TOP HEADER BAR: Section Breadcrumb & SIGN-OUT IN TOP RIGHT CORNER */}
+        <header className="h-16 border-b border-white/10 px-4 sm:px-8 flex items-center justify-between bg-[#141413]/90 backdrop-blur-md sticky top-0 z-30">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-white/40 hidden sm:inline">Workspace:</span>
+            <span className="text-xs font-heading font-bold text-white bg-[#1c1c1b] px-2.5 py-1 rounded-lg border border-white/10 truncate max-w-[130px] sm:max-w-none">
+              {activeTenant?.name || 'Default Workspace'}
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-white/30 shrink-0" />
+            <span className="text-xs font-bold text-[#FCF8B3] truncate">
+              {activeRole === 'organizer' && 'Organizer Console'}
+              {activeRole === 'staff' && 'Check-in Staff Station'}
+              {activeRole === 'attendee' && 'Attendee Portal'}
+              {activeRole === 'chat' && 'Event Community Chat'}
+              {activeRole === 'super-admin' && 'Super-Admin Fleet'}
+            </span>
+          </div>
+
+          {/* TOP RIGHT CORNER: Sign Out Button */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#1c1c1b] hover:bg-rose-500/15 text-white/80 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 transition-all shadow-sm group active:scale-95 cursor-pointer"
+              title="Sign Out of Workspace"
+            >
+              <LogOut className="w-3.5 h-3.5 text-white/50 group-hover:text-rose-400 transition-colors" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </header>
+
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
         {/* Role 1: Super-Admin Control Plane (System Admin only) */}

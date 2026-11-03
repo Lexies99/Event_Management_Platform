@@ -185,7 +185,10 @@ export default function Sidebar({
             <div className="flex items-center gap-2.5 min-w-0">
               <div 
                 className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-inner"
-                style={{ backgroundColor: activeTenant?.brandColor || '#AB6088' }}
+                style={{ 
+                  background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
+                  color: '#141413'
+                }}
               >
                 {activeTenant?.name?.charAt(0) || 'T'}
               </div>
@@ -396,15 +399,6 @@ export default function Sidebar({
             </div>
           )}
         </div>
-
-        {/* User Sign Out */}
-        <button
-          onClick={onSignOut}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-white/60 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-colors"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Sign Out Workspace</span>
-        </button>
       </div>
 
       {/* Operator PIN Modal */}
@@ -526,3 +520,4 @@ export default function Sidebar({
     </>
   );
 }
+
