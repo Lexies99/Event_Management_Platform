@@ -82,7 +82,7 @@ export default function App() {
 
     if (tenantSlug) {
       const match = tenants.find(t => t.slug === tenantSlug);
-      if (match) {
+      if (match && activeTenant?.id !== match.id) {
         Storage.setActiveTenantId(match.id);
         setActiveTenant(match);
       }
@@ -104,7 +104,7 @@ export default function App() {
       setActiveRole(roleParam);
       setViewMode('app');
     }
-  }, [tenants]);
+  }, []);
 
   // Subscribe to storage changes
   useEffect(() => {
