@@ -12,10 +12,11 @@ export default {
         butter: '#FCF8B3',
         coral: '#FB9378',
         mauve: '#AB6088',
+        body: '#1a1a19',
         midnight: {
-          DEFAULT: '#090A0D',
-          light: '#111217',
-          elevated: '#171821'
+          DEFAULT: '#1a1a19',
+          light: '#222220',
+          elevated: '#2a2a28'
         },
         brand: {
           50: '#fdfbf2',
@@ -31,8 +32,10 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Bricolage Grotesque', 'Plus Jakarta Sans', 'sans-serif'],
+        sans: ['"Roboto"', 'system-ui', 'sans-serif'],
+        body: ['"Roboto"', 'sans-serif'],
+        heading: ['"Bricolage Grotesque"', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'sans-serif'],
       }
     },
   },

@@ -1,77 +1,117 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  Building2, 
-  ShieldCheck, 
-  QrCode, 
-  Users, 
-  UserCheck, 
-  Printer, 
-  Clock, 
-  MessageSquare, 
-  ArrowRight, 
-  CheckCircle2, 
   Lock, 
-  Smartphone,
-  ChevronRight,
-  Database,
-  FileCheck2,
-  WifiOff,
-  Check,
-  Calendar,
-  Sparkles
+  Sparkles, 
+  Users, 
+  Smartphone, 
+  Check, 
+  Database, 
+  FileCheck2, 
+  WifiOff, 
+  CheckCircle2, 
+  Calendar, 
+  Clock, 
+  UserCheck, 
+  QrCode, 
+  Printer, 
+  MessageSquare 
 } from 'lucide-react';
+
+/* Reusable Unifato Iridescent Asterisk / Flower Icon with User Palette */
+function IridescentFlowerIcon({ className = "w-6 h-6" }) {
+  return (
+    <svg viewBox="0 0 30 31" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <path fillRule="evenodd" clipRule="evenodd" d="M16.7132 13.0549L18.4837 0.34996H11.1686L12.955 13.0549C13.4832 12.617 14.1477 12.3773 14.8339 12.3773C15.52 12.3773 16.1845 12.617 16.7127 13.0549H16.7132Z" fill="#AB6088"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M16.7132 17.7233L18.4837 30.4131H11.1686L12.955 17.7233C13.4874 18.1518 14.1504 18.3854 14.8339 18.3854C15.5173 18.3854 16.1803 18.1518 16.7127 17.7233H16.7132Z" fill="#AB6088"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M17.9567 15.0572L28.1826 7.32636L23.0233 2.15176L15.2925 12.393C15.9752 12.463 16.6129 12.7662 17.0982 13.2515C17.5835 13.7368 17.8867 14.3745 17.9567 15.0572Z" fill="#FB9378"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M14.6919 18.3067L6.97614 28.5479L1.80206 23.3736L12.0433 15.6424C12.1074 16.3248 12.4066 16.9637 12.8898 17.4497C13.373 17.9357 14.0102 18.2387 14.6921 18.3067H14.6919Z" fill="#FB9378"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M17.2946 17.2275L29.9998 19.0142V11.6988L17.2946 13.4722C17.7325 14.0003 17.9721 14.6648 17.9721 15.3509C17.9721 16.037 17.7325 16.7015 17.2946 17.2296V17.2275Z" fill="#FCF8B3"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M12.6898 17.2275L3.05176e-05 19.0153V11.6988L12.6898 13.4722C12.2613 14.0046 12.0277 14.6675 12.0277 15.3509C12.0277 16.0343 12.2613 16.6972 12.6898 17.2296V17.2275Z" fill="#FCF8B3"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M15.2925 18.3067L23.0233 28.5479L28.1826 23.3736L17.9567 15.6424C17.8893 16.3261 17.5869 16.9653 17.1011 17.4511C16.6153 17.9369 15.9762 18.2392 15.2925 18.3067Z" fill="#E0C97E"/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M12.043 15.0572L1.80206 7.32636L6.97614 2.15176L14.6919 12.393C13.2904 12.5315 12.1815 13.6557 12.043 15.0572Z" fill="#E0C97E"/>
+    </svg>
+  );
+}
+
+/* Authentic Unifato Circular Monogram Logo */
+function EventPlanLogo({ className = "w-14 h-14" }) {
+  return (
+    <svg viewBox="0 0 171 171" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <circle cx="85.5" cy="85.5" r="85" fill="#F3EFFF"/>
+      <path d="M141.776 61.5093C143.944 68.2126 141.146 78.5468 140.517 79.8502C137.16 87.019 130.097 91.674 122.545 91.674C119.887 91.5809 117.23 91.1154 114.712 89.9982L114.013 89.7189C112.265 88.7879 110.447 88.3224 108.558 88.1362C106.67 88.1362 104.852 89.0672 103.453 90.743L103.034 91.2085V117.37H88.0685V52.3854H130.307C135.132 52.1061 139.678 55.737 141.776 61.5093ZM126.391 75.2882C126.95 71.2849 126.741 65.2333 124.083 61.6024C122.335 59.5542 120.027 58.5301 117.649 58.8094C114.153 58.8094 110.447 58.7163 106.6 58.7163H103.034V83.7604L104.642 83.0156C106.041 82.1777 107.649 81.8984 109.188 81.8984C110.936 81.9915 112.754 82.3639 114.433 83.0156L115.901 83.4811C117.16 83.9466 118.489 84.319 119.887 84.4121C123.803 84.4121 125.692 79.9433 126.391 75.2882Z" fill="#1A1A19"/>
+      <path d="M50.077 60.9507L49.2378 60.4852V80.3157H71.2663V88.1361H49.2378V109.549H78.7489V117.277H33.5033V52.3854H49.7274C51.7554 53.7819 53.9233 54.6198 56.231 54.7129C56.5807 54.806 56.9303 54.806 57.28 54.806C59.1681 54.7129 61.1262 54.4336 62.9444 53.7819C63.364 53.6888 63.9235 53.5026 64.5528 53.3164C66.441 52.6647 68.3991 52.1992 70.3572 52.013C70.9166 51.9199 71.546 51.9199 72.2453 51.9199C74.4132 51.9199 76.5811 52.1061 78.7489 52.4785V60.299C76.5811 59.9266 74.4132 59.7404 72.2453 59.7404C69.7977 59.7404 67.6298 60.299 65.2522 61.0438L64.0633 61.4162C63.9235 61.5093 63.7137 61.5093 63.5039 61.6024C61.4059 62.161 59.238 62.5334 57.0002 62.6265C54.6226 62.6265 52.3148 62.0679 50.077 60.9507Z" fill="#1A1A19"/>
+    </svg>
+  );
+}
 
 export default function PublicLandingPage({
   onOpenLogin,
   onOpenRegisterCompany,
   tenants = []
 }) {
+  // Conversational booking form state
+  const [formState, setFormState] = useState({
+    name: '',
+    company: '',
+    location: '',
+    venue: '',
+    date: '',
+    guests: '',
+    budget: '',
+    email: '',
+    phone: '',
+    submitted: false
+  });
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    setFormState(prev => ({ ...prev, submitted: true }));
+  };
+
   return (
-    <div className="min-h-screen bg-[#090A0D] text-slate-100 flex flex-col font-sans selection:bg-[#FB9378] selection:text-black">
+    <div className="min-h-screen bg-[#1a1a19] text-white flex flex-col font-sans selection:bg-[#FB9378] selection:text-black">
       
       {/* =========================================================================
-          1. MINIMALIST LUXURY HEADER (Matching Reference Images 1 & 2)
+          1. HEADER (Directly from Unifato Reference)
           ========================================================================= */}
-      <header className="sticky top-0 z-50 bg-[#090A0D]/85 backdrop-blur-xl border-b border-[#1E202B]">
+      <header className="sticky top-0 z-50 bg-[#1a1a19]/90 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-24">
             
             {/* Left: Navigation Links */}
-            <nav className="flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-slate-300">
-              <a href="#" className="hover:text-white transition-colors">Home</a>
-              <a href="#services" className="hover:text-white transition-colors">Services</a>
-              <a href="#vision" className="hover:text-white transition-colors">About</a>
-              <a href="#highlights" className="hover:text-white transition-colors hidden md:inline">Highlights</a>
-              <a href="#process" className="hover:text-white transition-colors">Process</a>
-              <a href="#features" className="hover:text-white transition-colors hidden md:inline">Features</a>
-              <a href="#pricing" className="hover:text-white transition-colors hidden md:inline">Pricing</a>
+            <nav className="flex items-center gap-8 text-base lg:text-lg font-normal text-white">
+              <a href="#" className="hover:text-white/80 transition-colors">Home</a>
+              <a href="#about" className="hover:text-white/80 transition-colors">About</a>
+              <a href="#services" className="hover:text-white/80 transition-colors">Services</a>
+              <a href="#process" className="hover:text-white/80 transition-colors hidden md:inline">Process</a>
+              <a href="#highlights" className="hover:text-white/80 transition-colors hidden lg:inline">Highlights</a>
             </nav>
 
-            {/* Center: Circular "EP" Logo Mark (Exact Reference) */}
-            <a 
-              href="#" 
-              className="w-11 h-11 rounded-full bg-white text-black font-black text-base flex items-center justify-center tracking-tight shadow-lg shadow-white/10 hover:scale-105 transition-transform shrink-0"
-              title="EventPlan - Return to top"
-            >
-              EP
+            {/* Center: Authentic Monogram Logo */}
+            <a href="#" className="flex items-center justify-center shrink-0 hover:scale-105 transition-transform">
+              <EventPlanLogo className="w-13 h-13 sm:w-15 sm:h-15" />
             </a>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={onOpenLogin}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 text-sm sm:text-base font-medium text-white/80 hover:text-white transition-colors flex items-center gap-2"
               >
-                <Lock className="w-3.5 h-3.5 text-[#E0C97E]" />
+                <Lock className="w-4 h-4 text-[#E0C97E]" />
                 <span className="hidden sm:inline">Sign In</span>
               </button>
 
-              {/* "Let's plan" Iridescent Gradient Border Button */}
+              {/* "Let's plan" Iridescent Gradient Button */}
               <button
                 onClick={onOpenRegisterCompany}
-                className="btn-gradient-border px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                className="btn-unifato group cursor-pointer"
               >
-                Let&apos;s plan
+                <div className="btn-unifato-inner py-3 px-6 sm:px-8 flex items-center gap-2">
+                  <span className="text-white text-base sm:text-lg font-medium tracking-wide">
+                    Let&apos;s plan
+                  </span>
+                </div>
               </button>
             </div>
 
@@ -79,894 +119,868 @@ export default function PublicLandingPage({
         </div>
       </header>
 
-      {/* =========================================================================
-          2. EDITORIAL HERO SECTION (Matching Reference Images 1 & 2)
-          ========================================================================= */}
-      <section className="relative pt-12 sm:pt-16 pb-20 overflow-hidden">
-        
-        {/* Subtle Ambient Vignettes with Custom Palette */}
-        <div className="absolute top-10 left-1/4 w-[450px] h-[300px] bg-[#AB6088]/15 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-20 right-1/4 w-[400px] h-[300px] bg-[#E0C97E]/10 rounded-full blur-[140px] pointer-events-none" />
+      <main className="flex-1">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* =========================================================================
+            2. HERO SECTION (Full-bleed crowd backdrop + giant overlapping title)
+            ========================================================================= */}
+        <section className="relative pt-24 sm:pt-32 pb-32 sm:pb-48 lg:pb-60 overflow-hidden flex items-center">
           
-          {/* Top 2-Column Split: Headline & Editorial Paragraph */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-12 sm:mb-16">
-            <div>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold font-display text-white tracking-tight leading-[1.12]">
-                Precision planning for perfect corporate events
-              </h1>
-            </div>
-            <div className="md:pl-8 flex flex-col justify-between h-full pt-1">
-              <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed max-w-lg">
-                With our expert planning and seamless execution, we ensure every detail is perfect so that you can focus on your business goals. Rent an isolated corporate workspace with sub-second optical badges and live analytics.
-              </p>
-              <div className="flex items-center gap-6 mt-6 pt-4 border-t border-[#1E202B]/80 text-xs text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#E0C97E]" />
-                  <span>Sub-second optical badges</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#FB9378]" />
-                  <span>Multi-desk coordination</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Massive Typographic Hero: "EventPlan" with Custom Palette Gradient */}
-          <div className="relative my-4 select-none">
-            <h2 className="text-6xl sm:text-8xl md:text-[11rem] lg:text-[13rem] font-black font-display tracking-tighter leading-none text-center text-palette-gradient">
-              EventPlan
-            </h2>
-          </div>
-
-          {/* Auditorium Crowd Backdrop with Center Floating Pill CTA */}
-          <div className="relative -mt-10 sm:-mt-20 rounded-3xl overflow-hidden border border-[#1E202B] shadow-2xl h-[320px] sm:h-[460px]">
+          {/* Full-bleed crowd background with authentic vertical fades */}
+          <div className="absolute inset-0 z-0">
             <img 
-              src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=2000&q=80" 
-              alt="Auditorium corporate event crowd" 
-              className="w-full h-full object-cover object-center filter brightness-[0.7] contrast-[1.1]"
+              src="https://unifato.com/eventplan/images/hero/hero-01.jpg" 
+              alt="Auditorium Event Crowd" 
+              className="w-full h-full object-cover absolute top-0 brightness-[0.7]"
             />
-            
-            {/* Dark Gradient Overlays for Atmospheric Depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#090A0D] via-[#090A0D]/30 to-[#090A0D]/80" />
-
-            {/* Floating Centered CTA Pill (Request a Quote) */}
-            <div className="absolute inset-0 flex items-center justify-center p-4">
-              <button
-                onClick={onOpenRegisterCompany}
-                className="btn-gradient-border px-7 py-3.5 rounded-2xl text-white font-bold text-sm sm:text-base flex items-center gap-3 shadow-2xl hover:scale-105 active:scale-95 transition-all group"
-              >
-                {/* 8-Petal Star / Flower Icon with Palette Gradient */}
-                <span className="relative flex items-center justify-center w-5 h-5 text-[#FCF8B3] group-hover:rotate-45 transition-transform duration-300">
-                  <Sparkles className="w-5 h-5 text-[#FB9378]" />
-                </span>
-                <span>Request a Quote</span>
-              </button>
-            </div>
+            {/* Top gradient fade into #1a1a19 */}
+            <div className="absolute top-0 inset-x-0 w-full h-80 bg-gradient-to-b from-[#1a1a19] via-[#1a1a19]/90 to-transparent" />
+            {/* Subtle center wash */}
+            <div className="absolute inset-0 w-full bg-[#1a1a19]/45" />
+            {/* Bottom gradient fade into #1a1a19 */}
+            <div className="absolute bottom-0 inset-x-0 w-full h-80 bg-gradient-to-t from-[#1a1a19] via-[#1a1a19]/85 to-transparent" />
           </div>
 
-        </div>
-      </section>
-
-      {/* =========================================================================
-          3. "OUR EVENT PLANNING SERVICES" (Asymmetric Bento Grid - Ref Images 3 & 4)
-          ========================================================================= */}
-      <section id="services" className="py-24 border-t border-[#1E202B] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-5xl font-bold font-display text-white tracking-tight">
-              Our event planning services
-            </h2>
-            <p className="text-sm text-slate-400 mt-3 max-w-xl mx-auto">
-              From intimate executive retreats to mega-scale international symposiums, explore our tailored service portfolio.
-            </p>
-          </div>
-
-          {/* Asymmetric 3-Column Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
             
-            {/* Column 1: Team Building Events + Gala Dinners */}
-            <div className="space-y-6">
-              
-              {/* Card 1: Team Building Events */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#393C4E] transition-all shadow-xl">
-                <div className="h-64 sm:h-72 overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80" 
-                    alt="Team building events" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.8]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-white">Team building events</h3>
-                </div>
+            {/* Top Editorial 2-Column Split */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8 sm:mb-14">
+              <div>
+                <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-bold font-display text-white tracking-wide leading-[1.1]">
+                  Precision planning for<br />perfect corporate events
+                </h1>
               </div>
-
-              {/* Card 2: Gala Dinners */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#393C4E] transition-all shadow-xl">
-                <div className="h-80 sm:h-96 overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=80" 
-                    alt="Gala dinners" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.8]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-white">Gala dinners</h3>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Column 2: Conferences (Centerpiece Tall Card) + Virtual Events */}
-            <div className="space-y-6">
-              
-              {/* Card 3: Conferences (Tall Centerpiece) */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#AB6088]/50 transition-all shadow-2xl">
-                <div className="h-[420px] sm:h-[480px] overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=80" 
-                    alt="Conferences" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.85]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-[#E0C97E]">Conferences</h3>
-                </div>
-              </div>
-
-              {/* Card 4: Virtual Events */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#393C4E] transition-all shadow-xl">
-                <div className="h-64 sm:h-72 overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?auto=format&fit=crop&w=900&q=80" 
-                    alt="Virtual events" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.8]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-white">Virtual events</h3>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Column 3: Product Launches + Seminars + Custom Event */}
-            <div className="space-y-6">
-              
-              {/* Card 5: Product Launches */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#393C4E] transition-all shadow-xl">
-                <div className="h-56 sm:h-64 overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80" 
-                    alt="Product launches" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.8]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-white">Product launches</h3>
-                </div>
-              </div>
-
-              {/* Card 6: Seminars */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#393C4E] transition-all shadow-xl">
-                <div className="h-56 sm:h-64 overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=900&q=80" 
-                    alt="Seminars" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.8]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-white">Seminars</h3>
-                </div>
-              </div>
-
-              {/* Card 7: Custom Event */}
-              <div className="group rounded-3xl overflow-hidden bg-[#111217] border border-[#1E202B] hover:border-[#393C4E] transition-all shadow-xl">
-                <div className="h-56 sm:h-64 overflow-hidden relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80" 
-                    alt="Custom event" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.8]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-                <div className="bg-[#0B0C10] py-4 px-6 text-center border-t border-[#1E202B]">
-                  <h3 className="text-base sm:text-lg font-bold text-white">Custom event</h3>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          4. "VISIONARY PLANNING" SECTION (New Reference Images 1 & 2)
-          ========================================================================= */}
-      <section id="vision" className="py-28 border-t border-[#1E202B] relative overflow-hidden scroll-mt-20">
-        
-        {/* Ambient Glow */}
-        <div className="absolute top-1/2 left-10 -translate-y-1/2 w-96 h-96 bg-[#AB6088]/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/2 right-10 -translate-y-1/2 w-96 h-96 bg-[#E0C97E]/10 rounded-full blur-[140px] pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 lg:gap-10 md:gap-8 gap-8 items-stretch">
-            
-            {/* Left Column: Image on Top, Description + "View More" on Bottom */}
-            <div className="lg:col-span-3 md:col-span-6 flex flex-col justify-between gap-6">
-              {/* Top Image: Team Toasting / Celebrating */}
-              <div className="relative w-full rounded-2xl overflow-hidden h-56 sm:h-64 border border-[#1E202B]">
-                <img 
-                  src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80" 
-                  alt="Team Celebration" 
-                  className="w-full h-full object-cover brightness-[0.8]"
-                />
-                <div className="absolute inset-0 bg-[#090A0D]/20" />
-              </div>
-
-              {/* Bottom Text & Button */}
-              <div className="space-y-6 pt-2">
-                <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-                  We specialize in turning visions into reality. With a passion for perfection and a commitment to excellence, we bring your corporate event dreams to life with meticulous planning, innovative solutions, and flawless execution.
+              <div className="flex lg:justify-end">
+                <p className="text-white/80 text-base sm:text-lg font-normal max-w-xl leading-relaxed">
+                  With our expert planning and seamless execution, we ensure every detail is perfect so that you can focus on your business goals.
                 </p>
+              </div>
+            </div>
 
-                {/* "View more" Iridescent Button */}
+            {/* Giant Typographic Statement Overlapping Crowd */}
+            <div className="relative w-full flex flex-col items-center justify-center">
+              <h2 className="text-[68px] sm:text-[140px] md:text-[220px] lg:text-[300px] xl:text-[340px] leading-[0.8] tracking-wider font-bold font-display text-center text-palette-gradient w-full select-none mb-16 sm:mb-24">
+                EventPlan
+              </h2>
+
+              {/* Overlapping Bottom Center Button */}
+              <div className="absolute -bottom-6 sm:-bottom-8 lg:-bottom-10 z-20">
                 <button
                   onClick={onOpenRegisterCompany}
-                  className="btn-gradient-border px-5 py-3 rounded-xl text-white font-bold text-sm inline-flex items-center gap-3 shadow-xl hover:scale-105 active:scale-95 transition-all group"
+                  className="btn-unifato group shadow-2xl cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 text-[#FB9378] group-hover:rotate-45 transition-transform duration-300" />
-                  <span>View more</span>
+                  <div className="btn-unifato-inner py-3 sm:py-4 px-6 sm:px-8 flex items-center gap-3">
+                    <IridescentFlowerIcon className="w-6 h-6 sm:w-7 sm:h-7 object-contain group-hover:rotate-45 transition-transform duration-500" />
+                    <span className="text-white text-base sm:text-lg font-medium tracking-wide">
+                      Request a Quote
+                    </span>
+                  </div>
                 </button>
               </div>
             </div>
 
-            {/* Center Column: Massive Headline */}
-            <div className="lg:col-span-6 md:col-span-12 flex items-center justify-center text-center py-6 lg:py-0 order-first md:order-none">
-              <h2 className="text-4xl sm:text-6xl lg:text-[76px] xl:text-[88px] leading-[1.05] font-extrabold font-display text-white tracking-tight">
-                Visionary <br />planning for <br />perfect <br />corporate<br /> events
+          </div>
+        </section>
+
+        {/* =========================================================================
+            3. "OUR EVENT PLANNING SERVICES" (Exact Bento Grid from Unifato)
+            ========================================================================= */}
+        <section id="services" className="py-24 sm:py-32 bg-[#1a1a19] scroll-mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center mb-16 sm:mb-20">
+              <h2 className="text-4xl sm:text-6xl lg:text-[80px] font-bold font-display text-white tracking-wider">
+                Our event planning services
               </h2>
             </div>
 
-            {/* Right Column: 500+ Stat on Top, Image on Bottom */}
-            <div className="lg:col-span-3 md:col-span-6 flex flex-col justify-between gap-6">
-              {/* Top Stat */}
-              <div className="text-left md:text-right pt-2">
-                <h3 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display text-palette-gradient mb-2">
-                  500+
-                </h3>
-                <p className="text-sm sm:text-base font-medium text-slate-300">
-                  Successful events planned
-                </p>
-              </div>
-
-              {/* Bottom Image: Smiling Team Outdoors */}
-              <div className="relative w-full rounded-2xl overflow-hidden aspect-[4/5] border border-[#1E202B]">
-                <img 
-                  src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80" 
-                  alt="Outdoor Corporate Team Event" 
-                  className="w-full h-full object-cover brightness-[0.85]"
-                />
-                <div className="absolute inset-0 bg-[#090A0D]/20" />
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          5. "EVENT HIGHLIGHTS" SECTION (New Reference Images 3, 4, 5)
-          ========================================================================= */}
-      <section id="highlights" className="py-24 border-t border-[#1E202B] bg-[#07080B] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold font-display text-white tracking-tight">
-              Event highlights
-            </h2>
-            <p className="text-sm text-slate-400 mt-3 max-w-xl mx-auto">
-              Spotlight showcases from premier corporate summits, keynotes, and executive leadership conferences.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-10">
-            
-            {/* Event Highlight 1: Annual Global Leadership Summit */}
-            <div className="rounded-3xl overflow-hidden border border-[#1E202B] bg-[#111217] shadow-2xl group cursor-pointer" onClick={onOpenRegisterCompany}>
-              {/* Colored Banner with Custom Mauve Accent */}
-              <div className="bg-[#AB6088]/80 text-black py-5 px-6 sm:px-10 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
-                <div className="text-xs sm:text-sm font-semibold flex items-center justify-start gap-2">
-                  <span className="font-bold">GlobalTech Inc.</span>
-                  <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
-                  <span>28 Jun 2024</span>
-                </div>
-                <h3 className="text-lg sm:text-2xl font-bold font-display text-black text-center md:whitespace-nowrap">
-                  Annual global leadership summit
-                </h3>
-                <div className="text-xs sm:text-sm font-bold text-black text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-all">
-                  View detail
-                </div>
-              </div>
-              {/* Photo */}
-              <div className="relative w-full h-56 sm:h-96 lg:h-[450px] overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1800&q=80" 
-                  alt="Annual global leadership summit" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.8]"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-              </div>
-            </div>
-
-            {/* Event Highlight 2: Executive Board Meeting */}
-            <div className="rounded-3xl overflow-hidden border border-[#1E202B] bg-[#111217] shadow-2xl group cursor-pointer" onClick={onOpenRegisterCompany}>
-              {/* Colored Banner with Custom Champagne Accent */}
-              <div className="bg-[#E0C97E]/90 text-black py-5 px-6 sm:px-10 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
-                <div className="text-xs sm:text-sm font-semibold flex items-center justify-start gap-2">
-                  <span className="font-bold">TechCorp Solutions</span>
-                  <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
-                  <span>1 Jun 2024</span>
-                </div>
-                <h3 className="text-lg sm:text-2xl font-bold font-display text-black text-center md:whitespace-nowrap">
-                  Executive board meeting
-                </h3>
-                <div className="text-xs sm:text-sm font-bold text-black text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-all">
-                  View detail
-                </div>
-              </div>
-              {/* Photo */}
-              <div className="relative w-full h-56 sm:h-96 lg:h-[450px] overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1800&q=80" 
-                  alt="Executive board meeting" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.8]"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          6. "OUR WORK PROCESS" (Staggered Rhythmic Columns - Ref Image 5)
-          ========================================================================= */}
-      <section id="process" className="py-28 border-t border-[#1E202B] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            
-            {/* Left Header */}
-            <div className="lg:col-span-3">
-              <h2 className="text-3xl sm:text-5xl font-bold font-display text-white tracking-tight leading-tight">
-                Our work<br className="hidden lg:inline" /> process
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-4 leading-relaxed max-w-xs">
-                A disciplined four-phase methodology delivering precision from initial briefing to post-event executive debriefing.
-              </p>
-            </div>
-
-            {/* Right: 4 Staggered Columns with Giant Gradient Numbers (Exact Image 5 Layout) */}
-            <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            {/* 3-Column Bento Grid matching exact heights and hover reveal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
               
-              {/* Step 01: Planning (Number on Top) */}
-              <div className="flex flex-col">
-                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
-                  01
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-3">Planning</h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  Understand client needs and develop a detailed event plan. Initial meetings, defining event goals, creating a proposal, and setting a timeline.
-                </p>
-              </div>
-
-              {/* Step 02: Preparation (Title Above, Stepped Down) */}
-              <div className="flex flex-col sm:mt-16 md:mt-24">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-2">Preparation</h3>
-                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
-                  02
-                </div>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  Designing branding and promotional materials, selecting venues, and coordinating with vendors.
-                </p>
-              </div>
-
-              {/* Step 03: Execution (Number on Top, Stepped Mid) */}
-              <div className="flex flex-col sm:mt-6 md:mt-8">
-                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
-                  03
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-3">Execution</h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  On-site management, overseeing setup and breakdown, managing vendor coordination, and handling attendee logistics.
-                </p>
-              </div>
-
-              {/* Step 04: Evaluation (Title Above, Stepped Down) */}
-              <div className="flex flex-col sm:mt-20 md:mt-32">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-2">Evaluation</h3>
-                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
-                  04
-                </div>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  Collecting attendee and client feedback, conducting a post-event debrief, and providing a final report to the client.
-                </p>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          7. FEATURES & WORKSPACE ARCHITECTURE (Tailored Midnight & Palette)
-          ========================================================================= */}
-      <section id="features" className="py-24 border-t border-[#1E202B] bg-[#0C0D12] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold text-[#E0C97E] uppercase tracking-widest block mb-2">
-              Enterprise Event Capabilities
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight">
-              Engineered for Zero Latency and High Throughput
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-2">
-              From remote photo capture to instant badging and attendance-gated chat, everything runs in a single high-performance cloud deployment.
-            </p>
-          </div>
-
-          {/* 6 Feature Grid Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Feature 1 */}
-            <div className="card-luxury rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#E0C97E]/10 border border-[#E0C97E]/20 text-[#E0C97E] flex items-center justify-center mb-5">
-                  <UserCheck className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Remote Attendee Registration</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Attendees register remotely from their phone or PC, upload their photo badge portrait, and receive an instant QR code entry ticket.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1E202B] flex items-center justify-between text-[11px] font-mono text-[#E0C97E]">
-                <span>Duplicate Email Detection</span>
-                <span>Active</span>
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="card-luxury rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FB9378]/10 border border-[#FB9378]/20 text-[#FB9378] flex items-center justify-center mb-5">
-                  <QrCode className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Sub-Second Optical QR Scanner</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Optical camera scanner targets under 0.85s processing time with immediate duplicate entry detection and acoustic confirmation.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1E202B] flex items-center justify-between text-[11px] font-mono text-[#FB9378]">
-                <span>Target &lt; 0.85s Processing</span>
-                <span>Verified</span>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="card-luxury rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#AB6088]/15 border border-[#AB6088]/30 text-[#AB6088] flex items-center justify-center mb-5">
-                  <Printer className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Instant Lanyard Badge Printing</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Clean badge printing stylesheets formatted for thermal and standard badge paper. Displays photo, category banner, QR, and company branding.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1E202B] flex items-center justify-between text-[11px] font-mono text-[#AB6088]">
-                <span>Conference Lanyard Formats</span>
-                <span>Supported</span>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="card-luxury rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FCF8B3]/10 border border-[#FCF8B3]/20 text-[#FCF8B3] flex items-center justify-center mb-5">
-                  <MessageSquare className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Attendance-Gated Live Chat</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Real-time event community chat strictly gated to attendees who physically scanned into the venue. Pin announcements and moderate messages.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1E202B] flex items-center justify-between text-[11px] font-mono text-[#FCF8B3]">
-                <span>Physical Attendance Gate</span>
-                <span>Enforced</span>
-              </div>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="card-luxury rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#E0C97E]/10 border border-[#E0C97E]/20 text-[#E0C97E] flex items-center justify-center mb-5">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Live Hourly Arrival Analytics</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Real-time check-in velocity and turnout percentage gauges. Categorizes delegates, VIPs, speakers, sponsors, and press with 1-click CSV export.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1E202B] flex items-center justify-between text-[11px] font-mono text-[#E0C97E]">
-                <span>CSV / Excel Export</span>
-                <span>1-Click</span>
-              </div>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="card-luxury rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FB9378]/10 border border-[#FB9378]/20 text-[#FB9378] flex items-center justify-center mb-5">
-                  <Smartphone className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Registration QR Entrance Signs</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Generate print-ready 8.5x11 / A4 entrance flyers with high-contrast QR codes. Place on check-in tables so attendees scan to register in seconds.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#1E202B] flex items-center justify-between text-[11px] font-mono text-[#FB9378]">
-                <span>Printable Flyer Generator</span>
-                <span>Included</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          8. MULTI-DESK CHECK-IN COORDINATION
-          ========================================================================= */}
-      <section id="multidesk" className="py-24 border-t border-[#1E202B] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FB9378]/10 border border-[#FB9378]/25 text-[#FB9378] text-xs font-bold mb-4">
-                <Users className="w-3.5 h-3.5" />
-                <span>ON-SITE VOLUNTEER & ADMIN COORDINATION</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight leading-tight">
-                Turn Every Smartphone into a High-Speed Wireless Badge Scanner.
-              </h2>
-              <p className="text-sm text-slate-300 mt-4 leading-relaxed">
-                Large events cannot afford entrance bottlenecks. EventPlan lets you coordinate multiple entrance desks (Desk 1, Desk 2, VIP Gate) with zero software to install.
-              </p>
-
-              <div className="space-y-4 mt-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-[#E0C97E]/15 text-[#E0C97E] flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-4 h-4" />
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    <strong className="text-white">1-Scan Staff Mobile Onboarding:</strong> Event ushers scan the organizer&apos;s screen to open the camera scanner instantly on their personal phones.
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-[#FB9378]/15 text-[#FB9378] flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-4 h-4" />
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    <strong className="text-white">Duplicate Scan Alerts:</strong> If a delegate attempts to reuse a ticket at another desk, the system alerts the usher immediately with previous timestamp.
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-[#AB6088]/20 text-[#AB6088] flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-4 h-4" />
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    <strong className="text-white">Offline Check-In Queue:</strong> Continues scanning attendees even if on-site Wi-Fi drops, auto-syncing when internet restores.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Visual Station Dashboard Box */}
-            <div className="card-luxury rounded-3xl p-6 sm:p-8 shadow-2xl relative">
-              <div className="flex items-center justify-between pb-4 border-b border-[#1E202B]">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#E0C97E] animate-pulse" />
-                  <span className="font-bold text-white text-xs">Simultaneous Desks Active</span>
-                </div>
-                <span className="text-[11px] font-mono text-[#FB9378]">Live Attendance: 88%</span>
-              </div>
-
-              <div className="space-y-3 mt-4">
-                {[
-                  { desk: "Desk 1 – Main Gate (Kofi)", count: "142 scans", status: "Active" },
-                  { desk: "Desk 2 – General Admission (Ama)", count: "119 scans", status: "Active" },
-                  { desk: "Desk 3 – VIP & Keynotes (Sarah)", count: "48 scans", status: "Active" },
-                  { desk: "Desk 4 – Fast Track QR", count: "33 scans", status: "Active" }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3.5 rounded-2xl bg-[#090A0D] border border-[#1E202B] text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <Smartphone className="w-4 h-4 text-[#E0C97E]" />
-                      <span className="font-bold text-white">{item.desk}</span>
+              {/* Column 1: Team building (350px) + Gala dinners (474px) */}
+              <div className="flex flex-col gap-8">
+                
+                {/* Team building events */}
+                <div className="h-[350px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-01.jpg" 
+                        alt="Team building events" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-slate-400">{item.count}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E0C97E]/10 text-[#E0C97E]">
-                        {item.status}
+                    <div className="py-5 px-6 text-center bg-black">
+                      <h3 className="text-2xl lg:text-3xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Team building events
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gala dinners */}
+                <div className="h-[350px] lg:h-[474px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-02.jpg" 
+                        alt="Gala dinners" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
+                    </div>
+                    <div className="py-5 px-6 text-center bg-black">
+                      <h3 className="text-2xl lg:text-3xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Gala dinners
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Column 2: Conferences (524px centerpiece) + Virtual events (300px) */}
+              <div className="flex flex-col gap-8">
+                
+                {/* Conferences */}
+                <div className="h-[350px] lg:h-[524px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-2xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-03.jpg" 
+                        alt="Conferences" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
+                    </div>
+                    <div className="py-5 px-6 text-center bg-black">
+                      <h3 className="text-2xl lg:text-3xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Conferences
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Virtual events */}
+                <div className="h-[300px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-04.jpg" 
+                        alt="Virtual events" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
+                    </div>
+                    <div className="py-5 px-6 text-center bg-black">
+                      <h3 className="text-2xl lg:text-3xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Virtual events
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Column 3: Product launches (250px) + Seminars (250px) + Custom event (300px) */}
+              <div className="flex flex-col gap-8">
+                
+                {/* Product launches */}
+                <div className="h-[250px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-05.jpg" 
+                        alt="Product launches" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
+                    </div>
+                    <div className="py-4 px-6 text-center bg-black">
+                      <h3 className="text-xl lg:text-2xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Product launches
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seminars */}
+                <div className="h-[250px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-06.jpg" 
+                        alt="Seminars" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
+                    </div>
+                    <div className="py-4 px-6 text-center bg-black">
+                      <h3 className="text-xl lg:text-2xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Seminars
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Custom event */}
+                <div className="h-[300px]">
+                  <div 
+                    onClick={onOpenRegisterCompany}
+                    className="group flex flex-col rounded-2xl overflow-hidden bg-black transition-all h-full cursor-pointer shadow-xl border border-white/5"
+                  >
+                    <div className="relative w-full flex-1 min-h-0">
+                      <img 
+                        src="https://unifato.com/eventplan/images/Service/service-07.jpg" 
+                        alt="Custom event" 
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-[#1a1a19]/70 group-hover:bg-transparent transition-colors duration-300" />
+                    </div>
+                    <div className="py-5 px-6 text-center bg-black">
+                      <h3 className="text-2xl lg:text-3xl font-bold font-display text-white group-hover:text-[#E0C97E] transition-colors">
+                        Custom event
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        {/* =========================================================================
+            4. "OUR WORK PROCESS" (Exact Unifato staggered stepping & hover dimmer)
+            ========================================================================= */}
+        <section id="process" className="py-24 sm:py-36 bg-black overflow-hidden scroll-mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 items-start gap-10">
+              
+              {/* Left Sticky Title */}
+              <div className="lg:col-span-4">
+                <h2 className="text-4xl md:text-6xl font-bold font-display text-white tracking-wider leading-[1.1] lg:sticky lg:top-36">
+                  Our work <br className="hidden lg:inline" />process
+                </h2>
+              </div>
+
+              {/* Right Steps with interactive sibling dimming */}
+              <div className="lg:col-span-8 relative">
+                <div className="group/steplist grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-12">
+                  
+                  {/* Step 01 (xl:pt-0) */}
+                  <div className="group/step transition-opacity duration-500 group-hover/steplist:opacity-30 hover:!opacity-100 xl:pt-0">
+                    <span className="text-7xl md:text-[85px] lg:text-[105px] font-bold font-display leading-none tracking-tighter text-palette-gradient select-none block mb-2">
+                      01
+                    </span>
+                    <h3 className="text-xl font-bold font-display text-white group-hover/step:text-[#FB9378] transition-colors mb-3">
+                      Planning
+                    </h3>
+                    <p className="text-white/70 text-base leading-relaxed font-normal">
+                      Understand client needs and develop a detailed event plan. Initial meetings, defining event goals, creating a proposal, and setting a timeline.
+                    </p>
+                  </div>
+
+                  {/* Step 02 (xl:pt-[160px] with title on top!) */}
+                  <div className="group/step transition-opacity duration-500 group-hover/steplist:opacity-30 hover:!opacity-100 xl:pt-[160px] flex flex-col">
+                    <h3 className="text-xl font-bold font-display text-white group-hover/step:text-[#FB9378] transition-colors mb-2 order-first xl:order-first">
+                      Preparation
+                    </h3>
+                    <span className="text-7xl md:text-[85px] lg:text-[105px] font-bold font-display leading-none tracking-tighter text-palette-gradient select-none block mb-2">
+                      02
+                    </span>
+                    <p className="text-white/70 text-base leading-relaxed font-normal">
+                      Designing branding and promotional materials, selecting venues, and coordinating with vendors.
+                    </p>
+                  </div>
+
+                  {/* Step 03 (xl:pt-[40px]) */}
+                  <div className="group/step transition-opacity duration-500 group-hover/steplist:opacity-30 hover:!opacity-100 xl:pt-[40px]">
+                    <span className="text-7xl md:text-[85px] lg:text-[105px] font-bold font-display leading-none tracking-tighter text-palette-gradient select-none block mb-2">
+                      03
+                    </span>
+                    <h3 className="text-xl font-bold font-display text-white group-hover/step:text-[#FB9378] transition-colors mb-3">
+                      Execution
+                    </h3>
+                    <p className="text-white/70 text-base leading-relaxed font-normal">
+                      On-site management, overseeing setup and breakdown, managing vendor coordination, and handling attendee logistics.
+                    </p>
+                  </div>
+
+                  {/* Step 04 (xl:pt-[160px] with title on top!) */}
+                  <div className="group/step transition-opacity duration-500 group-hover/steplist:opacity-30 hover:!opacity-100 xl:pt-[160px] flex flex-col">
+                    <h3 className="text-xl font-bold font-display text-white group-hover/step:text-[#FB9378] transition-colors mb-2 order-first xl:order-first">
+                      Evaluation
+                    </h3>
+                    <span className="text-7xl md:text-[85px] lg:text-[105px] font-bold font-display leading-none tracking-tighter text-palette-gradient select-none block mb-2">
+                      04
+                    </span>
+                    <p className="text-white/70 text-base leading-relaxed font-normal">
+                      Collecting attendee and client feedback, conducting a post-event debrief, and providing a final report to the client.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            5. "VISIONARY PLANNING" (Exact 3-Column Layout from Unifato)
+            ========================================================================= */}
+        <section id="about" className="py-24 sm:py-36 bg-[#1a1a19] scroll-mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-12 lg:gap-10 md:gap-8 gap-8 items-stretch">
+              
+              {/* Left Column: Top Image + Bottom Text & "View more" Button */}
+              <div className="lg:col-span-3 md:col-span-6 flex flex-col justify-between gap-6">
+                <div className="relative w-full rounded-2xl overflow-hidden h-60 sm:h-72 border border-white/5">
+                  <img 
+                    src="https://unifato.com/eventplan/images/about/about-01.jpg" 
+                    alt="Corporate Event Celebration" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-[#1a1a19]/40" />
+                </div>
+                <div>
+                  <p className="text-base lg:text-lg text-white/80 leading-relaxed mb-8">
+                    We specialize in turning visions into reality. With a passion for perfection and a commitment to excellence, we bring your corporate event dreams to life with meticulous planning, innovative solutions, and flawless execution.
+                  </p>
+                  <button 
+                    onClick={onOpenRegisterCompany}
+                    className="btn-unifato group cursor-pointer"
+                  >
+                    <div className="btn-unifato-inner py-3 px-6 flex items-center gap-3">
+                      <IridescentFlowerIcon className="w-6 h-6 object-contain group-hover:rotate-45 transition-transform duration-500" />
+                      <span className="text-white text-base font-medium tracking-wide">View more</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Center Column: Giant Typographic Headline */}
+              <div className="lg:col-span-6 md:col-span-12 flex items-center justify-center text-center py-6 order-first md:order-none">
+                <h2 className="text-4xl sm:text-6xl lg:text-[76px] xl:text-[96px] leading-[1.02] font-bold font-display text-white tracking-wider">
+                  Visionary <br className="hidden lg:inline" />planning for <br className="hidden lg:inline" />perfect <br className="hidden lg:inline" />corporate<br className="hidden lg:inline" /> events
+                </h2>
+              </div>
+
+              {/* Right Column: 500+ Stat on Top + Team Photo on Bottom */}
+              <div className="lg:col-span-3 md:col-span-6 flex flex-col justify-between gap-6">
+                <div className="flex justify-start lg:justify-end">
+                  <div className="text-left">
+                    <h3 className="text-5xl lg:text-7xl font-bold font-display text-white mb-2">
+                      500+
+                    </h3>
+                    <p className="text-base lg:text-lg text-white/70">
+                      Successful events planned
+                    </p>
+                  </div>
+                </div>
+                <div className="relative w-full rounded-2xl overflow-hidden aspect-[4/5] border border-white/5">
+                  <img 
+                    src="https://unifato.com/eventplan/images/about/about-02.jpg" 
+                    alt="Outdoor Team Event" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-[#1a1a19]/40" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            6. "EVENT HIGHLIGHTS" (Sticky Stacking Cards from Unifato)
+            ========================================================================= */}
+        <section id="highlights" className="py-24 sm:py-36 bg-black scroll-mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center mb-16 sm:mb-20">
+              <h2 className="text-4xl md:text-6xl lg:text-[80px] font-bold font-display text-white tracking-wider">
+                Event highlights
+              </h2>
+            </div>
+
+            <div className="flex flex-col gap-12 lg:gap-16">
+              
+              {/* Event 1: Annual Global Leadership Summit */}
+              <div 
+                onClick={onOpenRegisterCompany}
+                className="group block rounded-2xl overflow-hidden sticky top-28 shadow-2xl cursor-pointer border border-white/10"
+              >
+                {/* Custom Mauve / Plum Header Strip */}
+                <div className="bg-[#AB6088] py-5 px-6 sm:px-12 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
+                  <div className="text-sm sm:text-base text-black font-medium md:flex hidden items-center gap-2">
+                    <span className="font-bold">GlobalTech Inc.</span>
+                    <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
+                    <span>28 Jun 2024</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-bold font-display text-black text-center md:whitespace-nowrap">
+                    Annual global leadership summit
+                  </h3>
+                  <div className="text-sm sm:text-base text-black font-semibold text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-colors">
+                    View detail
+                  </div>
+                </div>
+                <div className="relative w-full h-64 sm:h-96 lg:h-[460px] overflow-hidden">
+                  <img 
+                    src="https://unifato.com/eventplan/images/blog/big-event-01.jpg" 
+                    alt="Annual global leadership summit" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300" />
+                </div>
+              </div>
+
+              {/* Event 2: Executive Board Meeting */}
+              <div 
+                onClick={onOpenRegisterCompany}
+                className="group block rounded-2xl overflow-hidden sticky top-32 shadow-2xl cursor-pointer border border-white/10"
+              >
+                {/* Custom Champagne Gold Header Strip */}
+                <div className="bg-[#E0C97E] py-5 px-6 sm:px-12 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
+                  <div className="text-sm sm:text-base text-black font-medium md:flex hidden items-center gap-2">
+                    <span className="font-bold">TechCorp Solutions</span>
+                    <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
+                    <span>1 Jun 2024</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-bold font-display text-black text-center md:whitespace-nowrap">
+                    Executive board meeting
+                  </h3>
+                  <div className="text-sm sm:text-base text-black font-semibold text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-colors">
+                    View detail
+                  </div>
+                </div>
+                <div className="relative w-full h-64 sm:h-96 lg:h-[460px] overflow-hidden">
+                  <img 
+                    src="https://unifato.com/eventplan/images/blog/big-event-02.jpg" 
+                    alt="Executive board meeting" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300" />
+                </div>
+              </div>
+
+              {/* Event 3: Student Leadership Conference */}
+              <div 
+                onClick={onOpenRegisterCompany}
+                className="group block rounded-2xl overflow-hidden sticky top-36 shadow-2xl cursor-pointer border border-white/10"
+              >
+                {/* Custom Warm Coral Header Strip */}
+                <div className="bg-[#FB9378] py-5 px-6 sm:px-12 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
+                  <div className="text-sm sm:text-base text-black font-medium md:flex hidden items-center gap-2">
+                    <span className="font-bold">National Student Leaders</span>
+                    <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
+                    <span>10-12 Mar 2024</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-bold font-display text-black text-center md:whitespace-nowrap">
+                    Student leadership conference
+                  </h3>
+                  <div className="text-sm sm:text-base text-black font-semibold text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-colors">
+                    View detail
+                  </div>
+                </div>
+                <div className="relative w-full h-64 sm:h-96 lg:h-[460px] overflow-hidden">
+                  <img 
+                    src="https://unifato.com/eventplan/images/blog/big-event-03.jpg" 
+                    alt="Student leadership conference" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300" />
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        {/* =========================================================================
+            7. CONVERSATIONAL BOOKING FORM (Mad-Libs Style from Unifato)
+            ========================================================================= */}
+        <section className="relative py-24 sm:py-36 overflow-hidden bg-[#1a1a19]">
+          
+          {/* Background image & dark overlays */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://unifato.com/eventplan/images/blog/event-book-01.avif" 
+              alt="Event Booking Backdrop" 
+              className="w-full h-full object-cover brightness-[0.4]"
+            />
+            <div className="absolute inset-0 bg-[#1a1a19]/75" />
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <div className="mb-12 sm:mb-16">
+              <h2 className="text-4xl md:text-6xl lg:text-[80px] font-bold font-display text-white tracking-wider leading-[1.1]">
+                Book your event<br />with EventPlan
+              </h2>
+            </div>
+
+            {formState.submitted ? (
+              <div className="p-8 sm:p-12 rounded-2xl bg-black/80 border border-[#E0C97E]/40 max-w-2xl text-center space-y-4">
+                <CheckCircle2 className="w-12 h-12 text-[#E0C97E] mx-auto" />
+                <h3 className="text-2xl font-bold font-display text-white">Your Request Has Been Received!</h3>
+                <p className="text-white/80 text-base">
+                  Thank you, <strong className="text-[#E0C97E]">{formState.name || 'Organizer'}</strong>. Our event architects will contact you within 24 hours with a comprehensive proposal.
+                </p>
+                <button
+                  onClick={onOpenRegisterCompany}
+                  className="mt-4 px-6 py-3 rounded-xl bg-[#E0C97E] text-black font-bold text-sm hover:opacity-90 transition-opacity"
+                >
+                  Create Your Company Workspace Now
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleBookingSubmit} className="flex flex-col gap-y-8 sm:gap-y-12 max-w-5xl">
+                
+                {/* Row 1: Hello I'm ___ from ___ based in ___ */}
+                <div className="flex md:flex-row flex-col flex-wrap md:items-center items-start gap-4 text-white text-xl sm:text-2xl font-bold font-display">
+                  <span>Hello I&apos;m</span>
+                  <input 
+                    type="text" 
+                    placeholder="Frances Guerrero" 
+                    required 
+                    value={formState.name}
+                    onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[200px] transition-colors"
+                  />
+                  <span>from</span>
+                  <input 
+                    type="text" 
+                    placeholder="ABC Tech Corp" 
+                    required 
+                    value={formState.company}
+                    onChange={(e) => setFormState({ ...formState, company: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[180px] transition-colors"
+                  />
+                  <span>based in</span>
+                  <input 
+                    type="text" 
+                    placeholder="Accra / NYC" 
+                    required 
+                    value={formState.location}
+                    onChange={(e) => setFormState({ ...formState, location: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[140px] transition-colors"
+                  />
+                </div>
+
+                {/* Row 2: and I'd like to book + checkboxes */}
+                <div className="flex flex-col gap-4">
+                  <span className="text-white text-xl sm:text-2xl font-bold font-display">
+                    and I&apos;d like to book
+                  </span>
+                  <div className="flex flex-wrap gap-4 sm:gap-6 text-sm sm:text-base">
+                    {[
+                      "Team building events",
+                      "Conferences",
+                      "Gala dinners",
+                      "Product launches",
+                      "Seminars",
+                      "Virtual events",
+                      "Custom event"
+                    ].map((type, idx) => (
+                      <label key={idx} className="flex items-center gap-2 cursor-pointer bg-black/40 hover:bg-black/70 px-3.5 py-2 rounded-xl border border-white/10 transition-colors">
+                        <input type="checkbox" name="event_type" defaultChecked={idx === 1} className="w-4 h-4 rounded accent-[#FB9378]" />
+                        <span className="text-white/90 font-medium">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Row 3: at ___ on ___ with ___ guests, */}
+                <div className="flex md:flex-row flex-col flex-wrap md:items-center items-start gap-4 text-white text-xl sm:text-2xl font-bold font-display">
+                  <span>at</span>
+                  <input 
+                    type="text" 
+                    placeholder="Grand Hotel Ballroom" 
+                    value={formState.venue}
+                    onChange={(e) => setFormState({ ...formState, venue: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[220px] transition-colors"
+                  />
+                  <span>on</span>
+                  <input 
+                    type="text" 
+                    placeholder="dd-mm-yyyy" 
+                    value={formState.date}
+                    onChange={(e) => setFormState({ ...formState, date: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[140px] transition-colors"
+                  />
+                  <span>with</span>
+                  <input 
+                    type="text" 
+                    placeholder="500+" 
+                    value={formState.guests}
+                    onChange={(e) => setFormState({ ...formState, guests: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[100px] transition-colors"
+                  />
+                  <span>guests,</span>
+                </div>
+
+                {/* Row 4: Reach me via email and phone */}
+                <div className="flex md:flex-row flex-col flex-wrap md:items-center items-start gap-4 text-white text-xl sm:text-2xl font-bold font-display">
+                  <span>reach me via email at</span>
+                  <input 
+                    type="email" 
+                    placeholder="hello@example.com" 
+                    required 
+                    value={formState.email}
+                    onChange={(e) => setFormState({ ...formState, email: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[220px] transition-colors"
+                  />
+                  <span>or phone at</span>
+                  <input 
+                    type="tel" 
+                    placeholder="+233 24 123 4567" 
+                    value={formState.phone}
+                    onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
+                    className="bg-black/50 border border-white/20 rounded-xl focus:border-[#E0C97E] focus:outline-none text-white placeholder-white/40 text-base font-normal px-4 py-2.5 min-w-[180px] transition-colors"
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-4">
+                  <button 
+                    type="submit" 
+                    className="btn-unifato group cursor-pointer"
+                  >
+                    <div className="btn-unifato-inner py-4 px-10 flex items-center gap-3">
+                      <IridescentFlowerIcon className="w-6 h-6 object-contain group-hover:rotate-45 transition-transform duration-500" />
+                      <span className="text-white text-lg font-semibold tracking-wide">
+                        Send Booking Request
                       </span>
                     </div>
+                  </button>
+                </div>
+
+              </form>
+            )}
+
+          </div>
+        </section>
+
+        {/* =========================================================================
+            8. MULTI-DESK CHECK-IN & HARDWARE (Restyled for warm luxury theme)
+            ========================================================================= */}
+        <section id="features" className="py-24 sm:py-32 bg-black border-t border-white/5 scroll-mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              
+              <div>
+                <span className="text-xs font-bold font-display text-[#E0C97E] uppercase tracking-widest block mb-2">
+                  Multi-Desk Scanner Coordination
+                </span>
+                <h2 className="text-3xl sm:text-5xl font-bold font-display text-white tracking-tight leading-tight">
+                  Turn Every Smartphone into a Sub-Second Wireless Badge Scanner.
+                </h2>
+                <p className="text-base text-white/70 mt-4 leading-relaxed font-normal">
+                  Large conferences cannot afford entrance bottlenecks. EventPlan coordinates unlimited mobile entrance desks with zero native apps to install.
+                </p>
+
+                <div className="space-y-4 mt-8">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-[#E0C97E]/20 text-[#E0C97E] flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <p className="text-sm text-white/80">
+                      <strong className="text-white">1-Scan Usher Camera Setup:</strong> Event staff scan the master QR code to turn their phone into an instant check-in camera.
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
 
-          </div>
-        </div>
-      </section>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-[#FB9378]/20 text-[#FB9378] flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <p className="text-sm text-white/80">
+                      <strong className="text-white">Duplicate Scan Prevention:</strong> Reused tickets alert ushers immediately with the previous desk name and exact timestamp.
+                    </p>
+                  </div>
 
-      {/* =========================================================================
-          9. SECURITY & RLS SECTION
-          ========================================================================= */}
-      <section id="security" className="py-24 border-t border-[#1E202B] bg-[#0C0D12] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#AB6088]/15 border border-[#AB6088]/30 text-[#AB6088] text-xs font-bold mb-3">
-              <ShieldCheck className="w-4 h-4" />
-              <span>STRICT MULTI-TENANT ISOLATION</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight">
-              Enterprise Security & Row-Level Protection
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-2">
-              Every company is an isolated tenant. Cryptographic boundary enforcement guarantees complete confidentiality for attendee records, photos, and badge data.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Pillar 1 */}
-            <div className="card-luxury p-7 rounded-3xl space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#E0C97E]/10 border border-[#E0C97E]/20 text-[#E0C97E] flex items-center justify-center">
-                <Database className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">PostgreSQL Row-Level Security</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Every tenant database query is cryptographically tagged with a unique <code className="text-[#E0C97E] font-mono">tenant_id</code>. RLS policies reject cross-tenant reads and writes at the engine level.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-[#E0C97E] flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Zero Cross-Tenant Leakage</span>
-              </div>
-            </div>
-
-            {/* Pillar 2 */}
-            <div className="card-luxury p-7 rounded-3xl space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#FB9378]/10 border border-[#FB9378]/20 text-[#FB9378] flex items-center justify-center">
-                <FileCheck2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Ghana Act 843 Data Protection</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Full legal compliance with statutory data privacy standards. Every attendee explicitly consents to portrait badge capture and data handling with verifiable audit logs.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-[#FB9378] flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Statutory Consent Logging</span>
-              </div>
-            </div>
-
-            {/* Pillar 3 */}
-            <div className="card-luxury p-7 rounded-3xl space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#AB6088]/15 border border-[#AB6088]/30 text-[#AB6088] flex items-center justify-center">
-                <WifiOff className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Offline Cache Resiliency & Sync</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                If the venue network fails or disconnects, check-in stations continue scanning locally in secure IndexedDB cache, automatically re-syncing when connectivity resumes.
-              </p>
-              <div className="pt-2 text-[11px] font-mono text-[#AB6088] flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Zero Data Loss Guarantee</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          10. PRICING PLANS
-          ========================================================================= */}
-      <section id="pricing" className="py-24 border-t border-[#1E202B] scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-bold text-[#E0C97E] uppercase tracking-widest block mb-2">
-              Transparent Workspace Rental
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight">
-              Simple, Predictable Subscription Pricing
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-2">
-              Choose the tier that fits your conference, seminar, or corporate annual general meeting.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Starter Plan */}
-            <div className="card-luxury rounded-3xl p-8 flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Starter Tier</span>
-                <h3 className="text-xl font-bold text-white mb-2">Single Event Workshop</h3>
-                <div className="flex items-baseline gap-1 my-4">
-                  <span className="text-4xl font-black text-white">$99</span>
-                  <span className="text-xs text-slate-400">/ event</span>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-[#AB6088]/20 text-[#AB6088] flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <p className="text-sm text-white/80">
+                      <strong className="text-white">Offline Queueing:</strong> Scans continue locally in IndexedDB if on-site Wi-Fi drops, auto-syncing when reconnected.
+                    </p>
+                  </div>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-300 mt-6">
-                  <li className="flex items-center gap-2">✓ Up to 200 registered delegates</li>
-                  <li className="flex items-center gap-2">✓ Optical QR scanner & manual fallback</li>
-                  <li className="flex items-center gap-2">✓ Direct thermal & lanyard badge printing</li>
-                  <li className="flex items-center gap-2">✓ Attendee certificate generation</li>
-                </ul>
               </div>
-              <button
-                onClick={onOpenRegisterCompany}
-                className="w-full mt-8 py-3 rounded-xl bg-[#1A1C24] hover:bg-[#232632] text-white font-bold text-xs transition-colors"
-              >
-                Register as Starter
-              </button>
-            </div>
 
-            {/* Growth Plan (Popular) */}
-            <div className="btn-gradient-border rounded-3xl p-8 flex flex-col justify-between relative shadow-2xl">
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black shadow-md">
-                Most Popular
+              {/* Live Station Monitor Card */}
+              <div className="rounded-3xl p-7 bg-[#1a1a19] border border-white/10 shadow-2xl">
+                <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-[#E0C97E] animate-pulse" />
+                    <span className="font-bold text-white text-sm">Simultaneous Desks Active</span>
+                  </div>
+                  <span className="text-xs font-mono text-[#FB9378]">Live Attendance: 88%</span>
+                </div>
+
+                <div className="space-y-3 mt-5">
+                  {[
+                    { desk: "Desk 1 – Main Gate (Kofi)", count: "142 scans", status: "Active" },
+                    { desk: "Desk 2 – General Admission (Ama)", count: "119 scans", status: "Active" },
+                    { desk: "Desk 3 – VIP & Keynotes (Sarah)", count: "48 scans", status: "Active" },
+                    { desk: "Desk 4 – Fast Track QR", count: "33 scans", status: "Active" }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-black border border-white/5 text-xs sm:text-sm">
+                      <div className="flex items-center gap-2.5">
+                        <Smartphone className="w-4 h-4 text-[#E0C97E]" />
+                        <span className="font-medium text-white">{item.desk}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-white/60">{item.count}</span>
+                        <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#E0C97E]/10 text-[#E0C97E]">
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            9. SECURITY & RLS SECTION
+            ========================================================================= */}
+        <section className="py-24 bg-[#1a1a19] border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <span className="text-xs font-bold font-display text-[#AB6088] uppercase tracking-widest block mb-2">
+                PostgreSQL Row-Level Security
               </span>
-              <div>
-                <span className="text-xs font-bold text-[#E0C97E] uppercase tracking-wider block mb-1">Growth Tier</span>
-                <h3 className="text-xl font-bold text-white mb-2">Corporate Conferences</h3>
-                <div className="flex items-baseline gap-1 my-4">
-                  <span className="text-4xl font-black text-palette-gradient">$199</span>
-                  <span className="text-xs text-slate-400">/ month</span>
-                </div>
-                <ul className="space-y-3 text-xs text-slate-300 mt-6">
-                  <li className="flex items-center gap-2">✓ Up to 1,000 registered delegates</li>
-                  <li className="flex items-center gap-2">✓ Unlimited simultaneous mobile ushers</li>
-                  <li className="flex items-center gap-2">✓ Sub-second optical check-in processing</li>
-                  <li className="flex items-center gap-2">✓ Attendance-gated live attendee chat</li>
-                  <li className="flex items-center gap-2">✓ Real-time turnout analytics & CSV export</li>
-                </ul>
-              </div>
-              <button
-                onClick={onOpenRegisterCompany}
-                className="w-full mt-8 py-3.5 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-95 text-black font-extrabold text-xs shadow-lg transition-all"
-              >
-                Register as Growth
-              </button>
+              <h2 className="text-3xl sm:text-5xl font-bold font-display text-white tracking-tight">
+                Enterprise Multi-Tenant Confidentiality
+              </h2>
+              <p className="text-sm sm:text-base text-white/70 mt-3 font-normal">
+                Every organization operates in an isolated tenant workspace. Cryptographic boundary enforcement guarantees complete confidentiality for attendee records, photos, and badge data.
+              </p>
             </div>
 
-            {/* Enterprise Plan */}
-            <div className="card-luxury rounded-3xl p-8 flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Enterprise Tier</span>
-                <h3 className="text-xl font-bold text-white mb-2">Multi-Day Expos & Summits</h3>
-                <div className="flex items-baseline gap-1 my-4">
-                  <span className="text-4xl font-black text-white">$499</span>
-                  <span className="text-xs text-slate-400">/ month</span>
-                </div>
-                <ul className="space-y-3 text-xs text-slate-300 mt-6">
-                  <li className="flex items-center gap-2">✓ Unlimited delegate capacity</li>
-                  <li className="flex items-center gap-2">✓ Custom subdomain & white-label branding</li>
-                  <li className="flex items-center gap-2">✓ Dedicated on-site engineering SLA</li>
-                  <li className="flex items-center gap-2">✓ VIP pass designs & holographic credentials</li>
-                  <li className="flex items-center gap-2">✓ PostgreSQL Row-Level Security isolation</li>
-                </ul>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              <div className="p-7 rounded-2xl bg-black border border-white/5 space-y-4">
+                <Database className="w-8 h-8 text-[#E0C97E]" />
+                <h3 className="text-lg font-bold font-display text-white">PostgreSQL RLS Policies</h3>
+                <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-normal">
+                  Every query is tagged with a cryptographic <code className="text-[#E0C97E]">tenant_id</code>. Database engine policies reject cross-tenant data leakage.
+                </p>
               </div>
-              <button
-                onClick={onOpenRegisterCompany}
-                className="w-full mt-8 py-3 rounded-xl bg-[#1A1C24] hover:bg-[#232632] text-white font-bold text-xs transition-colors"
-              >
-                Register as Enterprise
-              </button>
+
+              <div className="p-7 rounded-2xl bg-black border border-white/5 space-y-4">
+                <FileCheck2 className="w-8 h-8 text-[#FB9378]" />
+                <h3 className="text-lg font-bold font-display text-white">Ghana Act 843 Data Compliance</h3>
+                <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-normal">
+                  Statutory privacy standards. Every attendee explicitly consents to portrait badge capture and data handling with audit logs.
+                </p>
+              </div>
+
+              <div className="p-7 rounded-2xl bg-black border border-white/5 space-y-4">
+                <WifiOff className="w-8 h-8 text-[#AB6088]" />
+                <h3 className="text-lg font-bold font-display text-white">Offline IndexedDB Sync</h3>
+                <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-normal">
+                  Venues with spotty Wi-Fi never lose a scan. IndexedDB stores attendance locally and securely auto-synchronizes when connectivity restores.
+                </p>
+              </div>
+
             </div>
 
           </div>
+        </section>
 
-        </div>
-      </section>
+      </main>
 
       {/* =========================================================================
-          11. FOOTER
+          10. FOOTER
           ========================================================================= */}
-      <footer className="mt-auto border-t border-[#1E202B] bg-[#07080B] py-14 text-xs text-slate-500">
+      <footer className="border-t border-white/10 bg-black py-16 text-xs sm:text-sm text-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-white text-black font-black text-sm flex items-center justify-center tracking-tight">
-                  EP
-                </div>
-                <span className="font-bold text-white text-base">EventPlan</span>
+                <EventPlanLogo className="w-10 h-10" />
+                <span className="font-bold font-display text-white text-xl">EventPlan</span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Cloud-hosted corporate event registration, badging, and multi-desk check-in platform with editorial excellence.
+              <p className="text-xs text-white/70 leading-relaxed font-normal">
+                Precision planning for perfect corporate events. Cloud-hosted multi-tenant registration, badging, and multi-desk check-in platform.
               </p>
             </div>
 
             <div>
-              <p className="font-bold text-white mb-3">Navigation</p>
-              <ul className="space-y-2">
-                <li><a href="#services" className="hover:text-slate-300">Services</a></li>
-                <li><a href="#vision" className="hover:text-slate-300">About & Vision</a></li>
-                <li><a href="#highlights" className="hover:text-slate-300">Event Highlights</a></li>
-                <li><a href="#process" className="hover:text-slate-300">Work Process</a></li>
-                <li><a href="#features" className="hover:text-slate-300">Feature Suite</a></li>
-                <li><a href="#pricing" className="hover:text-slate-300">Subscription Plans</a></li>
+              <p className="font-bold font-display text-white text-base mb-4">Services</p>
+              <ul className="space-y-2.5">
+                <li><a href="#services" className="hover:text-white transition-colors">Team Building Events</a></li>
+                <li><a href="#services" className="hover:text-white transition-colors">Conferences & Summits</a></li>
+                <li><a href="#services" className="hover:text-white transition-colors">Product Launches</a></li>
+                <li><a href="#services" className="hover:text-white transition-colors">Gala Dinners</a></li>
               </ul>
             </div>
 
             <div>
-              <p className="font-bold text-white mb-3">Portals & Sign In</p>
-              <ul className="space-y-2">
+              <p className="font-bold font-display text-white text-base mb-4">Portals & Sign In</p>
+              <ul className="space-y-2.5">
                 <li>
-                  <button onClick={onOpenLogin} className="hover:text-[#FB9378] text-left">
+                  <button onClick={onOpenLogin} className="hover:text-[#FB9378] text-left transition-colors">
                     Company Organizer Sign In
                   </button>
                 </li>
                 <li>
-                  <button onClick={onOpenLogin} className="hover:text-[#E0C97E] text-left">
+                  <button onClick={onOpenLogin} className="hover:text-[#E0C97E] text-left transition-colors">
                     Platform Super-Admin Sign In
                   </button>
                 </li>
                 <li>
-                  <button onClick={onOpenRegisterCompany} className="hover:text-[#FCF8B3] text-left">
-                    Register a New Company
+                  <button onClick={onOpenRegisterCompany} className="hover:text-[#FCF8B3] text-left transition-colors">
+                    Register a New Company Workspace
                   </button>
                 </li>
               </ul>
             </div>
 
             <div>
-              <p className="font-bold text-white mb-3">Legal & Compliance</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="font-bold font-display text-white text-base mb-4">Compliance</p>
+              <p className="text-xs text-white/70 leading-relaxed font-normal">
                 Ghana Act 843 Data Protection Compliant. Row-Level Security guarantees cross-tenant isolation on all stored attendee photos and contact records.
               </p>
             </div>
 
           </div>
 
-          <div className="pt-6 border-t border-[#1E202B] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p>© 2026 EventPlan Platform. Precision corporate event management.</p>
-            <div className="flex items-center gap-4 text-[11px]">
+          <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <p>© 2026 EventPlan. All rights reserved.</p>
+            <div className="flex items-center gap-4 text-white/60">
               <span className="text-[#E0C97E]">Multi-Tenancy Architecture</span>
               <span>•</span>
               <span className="text-[#FB9378]">PostgreSQL RLS Protected</span>

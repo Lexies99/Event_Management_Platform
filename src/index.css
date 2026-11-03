@@ -3,9 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --brand-500: #E0C97E;
-  --brand-600: #FB9378;
-  --brand-700: #AB6088;
+  --color-champagne: #E0C97E;
+  --color-butter: #FCF8B3;
+  --color-coral: #FB9378;
+  --color-mauve: #AB6088;
+  --color-body-bg: #1a1a19;
 }
 
 html {
@@ -14,9 +16,9 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #090A0D;
-  color: #f8fafc;
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  background-color: #1a1a19;
+  color: #ffffff;
   overflow-x: hidden;
 }
 
@@ -26,83 +28,51 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090A0D;
+  background: #1a1a19;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232530;
+  background: #333330;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #393C4E;
+  background: #4a4a46;
 }
 
 /* Luxury Multi-color Palette Gradient Text: Mauve -> Coral -> Champagne -> Butter */
 .text-palette-gradient {
-  background: linear-gradient(90deg, #AB6088 0%, #FB9378 35%, #E0C97E 70%, #FCF8B3 100%);
+  background: linear-gradient(to right, #AB6088 0%, #FB9378 30%, #E0C97E 65%, #FCF8B3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* Reverse Palette Gradient */
 .text-palette-gradient-rev {
-  background: linear-gradient(90deg, #FCF8B3 0%, #E0C97E 30%, #FB9378 70%, #AB6088 100%);
+  background: linear-gradient(to right, #FCF8B3 0%, #E0C97E 30%, #FB9378 70%, #AB6088 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Iridescent Gradient Border Pill / Button */
-.btn-gradient-border {
-  position: relative;
-  background: #090A0D;
-  border: 1px solid transparent;
-  background-clip: padding-box;
-  z-index: 1;
+/* Iridescent Button from Unifato Reference */
+.btn-unifato {
+  display: inline-flex;
+  background: linear-gradient(160deg, #AB6088, #FB9378 33%, #E0C97E 67%, #FCF8B3);
+  padding: 1.5px;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
 }
 
-.btn-gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: -1.5px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, #AB6088 0%, #FB9378 40%, #E0C97E 75%, #FCF8B3 100%);
-  z-index: -1;
-  opacity: 0.95;
-  transition: opacity 0.3s ease, filter 0.3s ease;
+.btn-unifato-inner {
+  background-color: #1a1a19;
+  border-radius: calc(0.75rem - 1.5px);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.btn-gradient-border:hover::before {
-  opacity: 1;
-  filter: drop-shadow(0 0 12px rgba(251, 147, 120, 0.45));
+.btn-unifato:hover .btn-unifato-inner {
+  background-color: transparent;
 }
 
-/* Card with subtle luxury styling */
-.card-luxury {
-  background: #111217;
-  border: 1px solid #1E202B;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.card-luxury:hover {
-  border-color: #323545;
-  transform: translateY(-2px);
-}
-
-/* Glassmorphism utilities */
-.glass-panel {
-  background: rgba(17, 18, 23, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel-subtle {
-  background: rgba(9, 10, 13, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.glow-brand {
-  box-shadow: 0 0 25px -5px rgba(224, 201, 126, 0.3);
+.btn-unifato:hover span {
+  color: #1a1a19 !important;
 }
 
 /* =========================================================
