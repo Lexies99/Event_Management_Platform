@@ -40,6 +40,8 @@ export default function PublicLandingPage({
             <nav className="flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-slate-300">
               <a href="#" className="hover:text-white transition-colors">Home</a>
               <a href="#services" className="hover:text-white transition-colors">Services</a>
+              <a href="#vision" className="hover:text-white transition-colors">About</a>
+              <a href="#highlights" className="hover:text-white transition-colors hidden md:inline">Highlights</a>
               <a href="#process" className="hover:text-white transition-colors">Process</a>
               <a href="#features" className="hover:text-white transition-colors hidden md:inline">Features</a>
               <a href="#pricing" className="hover:text-white transition-colors hidden md:inline">Pricing</a>
@@ -82,7 +84,7 @@ export default function PublicLandingPage({
           ========================================================================= */}
       <section className="relative pt-12 sm:pt-16 pb-20 overflow-hidden">
         
-        {/* Subtle Ambient Vignettes */}
+        {/* Subtle Ambient Vignettes with Custom Palette */}
         <div className="absolute top-10 left-1/4 w-[450px] h-[300px] bg-[#AB6088]/15 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-20 right-1/4 w-[400px] h-[300px] bg-[#E0C97E]/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -91,7 +93,7 @@ export default function PublicLandingPage({
           {/* Top 2-Column Split: Headline & Editorial Paragraph */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-12 sm:mb-16">
             <div>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12]">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold font-display text-white tracking-tight leading-[1.12]">
                 Precision planning for perfect corporate events
               </h1>
             </div>
@@ -112,9 +114,9 @@ export default function PublicLandingPage({
             </div>
           </div>
 
-          {/* Massive Typographic Hero: "EventPlan" with Palette Gradient */}
+          {/* Massive Typographic Hero: "EventPlan" with Custom Palette Gradient */}
           <div className="relative my-4 select-none">
-            <h2 className="text-6xl sm:text-8xl md:text-[11rem] lg:text-[13rem] font-black tracking-tighter leading-none text-center text-palette-gradient">
+            <h2 className="text-6xl sm:text-8xl md:text-[11rem] lg:text-[13rem] font-black font-display tracking-tighter leading-none text-center text-palette-gradient">
               EventPlan
             </h2>
           </div>
@@ -129,7 +131,6 @@ export default function PublicLandingPage({
             
             {/* Dark Gradient Overlays for Atmospheric Depth */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#090A0D] via-[#090A0D]/30 to-[#090A0D]/80" />
-            <div className="absolute inset-0 bg-radial-vignette opacity-60" />
 
             {/* Floating Centered CTA Pill (Request a Quote) */}
             <div className="absolute inset-0 flex items-center justify-center p-4">
@@ -156,7 +157,7 @@ export default function PublicLandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-5xl font-bold font-display text-white tracking-tight">
               Our event planning services
             </h2>
             <p className="text-sm text-slate-400 mt-3 max-w-xl mx-auto">
@@ -293,7 +294,158 @@ export default function PublicLandingPage({
       </section>
 
       {/* =========================================================================
-          4. "OUR WORK PROCESS" (Staggered Rhythmic Columns - Ref Image 5)
+          4. "VISIONARY PLANNING" SECTION (New Reference Images 1 & 2)
+          ========================================================================= */}
+      <section id="vision" className="py-28 border-t border-[#1E202B] relative overflow-hidden scroll-mt-20">
+        
+        {/* Ambient Glow */}
+        <div className="absolute top-1/2 left-10 -translate-y-1/2 w-96 h-96 bg-[#AB6088]/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 right-10 -translate-y-1/2 w-96 h-96 bg-[#E0C97E]/10 rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 lg:gap-10 md:gap-8 gap-8 items-stretch">
+            
+            {/* Left Column: Image on Top, Description + "View More" on Bottom */}
+            <div className="lg:col-span-3 md:col-span-6 flex flex-col justify-between gap-6">
+              {/* Top Image: Team Toasting / Celebrating */}
+              <div className="relative w-full rounded-2xl overflow-hidden h-56 sm:h-64 border border-[#1E202B]">
+                <img 
+                  src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80" 
+                  alt="Team Celebration" 
+                  className="w-full h-full object-cover brightness-[0.8]"
+                />
+                <div className="absolute inset-0 bg-[#090A0D]/20" />
+              </div>
+
+              {/* Bottom Text & Button */}
+              <div className="space-y-6 pt-2">
+                <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
+                  We specialize in turning visions into reality. With a passion for perfection and a commitment to excellence, we bring your corporate event dreams to life with meticulous planning, innovative solutions, and flawless execution.
+                </p>
+
+                {/* "View more" Iridescent Button */}
+                <button
+                  onClick={onOpenRegisterCompany}
+                  className="btn-gradient-border px-5 py-3 rounded-xl text-white font-bold text-sm inline-flex items-center gap-3 shadow-xl hover:scale-105 active:scale-95 transition-all group"
+                >
+                  <Sparkles className="w-4 h-4 text-[#FB9378] group-hover:rotate-45 transition-transform duration-300" />
+                  <span>View more</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Center Column: Massive Headline */}
+            <div className="lg:col-span-6 md:col-span-12 flex items-center justify-center text-center py-6 lg:py-0 order-first md:order-none">
+              <h2 className="text-4xl sm:text-6xl lg:text-[76px] xl:text-[88px] leading-[1.05] font-extrabold font-display text-white tracking-tight">
+                Visionary <br />planning for <br />perfect <br />corporate<br /> events
+              </h2>
+            </div>
+
+            {/* Right Column: 500+ Stat on Top, Image on Bottom */}
+            <div className="lg:col-span-3 md:col-span-6 flex flex-col justify-between gap-6">
+              {/* Top Stat */}
+              <div className="text-left md:text-right pt-2">
+                <h3 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display text-palette-gradient mb-2">
+                  500+
+                </h3>
+                <p className="text-sm sm:text-base font-medium text-slate-300">
+                  Successful events planned
+                </p>
+              </div>
+
+              {/* Bottom Image: Smiling Team Outdoors */}
+              <div className="relative w-full rounded-2xl overflow-hidden aspect-[4/5] border border-[#1E202B]">
+                <img 
+                  src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80" 
+                  alt="Outdoor Corporate Team Event" 
+                  className="w-full h-full object-cover brightness-[0.85]"
+                />
+                <div className="absolute inset-0 bg-[#090A0D]/20" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          5. "EVENT HIGHLIGHTS" SECTION (New Reference Images 3, 4, 5)
+          ========================================================================= */}
+      <section id="highlights" className="py-24 border-t border-[#1E202B] bg-[#07080B] scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold font-display text-white tracking-tight">
+              Event highlights
+            </h2>
+            <p className="text-sm text-slate-400 mt-3 max-w-xl mx-auto">
+              Spotlight showcases from premier corporate summits, keynotes, and executive leadership conferences.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-10">
+            
+            {/* Event Highlight 1: Annual Global Leadership Summit */}
+            <div className="rounded-3xl overflow-hidden border border-[#1E202B] bg-[#111217] shadow-2xl group cursor-pointer" onClick={onOpenRegisterCompany}>
+              {/* Colored Banner with Custom Mauve Accent */}
+              <div className="bg-[#AB6088]/80 text-black py-5 px-6 sm:px-10 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
+                <div className="text-xs sm:text-sm font-semibold flex items-center justify-start gap-2">
+                  <span className="font-bold">GlobalTech Inc.</span>
+                  <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
+                  <span>28 Jun 2024</span>
+                </div>
+                <h3 className="text-lg sm:text-2xl font-bold font-display text-black text-center md:whitespace-nowrap">
+                  Annual global leadership summit
+                </h3>
+                <div className="text-xs sm:text-sm font-bold text-black text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-all">
+                  View detail
+                </div>
+              </div>
+              {/* Photo */}
+              <div className="relative w-full h-56 sm:h-96 lg:h-[450px] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1800&q=80" 
+                  alt="Annual global leadership summit" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.8]"
+                />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+              </div>
+            </div>
+
+            {/* Event Highlight 2: Executive Board Meeting */}
+            <div className="rounded-3xl overflow-hidden border border-[#1E202B] bg-[#111217] shadow-2xl group cursor-pointer" onClick={onOpenRegisterCompany}>
+              {/* Colored Banner with Custom Champagne Accent */}
+              <div className="bg-[#E0C97E]/90 text-black py-5 px-6 sm:px-10 grid grid-cols-1 md:grid-cols-3 items-center gap-4 transition-colors">
+                <div className="text-xs sm:text-sm font-semibold flex items-center justify-start gap-2">
+                  <span className="font-bold">TechCorp Solutions</span>
+                  <span className="w-1.5 h-1.5 bg-black/60 rounded-full" />
+                  <span>1 Jun 2024</span>
+                </div>
+                <h3 className="text-lg sm:text-2xl font-bold font-display text-black text-center md:whitespace-nowrap">
+                  Executive board meeting
+                </h3>
+                <div className="text-xs sm:text-sm font-bold text-black text-right underline underline-offset-4 decoration-black/40 group-hover:decoration-black transition-all">
+                  View detail
+                </div>
+              </div>
+              {/* Photo */}
+              <div className="relative w-full h-56 sm:h-96 lg:h-[450px] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1800&q=80" 
+                  alt="Executive board meeting" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.8]"
+                />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          6. "OUR WORK PROCESS" (Staggered Rhythmic Columns - Ref Image 5)
           ========================================================================= */}
       <section id="process" className="py-28 border-t border-[#1E202B] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -302,7 +454,7 @@ export default function PublicLandingPage({
             
             {/* Left Header */}
             <div className="lg:col-span-3">
-              <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+              <h2 className="text-3xl sm:text-5xl font-bold font-display text-white tracking-tight leading-tight">
                 Our work<br className="hidden lg:inline" /> process
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 mt-4 leading-relaxed max-w-xs">
@@ -315,7 +467,7 @@ export default function PublicLandingPage({
               
               {/* Step 01: Planning (Number on Top) */}
               <div className="flex flex-col">
-                <div className="text-6xl sm:text-7xl font-black text-palette-gradient leading-none mb-4 select-none">
+                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
                   01
                 </div>
                 <h3 className="text-base sm:text-lg font-bold text-white mb-3">Planning</h3>
@@ -327,7 +479,7 @@ export default function PublicLandingPage({
               {/* Step 02: Preparation (Title Above, Stepped Down) */}
               <div className="flex flex-col sm:mt-16 md:mt-24">
                 <h3 className="text-base sm:text-lg font-bold text-white mb-2">Preparation</h3>
-                <div className="text-6xl sm:text-7xl font-black text-palette-gradient leading-none mb-4 select-none">
+                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
                   02
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
@@ -337,7 +489,7 @@ export default function PublicLandingPage({
 
               {/* Step 03: Execution (Number on Top, Stepped Mid) */}
               <div className="flex flex-col sm:mt-6 md:mt-8">
-                <div className="text-6xl sm:text-7xl font-black text-palette-gradient leading-none mb-4 select-none">
+                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
                   03
                 </div>
                 <h3 className="text-base sm:text-lg font-bold text-white mb-3">Execution</h3>
@@ -349,7 +501,7 @@ export default function PublicLandingPage({
               {/* Step 04: Evaluation (Title Above, Stepped Down) */}
               <div className="flex flex-col sm:mt-20 md:mt-32">
                 <h3 className="text-base sm:text-lg font-bold text-white mb-2">Evaluation</h3>
-                <div className="text-6xl sm:text-7xl font-black text-palette-gradient leading-none mb-4 select-none">
+                <div className="text-6xl sm:text-7xl font-black font-display text-palette-gradient leading-none mb-4 select-none">
                   04
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
@@ -365,7 +517,7 @@ export default function PublicLandingPage({
       </section>
 
       {/* =========================================================================
-          5. FEATURES & WORKSPACE ARCHITECTURE (Tailored Midnight & Palette)
+          7. FEATURES & WORKSPACE ARCHITECTURE (Tailored Midnight & Palette)
           ========================================================================= */}
       <section id="features" className="py-24 border-t border-[#1E202B] bg-[#0C0D12] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -374,7 +526,7 @@ export default function PublicLandingPage({
             <span className="text-xs font-bold text-[#E0C97E] uppercase tracking-widest block mb-2">
               Enterprise Event Capabilities
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight">
               Engineered for Zero Latency and High Throughput
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-2">
@@ -493,7 +645,7 @@ export default function PublicLandingPage({
       </section>
 
       {/* =========================================================================
-          6. MULTI-DESK CHECK-IN COORDINATION
+          8. MULTI-DESK CHECK-IN COORDINATION
           ========================================================================= */}
       <section id="multidesk" className="py-24 border-t border-[#1E202B] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -504,7 +656,7 @@ export default function PublicLandingPage({
                 <Users className="w-3.5 h-3.5" />
                 <span>ON-SITE VOLUNTEER & ADMIN COORDINATION</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight leading-tight">
                 Turn Every Smartphone into a High-Speed Wireless Badge Scanner.
               </h2>
               <p className="text-sm text-slate-300 mt-4 leading-relaxed">
@@ -579,7 +731,7 @@ export default function PublicLandingPage({
       </section>
 
       {/* =========================================================================
-          7. SECURITY & RLS SECTION
+          9. SECURITY & RLS SECTION
           ========================================================================= */}
       <section id="security" className="py-24 border-t border-[#1E202B] bg-[#0C0D12] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -589,7 +741,7 @@ export default function PublicLandingPage({
               <ShieldCheck className="w-4 h-4" />
               <span>STRICT MULTI-TENANT ISOLATION</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight">
               Enterprise Security & Row-Level Protection
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-2">
@@ -650,7 +802,7 @@ export default function PublicLandingPage({
       </section>
 
       {/* =========================================================================
-          8. PRICING PLANS
+          10. PRICING PLANS
           ========================================================================= */}
       <section id="pricing" className="py-24 border-t border-[#1E202B] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -659,7 +811,7 @@ export default function PublicLandingPage({
             <span className="text-xs font-bold text-[#E0C97E] uppercase tracking-widest block mb-2">
               Transparent Workspace Rental
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white tracking-tight">
               Simple, Predictable Subscription Pricing
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-2">
@@ -752,7 +904,7 @@ export default function PublicLandingPage({
       </section>
 
       {/* =========================================================================
-          9. FOOTER
+          11. FOOTER
           ========================================================================= */}
       <footer className="mt-auto border-t border-[#1E202B] bg-[#07080B] py-14 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -774,9 +926,10 @@ export default function PublicLandingPage({
               <p className="font-bold text-white mb-3">Navigation</p>
               <ul className="space-y-2">
                 <li><a href="#services" className="hover:text-slate-300">Services</a></li>
+                <li><a href="#vision" className="hover:text-slate-300">About & Vision</a></li>
+                <li><a href="#highlights" className="hover:text-slate-300">Event Highlights</a></li>
                 <li><a href="#process" className="hover:text-slate-300">Work Process</a></li>
                 <li><a href="#features" className="hover:text-slate-300">Feature Suite</a></li>
-                <li><a href="#multidesk" className="hover:text-slate-300">Multi-Desk Scanners</a></li>
                 <li><a href="#pricing" className="hover:text-slate-300">Subscription Plans</a></li>
               </ul>
             </div>
