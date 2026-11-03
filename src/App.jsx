@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Storage } from './data/storage';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import SuperAdminDashboard from './components/SuperAdmin/SuperAdminDashboard';
 import OrganizerDashboard from './components/Organizer/OrganizerDashboard';
 import CheckInStation from './components/CheckIn/CheckInStation';
@@ -258,12 +258,13 @@ export default function App() {
 
   // =========================================================================
   // VIEW MODE 2: LOGGED-IN SYSTEM DASHBOARDS (Company Section or Super-Admin Fleet)
+  // Left-Sidebar layout on desktop, top-bar + drawer on mobile
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#141413] text-white flex flex-col lg:flex-row font-sans selection:bg-[#FB9378]/30">
       
-      {/* Top Navbar with Strict Workspace & Role Scoping */}
-      <Navbar
+      {/* Left-Sidebar Vertical Navigation */}
+      <Sidebar
         activeRole={activeRole}
         setActiveRole={handleRoleChange}
         tenants={tenants}
@@ -280,8 +281,9 @@ export default function App() {
         onGoToLanding={() => setViewMode('landing')}
       />
 
-      {/* Main Container View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* Main Content Area (Right Side on Desktop) */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen bg-[#141413]">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
         {/* Role 1: Super-Admin Control Plane (System Admin only) */}
         {activeRole === 'super-admin' && isOperatorUnlocked && (
@@ -377,7 +379,31 @@ export default function App() {
           />
         )}
 
-      </main>
+        </main>
+
+        {/* Authenticated Dashboard Footer */}
+        <footer className="border-t border-white/10 bg-[#141413] py-6 text-xs text-white/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-white">EventPlan Multi-Tenant Cloud</span>
+              <span>•</span>
+              <span>Workspace: {activeTenant?.name}</span>
+              <span>•</span>
+              <span className="text-emerald-400 font-mono">Row-Level Security Active</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/50">
+              <button
+                onClick={() => setViewMode('landing')}
+                className="text-[#E0C97E] hover:text-[#FCF8B3] underline font-medium"
+              >
+                Public Commercial Website
+              </button>
+              <span>•</span>
+              <span>v1.0 Production Architecture</span>
+            </div>
+          </div>
+        </footer>
+      </div>
 
       {/* Global Modals */}
       <LoginModal
@@ -395,29 +421,6 @@ export default function App() {
         onCompanyRegistered={handleCompanyRegistered}
         plans={plans}
       />
-
-      {/* Authenticated Dashboard Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-slate-300">EventFlow Cloud Platform</span>
-            <span>•</span>
-            <span>Strict Multi-Tenant Isolation</span>
-            <span>•</span>
-            <span className="text-emerald-400 font-mono">Row-Level Security Active</span>
-          </div>
-          <div className="flex items-center gap-3 text-slate-400">
-            <button
-              onClick={() => setViewMode('landing')}
-              className="text-cyan-400 hover:text-cyan-300 underline font-medium"
-            >
-              Public Commercial Website
-            </button>
-            <span>•</span>
-            <span>Version 1.0 Production Architecture</span>
-          </div>
-        </div>
-      </footer>
 
     </div>
   );
