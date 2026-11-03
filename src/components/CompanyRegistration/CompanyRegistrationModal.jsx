@@ -12,19 +12,28 @@ import {
   Copy, 
   ExternalLink,
   ShieldCheck,
-  Zap,
-  Globe,
   Palette,
   Upload
 } from 'lucide-react';
 
+/* Reusable Unifato Monogram Logo */
+function EventPlanMonogram({ className = "w-12 h-12" }) {
+  return (
+    <svg viewBox="0 0 171 171" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <circle cx="85.5" cy="85.5" r="85" fill="#F3EFFF"/>
+      <path d="M141.776 61.5093C143.944 68.2126 141.146 78.5468 140.517 79.8502C137.16 87.019 130.097 91.674 122.545 91.674C119.887 91.5809 117.23 91.1154 114.712 89.9982L114.013 89.7189C112.265 88.7879 110.447 88.3224 108.558 88.1362C106.67 88.1362 104.852 89.0672 103.453 90.743L103.034 91.2085V117.37H88.0685V52.3854H130.307C135.132 52.1061 139.678 55.737 141.776 61.5093ZM126.391 75.2882C126.95 71.2849 126.741 65.2333 124.083 61.6024C122.335 59.5542 120.027 58.5301 117.649 58.8094C114.153 58.8094 110.447 58.7163 106.6 58.7163H103.034V83.7604L104.642 83.0156C106.041 82.1777 107.649 81.8984 109.188 81.8984C110.936 81.9915 112.754 82.3639 114.433 83.0156L115.901 83.4811C117.16 83.9466 118.489 84.319 119.887 84.4121C123.803 84.4121 125.692 79.9433 126.391 75.2882Z" fill="#1A1A19"/>
+      <path d="M50.077 60.9507L49.2378 60.4852V80.3157H71.2663V88.1361H49.2378V109.549H78.7489V117.277H33.5033V52.3854H49.7274C51.7554 53.7819 53.9233 54.6198 56.231 54.7129C56.5807 54.806 56.9303 54.806 57.28 54.806C59.1681 54.7129 61.1262 54.4336 62.9444 53.7819C63.364 53.6888 63.9235 53.5026 64.5528 53.3164C66.441 52.6647 68.3991 52.1992 70.3572 52.013C70.9166 51.9199 71.546 51.9199 72.2453 51.9199C74.4132 51.9199 76.5811 52.1061 78.7489 52.4785V60.299C76.5811 59.9266 74.4132 59.7404 72.2453 59.7404C69.7977 59.7404 67.6298 60.299 65.2522 61.0438L64.0633 61.4162C63.9235 61.5093 63.7137 61.5093 63.5039 61.6024C61.4059 62.161 59.238 62.5334 57.0002 62.6265C54.6226 62.6265 52.3148 62.0679 50.077 60.9507Z" fill="#1A1A19"/>
+    </svg>
+  );
+}
+
 const BRAND_PALETTES = [
-  { name: "Indigo Tech", color: "#4f46e5" },
-  { name: "Emerald Health", color: "#059669" },
-  { name: "Amber FinTech", color: "#d97706" },
-  { name: "Royal Purple", color: "#7c3aed" },
-  { name: "Crimson Media", color: "#e11d48" },
-  { name: "Ocean Cyan", color: "#0891b2" }
+  { name: "Champagne Gold", color: "#E0C97E" },
+  { name: "Warm Coral", color: "#FB9378" },
+  { name: "Mauve Plum", color: "#AB6088" },
+  { name: "Butter Glow", color: "#FCF8B3" },
+  { name: "Emerald Green", color: "#10B981" },
+  { name: "Classic Navy", color: "#3B82F6" }
 ];
 
 const PRESET_LOGOS = [
@@ -116,7 +125,7 @@ export default function CompanyRegistrationModal({
     });
 
     setRegisteredTenant(newTenant);
-    setStep(5); // Success step
+    setStep(5);
   };
 
   const companyPortalLink = registeredTenant
@@ -135,499 +144,506 @@ export default function CompanyRegistrationModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 my-6 text-slate-100 flex flex-col max-h-[92vh]">
+      
+      {/* Iridescent Border Container */}
+      <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-2xl my-6">
         
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors"
-          title="Close dialog"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center gap-3.5 mb-6 shrink-0">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black text-white tracking-tight">Register Your Company</h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
-                Instant Self-Service
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Launch your isolated corporate event workspace with automated photo registration, badge printing & live check-in.
-            </p>
-          </div>
-        </div>
-
-        {/* Stepper Progress Bar (Only during steps 1 to 4) */}
-        {step < 5 && (
-          <div className="flex items-center justify-between mb-6 shrink-0 bg-slate-950/60 p-2 rounded-2xl border border-slate-800/80">
-            {[
-              { num: 1, label: "Company & Brand" },
-              { num: 2, label: "Event Setup" },
-              { num: 3, label: "Organizer Admin" },
-              { num: 4, label: "Plan & Launch" }
-            ].map((s) => (
-              <button
-                key={s.num}
-                type="button"
-                onClick={() => setStep(s.num)}
-                className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                  step === s.num
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : step > s.num
-                    ? 'text-emerald-400'
-                    : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  step === s.num ? 'bg-white text-indigo-900' : step > s.num ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
-                }`}>
-                  {step > s.num ? '✓' : s.num}
-                </span>
-                <span className="hidden sm:inline">{s.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 pr-1 space-y-5">
+        {/* Modal Interior with Warm #1a1a19 Background */}
+        <div className="relative w-full bg-[#1a1a19] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
           
-          {/* STEP 1: COMPANY & BRAND */}
-          {step === 1 && (
-            <div className="space-y-4 animate-fade-in">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Company / Organization Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={companyName}
-                  onChange={handleCompanyNameChange}
-                  placeholder="e.g. Apex Global Innovations"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
-                />
-              </div>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+            title="Close dialog"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Private Workspace Slug & URL
-                </label>
-                <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl overflow-hidden focus-within:border-indigo-500">
-                  <span className="px-3.5 text-xs text-slate-500 font-mono">https://eventflow.cloud/?tenant=</span>
+          {/* Modal Header */}
+          <div className="flex items-center gap-3.5 mb-6 shrink-0">
+            <EventPlanMonogram className="w-12 h-12 shrink-0" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold font-display text-white tracking-tight">
+                  Register Your Company Workspace
+                </h2>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E0C97E]/15 text-[#E0C97E] border border-[#E0C97E]/30 uppercase tracking-wider font-display">
+                  Instant Setup
+                </span>
+              </div>
+              <p className="text-xs text-white/70 mt-0.5 font-normal">
+                Launch your isolated corporate event workspace with automated photo registration, badge printing & live check-in.
+              </p>
+            </div>
+          </div>
+
+          {/* Stepper Progress Bar */}
+          {step < 5 && (
+            <div className="flex items-center justify-between mb-6 shrink-0 bg-black/50 p-1.5 rounded-2xl border border-white/10">
+              {[
+                { num: 1, label: "Company & Brand" },
+                { num: 2, label: "Event Setup" },
+                { num: 3, label: "Organizer Admin" },
+                { num: 4, label: "Plan & Launch" }
+              ].map((s) => (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => setStep(s.num)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold font-display transition-all cursor-pointer ${
+                    step === s.num
+                      ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black shadow-md font-bold'
+                      : step > s.num
+                      ? 'text-[#E0C97E]'
+                      : 'text-white/40 hover:text-white/80'
+                  }`}
+                >
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    step === s.num ? 'bg-black text-white' : step > s.num ? 'bg-[#E0C97E]/20 text-[#E0C97E]' : 'bg-white/10 text-white/50'
+                  }`}>
+                    {step > s.num ? '✓' : s.num}
+                  </span>
+                  <span className="hidden sm:inline">{s.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Form Body */}
+          <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 pr-1 space-y-5">
+            
+            {/* STEP 1: COMPANY & BRAND */}
+            {step === 1 && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                    Company / Organization Name *
+                  </label>
                   <input
                     type="text"
                     required
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}
-                    placeholder="apex-innovations"
-                    className="flex-1 bg-transparent py-3 pr-4 text-sm text-indigo-400 font-mono focus:outline-none"
+                    value={companyName}
+                    onChange={handleCompanyNameChange}
+                    placeholder="e.g. Apex Global Innovations"
+                    className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-white/30"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">This will be your company's dedicated isolated workspace domain.</p>
-              </div>
 
-              {/* Brand Palette */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Palette className="w-3.5 h-3.5 text-indigo-400" /> Company Brand Color Theme
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {BRAND_PALETTES.map((p) => (
-                    <button
-                      key={p.name}
-                      type="button"
-                      onClick={() => setBrandColor(p.color)}
-                      className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all ${
-                        brandColor === p.color
-                          ? 'border-white bg-slate-800 text-white shadow-lg'
-                          : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-full shadow-inner" style={{ backgroundColor: p.color }} />
-                      <span className="text-[10px] truncate max-w-full font-medium">{p.name.split(' ')[0]}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Upload Custom Company Icon / Logo */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                    Company Icon / Logo *
+                <div>
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                    Private Workspace Slug & URL
                   </label>
-                  <span className="text-[10px] text-slate-400 font-mono">PNG, JPG, SVG up to 5MB</span>
-                </div>
-
-                {/* Upload Action Box */}
-                <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
-                  {/* Current Icon Preview */}
-                  <div className="relative group shrink-0">
-                    <img 
-                      src={logoUrl} 
-                      alt="Company Logo Preview" 
-                      className="w-16 h-16 rounded-2xl object-cover border-2 shadow-lg"
-                      style={{ borderColor: brandColor }}
+                  <div className="flex items-center bg-black/60 border border-white/15 rounded-xl overflow-hidden focus-within:border-[#E0C97E]">
+                    <span className="px-3.5 text-xs text-white/40 font-mono">/?tenant=</span>
+                    <input
+                      type="text"
+                      required
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}
+                      placeholder="apex-innovations"
+                      className="flex-1 bg-transparent py-3 pr-4 text-sm text-[#E0C97E] font-mono focus:outline-none"
                     />
-                    <div 
-                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] shadow"
-                      style={{ backgroundColor: brandColor }}
-                    >
-                      ✓
-                    </div>
                   </div>
-
-                  {/* Upload Controls */}
-                  <div className="flex-1 text-center sm:text-left space-y-2">
-                    <p className="text-xs font-bold text-white">
-                      Upload your official company brand icon:
-                    </p>
-                    <p className="text-[11px] text-slate-400 leading-snug">
-                      This icon will appear on all attendee digital tickets, printed thermal name badges, and the company portal.
-                    </p>
-                    
-                    <div className="flex flex-wrap items-center gap-2 pt-1 justify-center sm:justify-start">
-                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all active:scale-95">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Upload Custom Icon File</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleLogoUpload}
-                          className="hidden" 
-                        />
-                      </label>
-                      <span className="text-[11px] text-slate-500">or pick a starter icon below</span>
-                    </div>
-                  </div>
+                  <p className="text-[11px] text-white/50 mt-1 font-normal">
+                    This will be your company&apos;s dedicated isolated workspace domain.
+                  </p>
                 </div>
 
-                {/* Preset Starter Icons */}
-                <div className="pt-2">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
-                    Or select a starter icon preset:
-                  </span>
-                  <div className="grid grid-cols-4 gap-2.5">
-                    {PRESET_LOGOS.map((item, idx) => (
+                {/* Brand Palette */}
+                <div>
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5 text-[#E0C97E]" /> Company Brand Color Theme
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {BRAND_PALETTES.map((p) => (
                       <button
-                        key={idx}
+                        key={p.name}
                         type="button"
-                        onClick={() => setLogoUrl(item.url)}
-                        className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all ${
-                          logoUrl === item.url
-                            ? 'border-indigo-500 bg-indigo-500/15'
-                            : 'border-slate-800 bg-slate-950/60 hover:border-slate-700'
+                        onClick={() => setBrandColor(p.color)}
+                        className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer ${
+                          brandColor === p.color
+                            ? 'border-white bg-black/80 text-white shadow-lg'
+                            : 'border-white/10 bg-black/40 text-white/60 hover:border-white/30'
                         }`}
                       >
-                        <img src={item.url} alt={item.name} className="w-8 h-8 rounded-lg object-cover" />
-                        <span className="text-[9px] text-slate-400 truncate max-w-full">{item.name}</span>
+                        <div className="w-6 h-6 rounded-full shadow-inner border border-white/20" style={{ backgroundColor: p.color }} />
+                        <span className="text-[10px] truncate max-w-full font-medium">{p.name.split(' ')[0]}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-2 flex justify-end">
-                <button
-                  type="button"
-                  disabled={!companyName.trim()}
-                  onClick={() => setStep(2)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-                >
-                  <span>Continue to Event Setup</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+                {/* Upload Custom Company Icon / Logo */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider">
+                      Company Icon / Logo *
+                    </label>
+                    <span className="text-[10px] text-white/40 font-mono">PNG, JPG, SVG up to 5MB</span>
+                  </div>
 
-          {/* STEP 2: EVENT SETUP */}
-          {step === 2 && (
-            <div className="space-y-4 animate-fade-in">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  First Event Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
-                  placeholder="e.g. Apex Global Tech Summit 2026"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
+                  <div className="p-4 bg-black/50 border border-white/10 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
+                    <div className="relative group shrink-0">
+                      <img 
+                        src={logoUrl} 
+                        alt="Company Logo Preview" 
+                        className="w-16 h-16 rounded-2xl object-cover border-2 shadow-lg"
+                        style={{ borderColor: brandColor }}
+                      />
+                      <div 
+                        className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-black text-[10px] font-bold shadow"
+                        style={{ backgroundColor: brandColor }}
+                      >
+                        ✓
+                      </div>
+                    </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Tagline / Theme
-                </label>
-                <input
-                  type="text"
-                  value={eventTagline}
-                  onChange={(e) => setEventTagline(e.target.value)}
-                  placeholder="e.g. Uniting Visionaries and Industry Pioneers"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
+                    <div className="flex-1 text-center sm:text-left space-y-2">
+                      <p className="text-xs font-bold text-white font-display">
+                        Upload your official company brand icon:
+                      </p>
+                      <p className="text-[11px] text-white/60 leading-snug font-normal">
+                        This icon will appear on all attendee digital tickets, printed lanyard name badges, and the company portal.
+                      </p>
+                      
+                      <div className="flex flex-wrap items-center gap-2 pt-1 justify-center sm:justify-start">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold text-xs shadow-md transition-all active:scale-95">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload Custom Icon File</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleLogoUpload}
+                            className="hidden" 
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Preset Starter Icons */}
+                  <div className="pt-2">
+                    <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider block mb-2 font-display">
+                      Or select a starter icon preset:
+                    </span>
+                    <div className="grid grid-cols-4 gap-2.5">
+                      {PRESET_LOGOS.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setLogoUrl(item.url)}
+                          className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer ${
+                            logoUrl === item.url
+                              ? 'border-[#E0C97E] bg-[#E0C97E]/15'
+                              : 'border-white/10 bg-black/40 hover:border-white/20'
+                          }`}
+                        >
+                          <img src={item.url} alt={item.name} className="w-8 h-8 rounded-lg object-cover" />
+                          <span className="text-[9px] text-white/60 truncate max-w-full font-medium">{item.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 flex justify-end">
+                  <button
+                    type="button"
+                    disabled={!companyName.trim()}
+                    onClick={() => setStep(2)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-95 text-black font-extrabold text-xs shadow-lg transition-all cursor-pointer disabled:opacity-40"
+                  >
+                    <span>Continue to Event Setup</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: EVENT SETUP */}
+            {step === 2 && (
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Venue / Location
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                    First Event Title *
                   </label>
                   <input
                     type="text"
-                    value={eventVenue}
-                    onChange={(e) => setEventVenue(e.target.value)}
-                    placeholder="Accra International Conference Centre"
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    required
+                    value={eventTitle}
+                    onChange={(e) => setEventTitle(e.target.value)}
+                    placeholder="e.g. Apex Global Tech Summit 2026"
+                    className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-white/30"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Expected Delegate Capacity
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                    Tagline / Theme
                   </label>
                   <input
-                    type="number"
-                    value={capacity}
-                    onChange={(e) => setCapacity(e.target.value)}
-                    min="10"
-                    max="5000"
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    type="text"
+                    value={eventTagline}
+                    onChange={(e) => setEventTagline(e.target.value)}
+                    placeholder="e.g. Uniting Visionaries and Industry Pioneers"
+                    className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-white/30"
                   />
                 </div>
-              </div>
 
-              <div className="pt-2 flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-                >
-                  <span>Continue to Organizer Admin</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                      Venue / Location
+                    </label>
+                    <input
+                      type="text"
+                      value={eventVenue}
+                      onChange={(e) => setEventVenue(e.target.value)}
+                      placeholder="Accra International Conference Centre"
+                      className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-white/30"
+                    />
+                  </div>
 
-          {/* STEP 3: ORGANIZER ADMIN */}
-          {step === 3 && (
-            <div className="space-y-4 animate-fade-in">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Lead Organizer Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={organizerName}
-                  onChange={(e) => setOrganizerName(e.target.value)}
-                  placeholder="e.g. Dr. Kwame Mensah"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Official Work Email *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={organizerEmail}
-                  onChange={(e) => setOrganizerEmail(e.target.value)}
-                  placeholder="kwame.mensah@apex.com"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-                <p className="text-[11px] text-slate-500 mt-1">
-                  You will receive access credentials and attendee check-in summaries here.
-                </p>
-              </div>
-
-              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-xs text-indigo-300 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-white mb-0.5">Strict Multi-Tenant Isolation Guarantee</p>
-                  <p className="text-slate-300 text-[11px] leading-relaxed">
-                    Your company workspace is completely segregated. No other tenant or third party can access your registrant lists, photos, or badges.
-                  </p>
+                  <div>
+                    <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                      Expected Delegate Capacity
+                    </label>
+                    <input
+                      type="number"
+                      value={capacity}
+                      onChange={(e) => setCapacity(e.target.value)}
+                      min="10"
+                      max="5000"
+                      className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="pt-2 flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  disabled={!organizerName.trim() || !organizerEmail.trim()}
-                  onClick={() => setStep(4)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-                >
-                  <span>Choose Plan & Review</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: PLAN & REVIEW */}
-          {step === 4 && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="text-xs text-slate-300 font-semibold mb-2">
-                Select your company rental plan (free instant trial included):
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { id: 'starter', name: 'Starter', price: '$99/mo', desc: 'Up to 200 attendees, optical QR scanner, badges' },
-                  { id: 'growth', name: 'Growth (Popular)', price: '$199/mo', desc: 'Up to 1,000 attendees, sub-second scanning, live chat, CSV export' },
-                  { id: 'enterprise', name: 'Enterprise', price: '$499/mo', desc: 'Unlimited capacity, SLA, VIP credentials, custom domains' }
-                ].map((p) => (
+                <div className="pt-3 flex justify-between">
                   <button
-                    key={p.id}
                     type="button"
-                    onClick={() => setPlanId(p.id)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                      planId === p.id
-                        ? 'border-indigo-500 bg-indigo-600/15 shadow-xl'
-                        : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-                    }`}
+                    onClick={() => setStep(1)}
+                    className="px-4 py-2.5 rounded-xl bg-white/10 text-white/80 hover:text-white font-semibold text-xs cursor-pointer"
                   >
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-white text-xs">{p.name}</span>
-                        {planId === p.id && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
-                      </div>
-                      <p className="text-sm font-extrabold text-cyan-400 mb-2">{p.price}</p>
-                      <p className="text-[11px] text-slate-400 leading-snug">{p.desc}</p>
-                    </div>
+                    Back
                   </button>
-                ))}
-              </div>
-
-              {/* Review summary box */}
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Company:</span>
-                  <span className="font-bold text-white">{companyName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Event:</span>
-                  <span className="font-bold text-indigo-300">{eventTitle}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Lead Organizer:</span>
-                  <span className="font-bold text-slate-200">{organizerName} ({organizerEmail})</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Subdomain:</span>
-                  <span className="font-mono text-cyan-400 font-bold">/{slug}</span>
+                  <button
+                    type="button"
+                    onClick={() => setStep(3)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-95 text-black font-extrabold text-xs shadow-lg transition-all cursor-pointer"
+                  >
+                    <span>Continue to Organizer Admin</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            )}
 
-              <div className="pt-2 flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs"
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-extrabold text-sm shadow-xl shadow-indigo-600/30 transition-all transform hover:-translate-y-0.5"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Provision & Launch Workspace</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: REGISTRATION COMPLETE / SUCCESS */}
-          {step === 5 && registeredTenant && (
-            <div className="space-y-6 text-center py-4 animate-fade-in">
-              <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-xl">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-black text-white">Workspace Successfully Provisioned!</h3>
-                <p className="text-xs text-slate-300 mt-1 max-w-md mx-auto">
-                  <strong>{registeredTenant.name}</strong> is now live on EventFlow with isolated row-level security.
-                </p>
-              </div>
-
-              {/* Private Links Box */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left space-y-3 max-w-lg mx-auto">
+            {/* STEP 3: ORGANIZER ADMIN */}
+            {step === 3 && (
+              <div className="space-y-4">
                 <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Your Private Company Organizer Portal:
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                    Lead Organizer Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={organizerName}
+                    onChange={(e) => setOrganizerName(e.target.value)}
+                    placeholder="e.g. Dr. Kwame Mensah"
+                    className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-white/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold font-display text-white/80 uppercase tracking-wider mb-1.5">
+                    Official Work Email *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={organizerEmail}
+                    onChange={(e) => setOrganizerEmail(e.target.value)}
+                    placeholder="kwame.mensah@apex.com"
+                    className="w-full bg-black/60 border border-white/15 focus:border-[#E0C97E] rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-white/30"
+                  />
+                  <p className="text-[11px] text-white/50 mt-1 font-normal">
+                    You will receive access credentials and attendee check-in summaries here.
                   </p>
-                  <div className="flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
-                    <span className="font-mono text-xs text-cyan-300 truncate">{companyPortalLink}</span>
+                </div>
+
+                <div className="bg-[#AB6088]/15 border border-[#AB6088]/30 rounded-2xl p-4 text-xs text-white/80 flex items-start gap-3">
+                  <ShieldCheck className="w-5 h-5 text-[#AB6088] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-white mb-0.5 font-display">Strict Multi-Tenant Isolation Guarantee</p>
+                    <p className="text-white/70 text-[11px] leading-relaxed font-normal">
+                      Your company workspace is completely segregated with PostgreSQL Row-Level Security. No other tenant can view your registrant lists, photos, or badges.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-4 py-2.5 rounded-xl bg-white/10 text-white/80 hover:text-white font-semibold text-xs cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!organizerName.trim() || !organizerEmail.trim()}
+                    onClick={() => setStep(4)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-95 text-black font-extrabold text-xs shadow-lg transition-all cursor-pointer disabled:opacity-40"
+                  >
+                    <span>Choose Plan & Review</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: PLAN & REVIEW */}
+            {step === 4 && (
+              <div className="space-y-4">
+                <div className="text-xs text-white/80 font-bold font-display mb-2">
+                  Select your company rental plan (free instant trial included):
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'starter', name: 'Starter', price: '$99/mo', desc: 'Up to 200 attendees, optical QR scanner, badges' },
+                    { id: 'growth', name: 'Growth (Popular)', price: '$199/mo', desc: 'Up to 1,000 attendees, sub-second scanning, live chat, CSV export' },
+                    { id: 'enterprise', name: 'Enterprise', price: '$499/mo', desc: 'Unlimited capacity, SLA, VIP credentials, custom domains' }
+                  ].map((p) => (
                     <button
+                      key={p.id}
                       type="button"
-                      onClick={copyCompanyLink}
-                      className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-bold shrink-0 bg-slate-800 px-2.5 py-1 rounded-lg"
+                      onClick={() => setPlanId(p.id)}
+                      className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                        planId === p.id
+                          ? 'border-[#E0C97E] bg-[#E0C97E]/15 shadow-xl'
+                          : 'border-white/10 bg-black/40 hover:border-white/20'
+                      }`}
                     >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>{copiedLink ? "Copied!" : "Copy"}</span>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-white text-xs font-display">{p.name}</span>
+                          {planId === p.id && <CheckCircle2 className="w-4 h-4 text-[#E0C97E]" />}
+                        </div>
+                        <p className="text-sm font-extrabold text-[#E0C97E] mb-2 font-display">{p.price}</p>
+                        <p className="text-[11px] text-white/60 leading-snug font-normal">{p.desc}</p>
+                      </div>
                     </button>
+                  ))}
+                </div>
+
+                {/* Review summary box */}
+                <div className="bg-black/50 p-4 rounded-2xl border border-white/10 text-xs space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-white/50 font-normal">Company:</span>
+                    <span className="font-bold text-white font-display">{companyName}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50 font-normal">Event:</span>
+                    <span className="font-bold text-[#E0C97E] font-display">{eventTitle}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50 font-normal">Lead Organizer:</span>
+                    <span className="font-medium text-white/90">{organizerName} ({organizerEmail})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50 font-normal">Subdomain:</span>
+                    <span className="font-mono text-[#FB9378] font-bold">/{slug}</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStep(3)}
+                    className="px-4 py-2.5 rounded-xl bg-white/10 text-white/80 hover:text-white font-semibold text-xs cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-95 text-black font-extrabold text-sm shadow-xl transition-all cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Provision & Launch Workspace</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: REGISTRATION COMPLETE / SUCCESS */}
+            {step === 5 && registeredTenant && (
+              <div className="space-y-6 text-center py-4">
+                <div className="w-16 h-16 rounded-3xl bg-[#E0C97E]/20 border border-[#E0C97E]/30 text-[#E0C97E] flex items-center justify-center mx-auto shadow-xl">
+                  <CheckCircle2 className="w-8 h-8" />
                 </div>
 
                 <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Public Attendee Registration URL:
+                  <h3 className="text-2xl font-bold font-display text-white">
+                    Workspace Successfully Provisioned!
+                  </h3>
+                  <p className="text-xs sm:text-sm text-white/70 mt-1 max-w-md mx-auto font-normal">
+                    <strong className="text-white">{registeredTenant.name}</strong> is now live on EventPlan with isolated row-level security.
                   </p>
-                  <div className="bg-slate-900 border border-slate-800 p-2 rounded-xl text-xs font-mono text-emerald-400 truncate">
-                    {attendeeRegLink}
+                </div>
+
+                {/* Private Links Box */}
+                <div className="bg-black/60 border border-white/10 rounded-2xl p-4 text-left space-y-3 max-w-lg mx-auto">
+                  <div>
+                    <p className="text-[11px] font-bold font-display text-white/60 uppercase tracking-wider mb-1">
+                      Your Private Company Organizer Portal:
+                    </p>
+                    <div className="flex items-center justify-between gap-2 bg-[#1a1a19] border border-white/10 p-2.5 rounded-xl">
+                      <span className="font-mono text-xs text-[#E0C97E] truncate">{companyPortalLink}</span>
+                      <button
+                        type="button"
+                        onClick={copyCompanyLink}
+                        className="text-xs text-white/80 hover:text-white flex items-center gap-1 font-bold shrink-0 bg-white/10 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{copiedLink ? "Copied!" : "Copy"}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] font-bold font-display text-white/60 uppercase tracking-wider mb-1">
+                      Public Attendee Registration URL:
+                    </p>
+                    <div className="bg-[#1a1a19] border border-white/10 p-2 rounded-xl text-xs font-mono text-[#FB9378] truncate">
+                      {attendeeRegLink}
+                    </div>
                   </div>
                 </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                    }}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-95 text-black font-extrabold text-xs shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Open Organizer Dashboard Now</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+            )}
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                  }}
-                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-2"
-                >
-                  <span>Open Organizer Dashboard Now</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+          </form>
 
-        </form>
-
+        </div>
       </div>
+
     </div>
   );
 }
