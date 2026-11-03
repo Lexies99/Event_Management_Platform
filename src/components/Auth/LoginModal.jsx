@@ -7,12 +7,11 @@ import {
   Mail, 
   ArrowRight, 
   KeyRound, 
-  Sparkles,
-  AlertCircle
+  AlertCircle 
 } from 'lucide-react';
 
-/* Reusable Unifato Monogram Logo */
-function EventPlanMonogram({ className = "w-12 h-12" }) {
+/* Authentic Circular Monogram Logo from Unifato */
+function EventPlanMonogram({ className = "w-13 h-13" }) {
   return (
     <svg viewBox="0 0 171 171" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
       <circle cx="85.5" cy="85.5" r="85" fill="#F3EFFF"/>
@@ -25,7 +24,7 @@ function EventPlanMonogram({ className = "w-12 h-12" }) {
 export default function LoginModal({
   isOpen,
   onClose,
-  tenants,
+  tenants = [],
   onLoginCompany,
   onLoginSuperAdmin,
   onOpenRegisterCompany
@@ -79,10 +78,10 @@ export default function LoginModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       
-      {/* Iridescent Border Container */}
-      <div className="relative w-full max-w-lg bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-2xl my-6">
+      {/* Iridescent Border Container using user's 4 colors (#AB6088 -> #FB9378 -> #E0C97E -> #FCF8B3) */}
+      <div className="relative w-full max-w-lg bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-[0_0_50px_rgba(251,147,120,0.25)] my-6">
         
-        {/* Modal Interior with Warm #1a1a19 Background */}
+        {/* Modal Interior with Warm #1a1a19 Editorial Background */}
         <div className="relative w-full bg-[#1a1a19] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col">
           
           {/* Close Button */}
@@ -94,7 +93,7 @@ export default function LoginModal({
             <X className="w-5 h-5" />
           </button>
 
-          {/* Header with Authentic EP Monogram */}
+          {/* Header with Circular Monogram */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center mx-auto mb-3">
               <EventPlanMonogram className="w-13 h-13" />
@@ -230,7 +229,7 @@ export default function LoginModal({
                       <p className="text-[11px] font-bold text-white group-hover:text-[#E0C97E] truncate transition-colors">
                         {t.name}
                       </p>
-                      <p className="text-[9px] text-white/50 truncate font-mono">
+                      <p className="text-[9px] text-[#FB9378]/70 truncate font-mono">
                         /{t.slug}
                       </p>
                     </button>
@@ -265,7 +264,7 @@ export default function LoginModal({
               <div className="p-3.5 bg-[#E0C97E]/10 border border-[#E0C97E]/25 rounded-2xl text-xs text-[#E0C97E] flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-white mb-0.5">Platform Operator Control Plane</p>
+                  <p className="font-bold text-white mb-0.5 font-display">Platform Operator Control Plane</p>
                   <p className="text-white/70 text-[11px]">
                     Restricted to platform administrators. Controls all rented corporate tenants, billing, and system fleet health.
                   </p>

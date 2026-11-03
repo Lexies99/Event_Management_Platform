@@ -145,8 +145,8 @@ export default function CompanyRegistrationModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       
-      {/* Iridescent Border Container */}
-      <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-2xl my-6">
+      {/* Iridescent Border Container using user's 4 colors */}
+      <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-[0_0_50px_rgba(251,147,120,0.25)] my-6">
         
         {/* Modal Interior with Warm #1a1a19 Background */}
         <div className="relative w-full bg-[#1a1a19] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
