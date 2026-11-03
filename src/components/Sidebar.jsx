@@ -20,7 +20,10 @@ import {
   LogOut,
   ArrowUpRight,
   Menu,
-  ChevronRight
+  ChevronRight,
+  Copy,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
 
 function EventPlanMonogram({ size = 38, className = "" }) {
@@ -65,13 +68,17 @@ export default function Sidebar({
   isOperatorUnlocked,
   setIsOperatorUnlocked,
   onSignOut,
-  onGoToLanding
+  onGoToLanding,
+  onOpenRegistrationQr,
+  onExportCSV,
+  registrationLink
 }) {
   const [isTenantDropdownOpen, setIsTenantDropdownOpen] = useState(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -173,88 +180,128 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Active Tenant / Workspace Selector */}
+        {/* Active Tenant / Workspace Indicator */}
         <div className="relative" ref={dropdownRef}>
-          <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mb-1.5 px-1">
-            Active Workspace
+          <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mb-1.5 px-1 flex items-center justify-between">
+            <span>Active Workspace</span>
+            {isOperatorUnlocked ? (
+              <span className="text-[9px] text-amber-400 font-bold uppercase tracking-wider">Fleet Operator</span>
+            ) : (
+              <span className="text-[9px] text-emerald-400 font-mono">Isolated</span>
+            )}
           </div>
-          <button
-            onClick={() => setIsTenantDropdownOpen(!isTenantDropdownOpen)}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1c1c1b] hover:bg-[#252523] border border-white/10 transition-colors text-left group"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-inner"
-                style={{ 
-                  background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
-                  color: '#141413'
-                }}
+
+          {isOperatorUnlocked ? (
+            /* Super-Admin can switch across tenants */
+            <>
+              <button
+                onClick={() => setIsTenantDropdownOpen(!isTenantDropdownOpen)}
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1c1c1b] hover:bg-[#252523] border border-amber-500/30 transition-colors text-left group"
+                title="Switch company workspace (Operator Fleet Mode)"
               >
-                {activeTenant?.name?.charAt(0) || 'T'}
-              </div>
-              <div className="truncate">
-                <div className="text-xs font-heading font-bold text-white truncate flex items-center gap-1.5">
-                  {activeTenant?.name || 'Default Workspace'}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-inner"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
+                      color: '#141413'
+                    }}
+                  >
+                    {activeTenant?.name?.charAt(0) || 'T'}
+                  </div>
+                  <div className="truncate">
+                    <div className="text-xs font-heading font-bold text-white truncate flex items-center gap-1.5">
+                      {activeTenant?.name || 'Default Workspace'}
+                    </div>
+                    <div className="text-[10px] text-amber-300 font-mono flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      /{activeTenant?.slug || 'test'} • Fleet Switcher
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[10px] text-white/50 font-mono flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  /{activeTenant?.slug || 'test'} • Isolated
-                </div>
-              </div>
-            </div>
-            <ChevronDown className={`w-4 h-4 text-white/40 shrink-0 transition-transform ${isTenantDropdownOpen ? 'rotate-180' : ''}`} />
-          </button>
+                <ChevronDown className={`w-4 h-4 text-white/40 shrink-0 transition-transform ${isTenantDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-          {/* Tenant Switcher Dropdown */}
-          {isTenantDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1c1c1b] border border-white/15 rounded-xl shadow-2xl overflow-hidden py-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10">
-                Switch Company Fleet
-              </div>
-              <div className="max-h-56 overflow-y-auto divide-y divide-white/5">
-                {tenants.map(t => {
-                  const isSelected = t.id === activeTenant?.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => {
-                        onSelectTenant(t);
-                        setIsTenantDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 text-xs text-left transition-colors ${
-                        isSelected ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div 
-                          className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                          style={{ backgroundColor: t.brandColor || '#AB6088' }}
+              {/* Fleet Switcher Dropdown (Only for Platform Operator) */}
+              {isTenantDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1c1c1b] border border-white/15 rounded-xl shadow-2xl overflow-hidden py-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10 flex items-center justify-between">
+                    <span>Switch Tenant Fleet</span>
+                    <span className="text-[9px] text-amber-400 font-mono">Platform Admin</span>
+                  </div>
+                  <div className="max-h-56 overflow-y-auto divide-y divide-white/5">
+                    {tenants.map(t => {
+                      const isSelected = t.id === activeTenant?.id;
+                      return (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            onSelectTenant(t.id);
+                            setIsTenantDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 text-xs text-left transition-colors ${
+                            isSelected ? 'bg-white/10 text-white font-bold' : 'text-white/70 hover:bg-white/5 hover:text-white'
+                          }`}
                         >
-                          {t.name.charAt(0)}
-                        </div>
-                        <div className="truncate">
-                          <p className="font-semibold truncate">{t.name}</p>
-                          <p className="text-[10px] text-white/40 font-mono">/{t.slug}</p>
-                        </div>
-                      </div>
-                      {isSelected && <Check className="w-4 h-4 text-[#FB9378] shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div 
+                              className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                              style={{ backgroundColor: t.brandColor || '#AB6088' }}
+                            >
+                              {t.name.charAt(0)}
+                            </div>
+                            <div className="truncate">
+                              <p className="font-semibold truncate">{t.name}</p>
+                              <p className="text-[10px] text-white/40 font-mono">/{t.slug}</p>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-[#FB9378] shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-              <div className="p-2 border-t border-white/10 bg-[#141413]">
-                <button
-                  onClick={() => {
-                    setIsTenantDropdownOpen(false);
-                    onOpenCompanyRegistration();
+                  <div className="p-2 border-t border-white/10 bg-[#141413]">
+                    <button
+                      onClick={() => {
+                        setIsTenantDropdownOpen(false);
+                        onOpenCompanyRegistration();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black hover:opacity-90 transition-opacity"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      Register New Company
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            /* Normal Company Workspace: Strictly Isolated. Non-clickable, cannot see competitors */
+            <div className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1c1c1b] border border-white/10 shadow-sm">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-inner"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
+                    color: '#141413'
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black hover:opacity-90 transition-opacity"
                 >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  Register New Company
-                </button>
+                  {activeTenant?.name?.charAt(0) || 'T'}
+                </div>
+                <div className="truncate">
+                  <div className="text-xs font-heading font-bold text-white truncate">
+                    {activeTenant?.name || 'Workspace'}
+                  </div>
+                  <div className="text-[10px] text-white/50 font-mono flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    /{activeTenant?.slug || 'workspace'} • Private
+                  </div>
+                </div>
               </div>
+              <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 font-bold">
+                Private
+              </span>
             </div>
           )}
         </div>
@@ -322,44 +369,93 @@ export default function Sidebar({
         {/* Quick Actions Card */}
         <div className="p-3 rounded-xl bg-[#1c1c1b] border border-white/10 space-y-2">
           <div className="text-[10px] font-mono uppercase tracking-wider text-white/40">
-            Quick Actions
+            {isOperatorUnlocked ? 'Platform Actions' : 'Event Quick Actions'}
           </div>
-          <button
-            onClick={() => {
-              setIsMobileMenuOpen(false);
-              onOpenCompanyRegistration();
-            }}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
-          >
-            <PlusCircle className="w-3.5 h-3.5 text-[#E0C97E]" />
-            <span>+ Register New Company</span>
-          </button>
 
-          {/* Operator Mode PIN Unlock/Relock */}
           {isOperatorUnlocked ? (
-            <button
-              onClick={handleExitSuperAdmin}
-              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-colors text-left"
-            >
-              <div className="flex items-center gap-2">
-                <Unlock className="w-3.5 h-3.5 text-amber-400" />
-                <span>Operator Active</span>
-              </div>
-              <span className="text-[10px] text-amber-400/80 hover:underline">Lock</span>
-            </button>
+            /* Platform Super-Admin Actions */
+            <>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onOpenCompanyRegistration();
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
+              >
+                <PlusCircle className="w-3.5 h-3.5 text-[#E0C97E]" />
+                <span>+ Register New Company</span>
+              </button>
+
+              <button
+                onClick={handleExitSuperAdmin}
+                className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-amber-300 hover:bg-amber-500/10 transition-colors text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <Unlock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Operator Active</span>
+                </div>
+                <span className="text-[10px] text-amber-400/80 hover:underline">Lock</span>
+              </button>
+            </>
           ) : (
-            <button
-              onClick={() => setIsPinModalOpen(true)}
-              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors text-left"
-            >
-              <Lock className="w-3.5 h-3.5 text-white/40" />
-              <span>Operator PIN Unlock</span>
-            </button>
+            /* Company Workspace Quick Actions: 100% relevant to running their event */
+            <>
+              {/* 1. Registration QR Sign Flyer */}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onOpenRegistrationQr?.();
+                }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left group"
+                title="Display or print entrance registration QR flyer"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#FB9378] group-hover:scale-110 transition-transform shrink-0" />
+                <span className="truncate">Registration QR Flyer</span>
+              </button>
+
+              {/* 2. Copy Registration Link */}
+              <button
+                onClick={() => {
+                  if (registrationLink) {
+                    navigator.clipboard.writeText(registrationLink);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2200);
+                  }
+                }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left group"
+                title="Copy attendee self-registration link"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="text-emerald-400 font-bold truncate">Copied Link!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-[#E0C97E] group-hover:scale-110 transition-transform shrink-0" />
+                    <span className="truncate">Copy Registration URL</span>
+                  </>
+                )}
+              </button>
+
+              {/* 3. Export Attendees CSV */}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onExportCSV?.();
+                }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left group"
+                title="Download attendee roster as spreadsheet"
+              >
+                <Download className="w-3.5 h-3.5 text-[#FCF8B3] group-hover:scale-110 transition-transform shrink-0" />
+                <span className="truncate">Export Attendees (CSV)</span>
+              </button>
+            </>
           )}
         </div>
       </div>
 
-      {/* BOTTOM SECTION: NETWORK STATUS & USER PROFILE */}
+      {/* BOTTOM SECTION: NETWORK STATUS & DISCREET OPERATOR ACCESS */}
       <div className="pt-4 mt-6 border-t border-white/10 space-y-3">
         {/* Offline / Online Sync Controller */}
         <div className="p-2.5 rounded-xl bg-[#1c1c1b] border border-white/10">
@@ -399,6 +495,20 @@ export default function Sidebar({
             </div>
           )}
         </div>
+
+        {/* Subtle Platform Operator Access for platform engineers/admins (outside company sight) */}
+        {!isOperatorUnlocked && (
+          <div className="pt-1 text-center">
+            <button
+              onClick={() => setIsPinModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-[10px] text-white/25 hover:text-white/60 font-mono transition-colors py-1 px-2 rounded hover:bg-white/5"
+              title="Platform Administrator PIN Access"
+            >
+              <Lock className="w-2.5 h-2.5" />
+              <span>Operator Mode</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Operator PIN Modal */}
@@ -520,4 +630,3 @@ export default function Sidebar({
     </>
   );
 }
-

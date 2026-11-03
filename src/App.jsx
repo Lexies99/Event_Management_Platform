@@ -10,6 +10,8 @@ import EventChat from './components/Chat/EventChat';
 import CompanyRegistrationModal from './components/CompanyRegistration/CompanyRegistrationModal';
 import LoginModal from './components/Auth/LoginModal';
 import PublicLandingPage from './components/Landing/PublicLandingPage';
+import RegistrationQrModal from './components/Organizer/RegistrationQrModal';
+import { exportAttendeesToCSV } from './utils/export';
 
 export default function App() {
   // Initialize storage defaults on first load
@@ -48,6 +50,7 @@ export default function App() {
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isCompanyRegOpen, setIsCompanyRegOpen] = useState(false);
+  const [isGlobalQrModalOpen, setIsGlobalQrModalOpen] = useState(false);
 
   // Platform Operator PIN authentication state
   const [isOperatorUnlocked, setIsOperatorUnlocked] = useState(() => {
@@ -223,6 +226,17 @@ export default function App() {
   // Active event for the selected tenant
   const activeEvent = events.find(e => e.tenantId === activeTenant?.id) || events[0];
 
+  // Public attendee self-registration link for the active tenant
+  const registrationLink = typeof window !== 'undefined'
+    ? `${window.location.origin}/?tenant=${activeTenant?.slug || 'test'}&role=attendee&register=true`
+    : '';
+
+  // Export attendees to CSV for current event
+  const handleExportCSV = () => {
+    const eventRegistrations = registrations.filter(r => r.eventId === activeEvent?.id);
+    exportAttendeesToCSV(eventRegistrations, activeEvent?.name || activeTenant?.name || "Event");
+  };
+
   // =========================================================================
   // VIEW MODE 1: PUBLIC COMMERCIAL WEBSITE
   // Rendered for any visitor at root before signing in
@@ -280,6 +294,9 @@ export default function App() {
         setIsOperatorUnlocked={setIsOperatorUnlocked}
         onSignOut={handleSignOut}
         onGoToLanding={() => setViewMode('landing')}
+        onOpenRegistrationQr={() => setIsGlobalQrModalOpen(true)}
+        onExportCSV={handleExportCSV}
+        registrationLink={registrationLink}
       />
 
       {/* Main Content Area (Right Side on Desktop) */}
@@ -452,6 +469,14 @@ export default function App() {
         onClose={() => setIsCompanyRegOpen(false)}
         onCompanyRegistered={handleCompanyRegistered}
         plans={plans}
+      />
+
+      <RegistrationQrModal
+        isOpen={isGlobalQrModalOpen}
+        onClose={() => setIsGlobalQrModalOpen(false)}
+        tenant={activeTenant}
+        event={activeEvent}
+        registrationLink={registrationLink}
       />
 
     </div>
