@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TenantLogo from '../Common/TenantLogo';
+import { DonutChart, BarGraph, AreaTrendGraph } from '../Common/Charts';
 import { 
   Users, 
   UserCheck, 
@@ -83,6 +84,30 @@ export default function OrganizerDashboard({
     acc[r.category] = (acc[r.category] || 0) + 1;
     return acc;
   }, {});
+
+  // Donut Pie Chart Data 1: Delegate Category Breakdown
+  const categoryChartData = Object.entries(categoryCounts).map(([cat, count], idx) => {
+    const colors = ['#FB9378', '#E0C97E', '#AB6088', '#FCF8B3'];
+    return {
+      label: cat,
+      value: count,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Donut Pie Chart Data 2: Attendance Turnout Ratio
+  const turnoutChartData = [
+    { label: 'Attended (On-Site)', value: attendedCount, color: '#FB9378' },
+    { label: 'Pending Check-In', value: noShowCount, color: '#E0C97E' },
+    { label: 'Available Capacity', value: Math.max(0, (event?.capacity || 500) - totalRegistered), color: '#AB6088' }
+  ];
+
+  // Bar Graph Data: Peak Arrival Hourly Bars
+  const hourlyBarData = hourlyActivity.map(slot => ({
+    label: slot.hour.split(' - ')[0],
+    value: slot.count,
+    unit: 'check-ins'
+  }));
 
   // Search & filter
   const filteredAttendees = eventRegistrations.filter(r => {
@@ -481,82 +506,127 @@ export default function OrganizerDashboard({
         </button>
       </div>
 
-      {/* TAB 1: OVERVIEW & CHARTS */}
+      {/* TAB 1: OVERVIEW, PIE CHARTS & GRAPHS */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
           
-          {/* Check-in Activity by Hour (FR-4.3) */}
-          <div className="bg-[#1c1c1b] border border-white/10 p-6 rounded-2xl space-y-4 shadow-xl">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-heading font-bold text-base text-white flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#FB9378]" /> Check-in Activity by Hour (Live Counter)
-                </h3>
-                <p className="text-xs text-white/50">Peak arrival distribution on event day</p>
-              </div>
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#E0C97E]/15 text-[#FCF8B3] border border-[#E0C97E]/30">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Live Sync
-              </span>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              {hourlyActivity.map((slot, idx) => (
-                <div key={idx} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-white/80 font-medium">{slot.hour} ({slot.label})</span>
-                    <span className="font-bold text-[#FCF8B3]">{slot.count} check-ins</span>
-                  </div>
-                  <div className="w-full bg-[#141413] h-2 rounded-full overflow-hidden border border-white/5">
-                    <div 
-                      className="bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] h-full rounded-full transition-all duration-500"
-                      style={{ width: `${slot.count > 0 ? (slot.count / 5) * 100 : 0}%` }}
-                    />
-                  </div>
+          {/* Top Row: Two Interactive Donut / Pie Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Pie Chart 1: Delegate Category Breakdown */}
+            <div className="bg-[#1c1c1b] border border-white/10 p-6 rounded-3xl shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#FB9378]" />
+                    <span>Delegate Category Breakdown</span>
+                  </h3>
+                  <p className="text-xs text-white/50">Distribution across VIP, Speakers, General & Media</p>
                 </div>
-              ))}
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-[#FCF8B3] border border-white/15">
+                  {totalRegistered} Attendees
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <DonutChart
+                  data={categoryChartData}
+                  title="Category Mix"
+                  centerLabel="Delegates"
+                  size={190}
+                />
+              </div>
             </div>
 
-            <div className="bg-[#141413] rounded-xl p-3 text-xs text-white/50 border border-white/10 flex items-center justify-between">
-              <span>Avg. Check-in Processing Speed:</span>
-              <span className="text-[#FCF8B3] font-bold">0.85 sec (Sub-second target achieved)</span>
+            {/* Pie Chart 2: Attendance Ratio & Capacity */}
+            <div className="bg-[#1c1c1b] border border-white/10 p-6 rounded-3xl shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#E0C97E]" />
+                    <span>Attendance & Venue Capacity Ratio</span>
+                  </h3>
+                  <p className="text-xs text-white/50">Checked-in attendees vs pending check-ins vs remaining capacity</p>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                  {attendanceRate}% Turnout
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <DonutChart
+                  data={turnoutChartData}
+                  title="Turnout Status"
+                  centerLabel="Capacity"
+                  size={190}
+                />
+              </div>
             </div>
+
           </div>
 
-          {/* Attendee Category Breakdown (FR-4.4) */}
-          <div className="bg-[#1c1c1b] border border-white/10 p-6 rounded-2xl space-y-4 shadow-xl">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-heading font-bold text-base text-white flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-[#E0C97E]" /> Delegate Category Breakdown
-                </h3>
-                <p className="text-xs text-white/50">Distribution across passes & VIP credentials</p>
+          {/* Middle Row: Peak Hourly Arrival Bar Graph & Activity Feed */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Bar Graph: Peak Check-in Distribution by Hour */}
+            <div className="bg-[#1c1c1b] border border-white/10 p-6 rounded-3xl shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#FB9378]" />
+                    <span>Check-in Activity by Hour (Live Counter)</span>
+                  </h3>
+                  <p className="text-xs text-white/50">Peak arrival wave and entrance gate throughput</p>
+                </div>
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#E0C97E]/15 text-[#FCF8B3] border border-[#E0C97E]/30">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Live Sync
+                </span>
+              </div>
+
+              <BarGraph data={hourlyBarData} height={160} />
+
+              <div className="bg-[#141413] rounded-xl p-3 text-xs text-white/50 border border-white/10 flex items-center justify-between">
+                <span>Avg. Check-in Processing Speed:</span>
+                <span className="text-[#FCF8B3] font-bold font-mono">0.85 sec (Sub-second target achieved)</span>
               </div>
             </div>
 
-            <div className="space-y-3 pt-2">
-              {Object.entries(categoryCounts).map(([cat, count]) => {
-                const percent = Math.round((count / (totalRegistered || 1)) * 100);
-                return (
-                  <div key={cat} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold text-white/80">{cat}</span>
-                      <span className="text-white/50 font-medium">{count} ({percent}%)</span>
+            {/* Category Progress Metric Breakdown */}
+            <div className="bg-[#1c1c1b] border border-white/10 p-6 rounded-3xl space-y-4 shadow-xl">
+              <div>
+                <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-[#E0C97E]" />
+                  <span>Credential Pass Allocations</span>
+                </h3>
+                <p className="text-xs text-white/50">Detailed breakdown across delegate credentials & passes</p>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                {Object.entries(categoryCounts).map(([cat, count]) => {
+                  const percent = Math.round((count / (totalRegistered || 1)) * 100);
+                  return (
+                    <div key={cat} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-semibold text-white/80">{cat}</span>
+                        <span className="text-white/50 font-medium font-mono">{count} ({percent}%)</span>
+                      </div>
+                      <div className="w-full bg-[#141413] h-2 rounded-full overflow-hidden border border-white/5">
+                        <div 
+                          className="bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] h-full rounded-full transition-all duration-500"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-[#141413] h-2 rounded-full overflow-hidden border border-white/5">
-                      <div 
-                        className="bg-gradient-to-r from-[#FB9378] to-[#E0C97E] h-full rounded-full transition-all duration-500"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              <div className="bg-[#141413] rounded-xl p-3 text-xs text-white/50 border border-white/10 flex items-center justify-between">
+                <span>Target Capacity:</span>
+                <span className="text-[#E0C97E] font-bold font-mono">{totalRegistered} of {event?.capacity || 500} seats filled</span>
+              </div>
             </div>
 
-            <div className="bg-[#141413] rounded-xl p-3 text-xs text-white/50 border border-white/10 flex items-center justify-between">
-              <span>Target Capacity:</span>
-              <span className="text-[#E0C97E] font-bold">{totalRegistered} of {event?.capacity || 500} seats filled</span>
-            </div>
           </div>
 
           {/* Multi-Day Turnout Breakdown Section */}
