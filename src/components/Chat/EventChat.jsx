@@ -71,9 +71,9 @@ export default function EventChat({
     <div className="max-w-4xl mx-auto space-y-4">
       
       {/* Top Banner */}
-      <div className="flex items-center justify-between bg-[#1c1c1b] border border-white/10 rounded-2xl p-4 shadow-xl">
+      <div className="flex items-center justify-between bg-[#1a2325] border border-white/10 rounded-2xl p-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#AB6088]/20 text-[#FB9378] border border-[#AB6088]/30 rounded-xl">
+          <div className="p-2.5 bg-[#354649]/20 text-[#6C7A89] border border-[#354649]/30 rounded-xl">
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
@@ -87,7 +87,7 @@ export default function EventChat({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#E0C97E]/15 text-[#FCF8B3] border border-[#E0C97E]/30">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>Real-time WebSocket (FR-5.1)</span>
           </span>
@@ -96,13 +96,13 @@ export default function EventChat({
 
       {/* LOCKED STATE IF ATTENDEE HAS NOT CHECKED IN (FR-5.1 STRICT RULE) */}
       {!isUnlocked ? (
-        <div className="bg-[#1c1c1b] p-8 sm:p-12 rounded-3xl border border-white/10 text-center max-w-lg mx-auto space-y-5 my-8 shadow-2xl">
-          <div className="w-16 h-16 bg-[#E0C97E]/15 border border-[#E0C97E]/30 text-[#E0C97E] rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+        <div className="bg-[#1a2325] p-8 sm:p-12 rounded-3xl border border-white/10 text-center max-w-lg mx-auto space-y-5 my-8 shadow-2xl">
+          <div className="w-16 h-16 bg-[#A3C6C4]/15 border border-[#A3C6C4]/30 text-[#A3C6C4] rounded-2xl flex items-center justify-center mx-auto shadow-lg">
             <Lock className="w-8 h-8" />
           </div>
 
           <div>
-            <span className="text-[10px] font-mono font-extrabold text-[#FCF8B3] uppercase tracking-wider px-2.5 py-0.5 bg-[#E0C97E]/15 rounded-full border border-[#E0C97E]/30">
+            <span className="text-[10px] font-mono font-extrabold text-[#E0E7E9] uppercase tracking-wider px-2.5 py-0.5 bg-[#A3C6C4]/15 rounded-full border border-[#A3C6C4]/30">
               Gated Feature (FR-5.1)
             </span>
             <h3 className="font-heading font-extrabold text-xl text-white mt-2">
@@ -113,24 +113,24 @@ export default function EventChat({
             </p>
           </div>
 
-          <div className="bg-[#141413] rounded-2xl p-4 border border-white/10 text-xs text-left space-y-2">
+          <div className="bg-[#121819] rounded-2xl p-4 border border-white/10 text-xs text-left space-y-2">
             <div className="flex justify-between text-white/50">
               <span>Your Name:</span>
               <span className="text-white font-semibold">{currentAttendee?.name}</span>
             </div>
             <div className="flex justify-between text-white/50">
               <span>Ticket Code:</span>
-              <span className="text-[#FCF8B3] font-mono font-semibold">{currentAttendee?.ticketCode}</span>
+              <span className="text-[#E0E7E9] font-mono font-semibold">{currentAttendee?.ticketCode}</span>
             </div>
             <div className="flex justify-between text-white/50">
               <span>Current Status:</span>
-              <span className="text-[#FB9378] font-bold uppercase">{currentAttendee?.status} (Not Checked In)</span>
+              <span className="text-[#6C7A89] font-bold uppercase">{currentAttendee?.status} (Not Checked In)</span>
             </div>
           </div>
 
           <button
             onClick={handleSimulateCheckIn}
-            className="w-full py-3 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold rounded-2xl text-xs shadow-xl shadow-[#FB9378]/25 flex items-center justify-center gap-2 transition-all hover:opacity-95 active:scale-95"
+            className="w-full py-3 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold rounded-2xl text-xs shadow-xl shadow-[#6C7A89]/25 flex items-center justify-center gap-2 transition-all hover:opacity-95 active:scale-95"
           >
             <UserCheck className="w-4 h-4 text-black" />
             <span>Simulate On-Site Check-In Now & Unlock Chat</span>
@@ -138,17 +138,17 @@ export default function EventChat({
         </div>
       ) : (
         /* CHAT INTERFACE (WHEN UNLOCKED) */
-        <div className="bg-[#1c1c1b] rounded-3xl border border-white/10 flex flex-col h-[580px] overflow-hidden shadow-2xl">
+        <div className="bg-[#1a2325] rounded-3xl border border-white/10 flex flex-col h-[580px] overflow-hidden shadow-2xl">
           
           {/* PINNED ANNOUNCEMENTS SECTION (FR-5.2) */}
           {pinnedMessages.length > 0 && (
-            <div className="bg-[#141413] border-b border-white/10 p-3.5 space-y-2 shrink-0">
+            <div className="bg-[#121819] border-b border-white/10 p-3.5 space-y-2 shrink-0">
               {pinnedMessages.map((msg) => (
                 <div key={msg.id} className="flex items-start justify-between gap-3 text-xs">
                   <div className="flex items-start gap-2">
-                    <Pin className="w-3.5 h-3.5 text-[#E0C97E] shrink-0 mt-0.5 rotate-45" />
+                    <Pin className="w-3.5 h-3.5 text-[#A3C6C4] shrink-0 mt-0.5 rotate-45" />
                     <div>
-                      <span className="font-bold text-[#FCF8B3] text-[11px] uppercase tracking-wider font-mono">
+                      <span className="font-bold text-[#E0E7E9] text-[11px] uppercase tracking-wider font-mono">
                         Pinned by {msg.authorName}
                       </span>
                       <p className="text-white/90 mt-0.5 leading-relaxed font-medium">
@@ -188,10 +188,10 @@ export default function EventChat({
                       <img
                         src={msg.authorPhoto}
                         alt={msg.authorName}
-                        className="w-8 h-8 rounded-xl object-cover border border-white/15 shrink-0 mt-0.5 bg-[#141413]"
+                        className="w-8 h-8 rounded-xl object-cover border border-white/15 shrink-0 mt-0.5 bg-[#121819]"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black flex items-center justify-center font-bold text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] flex items-center justify-center font-bold text-xs shrink-0">
                         {msg.authorName.charAt(0)}
                       </div>
                     )}
@@ -203,7 +203,7 @@ export default function EventChat({
                         {msg.authorRole && (
                           <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${
                             msg.isOrganizer 
-                              ? 'bg-[#E0C97E]/20 text-[#FCF8B3] border border-[#E0C97E]/30' 
+                              ? 'bg-[#A3C6C4]/20 text-[#E0E7E9] border border-[#A3C6C4]/30' 
                               : 'bg-white/10 text-white/80 border border-white/15'
                           }`}>
                             {msg.authorRole}
@@ -216,8 +216,8 @@ export default function EventChat({
 
                       <div className={`p-3 rounded-2xl text-xs leading-relaxed inline-block ${
                         isMyMessage
-                          ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-medium rounded-tr-none shadow-md'
-                          : 'bg-[#141413] text-white/90 border border-white/10 rounded-tl-none'
+                          ? 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-medium rounded-tr-none shadow-md'
+                          : 'bg-[#121819] text-white/90 border border-white/10 rounded-tl-none'
                       }`}>
                         {msg.text}
                       </div>
@@ -227,7 +227,7 @@ export default function EventChat({
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-white/40">
                           <button
                             onClick={() => onTogglePinMessage(msg.id)}
-                            className="hover:text-[#FCF8B3] flex items-center gap-1"
+                            className="hover:text-[#E0E7E9] flex items-center gap-1"
                           >
                             <Pin className="w-3 h-3" /> Pin
                           </button>
@@ -249,17 +249,17 @@ export default function EventChat({
           </div>
 
           {/* CHAT INPUT FORM */}
-          <form onSubmit={handleSend} className="p-3 sm:p-4 bg-[#141413] border-t border-white/10 flex items-center gap-2">
+          <form onSubmit={handleSend} className="p-3 sm:p-4 bg-[#121819] border-t border-white/10 flex items-center gap-2">
             <input
               type="text"
               placeholder="Type message to attendees... (Enter to send)"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 bg-[#1c1c1b] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+              className="flex-1 bg-[#1a2325] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
             />
             <button
               type="submit"
-              className="p-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black rounded-2xl shadow-lg shadow-[#FB9378]/20 transition-all hover:opacity-95 shrink-0"
+              className="p-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] rounded-2xl shadow-lg shadow-[#6C7A89]/20 transition-all hover:opacity-95 shrink-0"
               title="Send Message"
             >
               <Send className="w-4 h-4 text-black" />

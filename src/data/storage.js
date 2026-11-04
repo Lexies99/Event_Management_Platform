@@ -151,7 +151,7 @@ export const Storage = {
       id: newId,
       name: tenantData.name,
       slug: tenantData.slug,
-      brandColor: tenantData.brandColor || "#AB6088",
+      brandColor: tenantData.brandColor || "#354649",
       logoUrl: tenantData.logoUrl || "",
       planId: tenantData.planId || "growth",
       status: "active",

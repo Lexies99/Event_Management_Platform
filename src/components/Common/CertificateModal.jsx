@@ -11,7 +11,7 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
     if (attendee?.ticketCode) {
       generateQrDataUrl(`https://verify.eventplan.cloud/cert/${attendee.ticketCode}`, {
         width: 140,
-        darkColor: '#141413'
+        darkColor: '#121819'
       }).then(url => setQrUrl(url));
     }
   }, [attendee]);
@@ -32,15 +32,15 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto print:bg-transparent print:p-0 print:static print:overflow-visible">
       
       {/* Iridescent Border Container */}
-      <div className="relative w-full max-w-3xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-8 print:p-0 print:border-none print:shadow-none">
+      <div className="relative w-full max-w-3xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-8 print:p-0 print:border-none print:shadow-none">
         
-        <div className="relative w-full bg-[#1a1a19] rounded-[22.5px] p-6 sm:p-8 text-white print:bg-transparent print:border-none print:shadow-none print:p-0 print:m-0">
+        <div className="relative w-full bg-[#182224] rounded-[22.5px] p-6 sm:p-8 text-white print:bg-transparent print:border-none print:shadow-none print:p-0 print:m-0">
           
           {/* Header Bar */}
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10 print:hidden">
             <div>
               <h3 className="text-lg font-heading font-extrabold text-white flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#E0C97E]" />
+                <Award className="w-5 h-5 text-[#A3C6C4]" />
                 <span>Official Certificate of Attendance</span>
               </h3>
               <p className="text-xs text-white/50">
@@ -59,12 +59,12 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
           <div className="flex justify-center my-2">
             <div 
               id="printable-certificate"
-              className="w-full max-w-2xl bg-[#FCF8B3]/10 text-stone-900 bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-8 border-double border-[#E0C97E] relative overflow-hidden text-center"
+              className="w-full max-w-2xl bg-[#E0E7E9]/10 text-stone-900 bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-8 border-double border-[#A3C6C4] relative overflow-hidden text-center"
               style={{ fontFamily: "'Plus Jakarta Sans', serif" }}
             >
               {/* Background seal watermarks */}
-              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-[#FCF8B3]/40 blur-2xl pointer-events-none" />
-              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-[#FB9378]/20 blur-2xl pointer-events-none" />
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-[#E0E7E9]/40 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-[#6C7A89]/20 blur-2xl pointer-events-none" />
 
               {/* Top Company & Event Header */}
               <div className="flex items-center justify-center gap-3 mb-4">
@@ -73,21 +73,21 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
                   size="sm"
                   className="rounded-lg shadow-sm"
                 />
-                <span className="font-extrabold text-xs uppercase tracking-widest text-[#AB6088] font-mono">
+                <span className="font-extrabold text-xs uppercase tracking-widest text-[#354649] font-mono">
                   {tenant?.name}
                 </span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-serif font-extrabold text-[#141413] tracking-wide uppercase mb-2">
+              <h1 className="text-3xl sm:text-4xl font-serif font-extrabold text-[#121819] tracking-wide uppercase mb-2">
                 Certificate of Attendance
               </h1>
-              <p className="text-xs tracking-widest uppercase font-semibold text-[#AB6088] mb-6 font-mono">
+              <p className="text-xs tracking-widest uppercase font-semibold text-[#354649] mb-6 font-mono">
                 This is to proudly certify that
               </p>
 
               {/* Recipient Name */}
-              <div className="border-b-2 border-[#E0C97E] pb-2 mb-4 max-w-lg mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#141413] tracking-tight font-serif">
+              <div className="border-b-2 border-[#A3C6C4] pb-2 mb-4 max-w-lg mx-auto">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#121819] tracking-tight font-serif">
                   {attendee.name}
                 </h2>
               </div>
@@ -96,7 +96,7 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
                 represented <strong>{attendee.organization}</strong> and has successfully participated in the sessions, keynote forums, and discussions at:
               </p>
 
-              <h3 className="text-lg sm:text-xl font-bold text-[#141413] uppercase tracking-tight mb-1 font-serif">
+              <h3 className="text-lg sm:text-xl font-bold text-[#121819] uppercase tracking-tight mb-1 font-serif">
                 {event?.title || 'Global Tech Summit 2026'}
               </h3>
               <p className="text-xs text-stone-600 mb-8 font-medium">
@@ -118,7 +118,7 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
                 {/* Verification QR */}
                 <div className="flex flex-col items-center">
                   {qrUrl && (
-                    <img src={qrUrl} alt="Verification QR" className="w-16 h-16 border border-[#E0C97E] rounded p-0.5 bg-white shadow-sm" />
+                    <img src={qrUrl} alt="Verification QR" className="w-16 h-16 border border-[#A3C6C4] rounded p-0.5 bg-white shadow-sm" />
                   )}
                   <span className="text-[8px] font-mono text-stone-500 mt-1 uppercase">
                     Verify: {attendee.ticketCode}
@@ -127,8 +127,8 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
 
                 {/* Security Seal */}
                 <div className="text-center">
-                  <div className="w-14 h-14 rounded-full border-2 border-[#E0C97E] bg-[#FCF8B3]/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Award className="w-7 h-7 text-[#AB6088]" />
+                  <div className="w-14 h-14 rounded-full border-2 border-[#A3C6C4] bg-[#E0E7E9]/30 flex items-center justify-center mx-auto shadow-inner">
+                    <Award className="w-7 h-7 text-[#354649]" />
                   </div>
                   <p className="text-[10px] uppercase font-bold text-stone-600 mt-1 font-mono">Official Credential</p>
                   <p className="text-[9px] text-stone-500 font-mono">Verified On-Site Check-in</p>
@@ -149,13 +149,13 @@ export default function CertificateModal({ isOpen, onClose, attendee, event, ten
             <div className="flex items-center gap-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-semibold text-white/70 hover:text-white rounded-xl bg-[#252523] hover:bg-[#323230] border border-white/10 transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-white/70 hover:text-white rounded-xl bg-[#243033] hover:bg-[#2f3e42] border border-white/10 transition-colors cursor-pointer"
               >
                 Close
               </button>
               <button
                 onClick={handlePrint}
-                className="px-5 py-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-90 text-black font-extrabold rounded-xl text-xs shadow-lg shadow-[#FB9378]/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                className="px-5 py-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] hover:opacity-90 text-black font-extrabold rounded-xl text-xs shadow-lg shadow-[#6C7A89]/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print / Download Certificate</span>

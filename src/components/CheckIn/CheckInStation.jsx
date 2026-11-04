@@ -108,7 +108,7 @@ export default function CheckInStation({
       generateQrDataUrl(activeStaffPortalLink, {
         width: 280,
         margin: 1,
-        darkColor: '#141413',
+        darkColor: '#121819',
         lightColor: '#ffffff'
       }).then(url => setStaffQrDataUrl(url));
     }
@@ -200,11 +200,11 @@ export default function CheckInStation({
     <div className="space-y-6">
       
       {/* Top Banner with Multi-Staff Identity & Status */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 relative overflow-hidden shadow-xl">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#1a2325] border border-white/10 rounded-3xl p-6 relative overflow-hidden shadow-xl">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-bold bg-[#E0C97E]/15 text-[#FCF8B3] border border-[#E0C97E]/30 flex items-center gap-1.5">
-              <QrCode className="w-3.5 h-3.5 text-[#FB9378]" /> High-Speed Check-In Station
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-bold bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30 flex items-center gap-1.5">
+              <QrCode className="w-3.5 h-3.5 text-[#6C7A89]" /> High-Speed Check-In Station
             </span>
             <span className="text-xs text-white/50">• {event?.title}</span>
           </div>
@@ -220,10 +220,10 @@ export default function CheckInStation({
         <div className="flex flex-wrap items-center gap-3">
           
           {/* Active Event Day Selector (Multi-Day Gate Control) */}
-          <div className="bg-[#141413] border border-white/15 rounded-2xl p-2 px-3 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#FB9378] shrink-0" />
+          <div className="bg-[#121819] border border-white/15 rounded-2xl p-2 px-3 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#6C7A89] shrink-0" />
             <div>
-              <span className="text-[10px] font-mono font-bold text-[#FCF8B3] uppercase tracking-wider block">
+              <span className="text-[10px] font-mono font-bold text-[#E0E7E9] uppercase tracking-wider block">
                 Active Event Day:
               </span>
               <select
@@ -235,7 +235,7 @@ export default function CheckInStation({
                 className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
               >
                 {eventDays.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-[#141413] text-white">
+                  <option key={d.id} value={d.id} className="bg-[#121819] text-white">
                     {d.label} • {d.date}
                   </option>
                 ))}
@@ -244,8 +244,8 @@ export default function CheckInStation({
           </div>
 
           {/* Active Station Selector */}
-          <div className="bg-[#141413] border border-white/15 rounded-2xl p-2 px-3 flex items-center gap-2">
-            <Monitor className="w-4 h-4 text-[#E0C97E] shrink-0" />
+          <div className="bg-[#121819] border border-white/15 rounded-2xl p-2 px-3 flex items-center gap-2">
+            <Monitor className="w-4 h-4 text-[#A3C6C4] shrink-0" />
             <div>
               <span className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider block">
                 Active Station Desk:
@@ -256,7 +256,7 @@ export default function CheckInStation({
                 className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
               >
                 {stationOptions.map((preset) => (
-                  <option key={preset} value={preset} className="bg-[#141413] text-white">
+                  <option key={preset} value={preset} className="bg-[#121819] text-white">
                     {preset}
                   </option>
                 ))}
@@ -270,10 +270,10 @@ export default function CheckInStation({
               setStaffModalTab('roster');
               setIsMultiStaffModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold text-xs shadow-lg shadow-[#FB9378]/20 transition-all hover:opacity-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold text-xs shadow-lg shadow-[#354649]/30 transition-all hover:opacity-95 cursor-pointer"
             title="Manage check-in staff team and issue mobile scanner passes"
           >
-            <Users className="w-4 h-4 text-black" />
+            <Users className="w-4 h-4 text-[#E0E7E9]" />
             <span>Manage Staff Scanners</span>
           </button>
 
@@ -288,22 +288,22 @@ export default function CheckInStation({
       </div>
 
       {/* Multi-Station & Multi-Day Live Metrics Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 bg-[#1c1c1b] p-3.5 rounded-2xl border border-white/10 text-xs shadow-lg">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 bg-[#1a2325] p-3.5 rounded-2xl border border-white/10 text-xs shadow-lg">
         <div className="px-3 py-1">
           <span className="text-white/50 block text-[11px]">Total Event Registrants</span>
           <span className="font-heading text-lg font-extrabold text-white">{eventRegistrations.length}</span>
         </div>
         <div className="px-3 py-1 border-l border-white/10">
-          <span className="text-[#FCF8B3] block text-[11px] font-semibold">{currentDayObj.label} Passes</span>
-          <span className="font-heading text-lg font-extrabold text-[#FCF8B3]">{eligibleTodayCount}</span>
+          <span className="text-[#E0E7E9] block text-[11px] font-semibold">{currentDayObj.label} Passes</span>
+          <span className="font-heading text-lg font-extrabold text-[#E0E7E9]">{eligibleTodayCount}</span>
         </div>
         <div className="px-3 py-1 border-l border-white/10">
           <span className="text-emerald-400 block text-[11px] font-semibold">{currentDayObj.label} Scanned In</span>
           <span className="font-heading text-lg font-extrabold text-emerald-400">{checkedInTodayCount}</span>
         </div>
         <div className="px-3 py-1 border-l border-white/10">
-          <span className="text-[#FB9378] block text-[11px] font-semibold">{currentDayObj.label} Awaiting</span>
-          <span className="font-heading text-lg font-extrabold text-[#FB9378]">{pendingTodayCount}</span>
+          <span className="text-[#6C7A89] block text-[11px] font-semibold">{currentDayObj.label} Awaiting</span>
+          <span className="font-heading text-lg font-extrabold text-[#6C7A89]">{pendingTodayCount}</span>
         </div>
         <div className="px-3 py-1 border-l border-white/10 hidden lg:block">
           <span className="text-white/50 block text-[11px]">Active Day Status</span>
@@ -320,7 +320,7 @@ export default function CheckInStation({
         {/* LEFT COLUMN: Optical & Hardware Scanner Workstation (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           
-          <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-5">
+          <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
                 <Camera className="w-5 h-5 text-emerald-400" />
@@ -330,7 +330,7 @@ export default function CheckInStation({
             </div>
 
             {/* Video Scanner Viewport Mockup */}
-            <div className="relative aspect-video bg-[#141413] rounded-2xl border-2 border-dashed border-emerald-500/40 flex flex-col items-center justify-center overflow-hidden">
+            <div className="relative aspect-video bg-[#121819] rounded-2xl border-2 border-dashed border-emerald-500/40 flex flex-col items-center justify-center overflow-hidden">
               <div className="w-48 h-48 border-2 border-emerald-400 rounded-3xl relative flex items-center justify-center animate-pulse">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-400 shadow-[0_0_12px_#34d399] animate-bounce"></div>
                 <QrCode className="w-16 h-16 text-emerald-400/40" />
@@ -354,7 +354,7 @@ export default function CheckInStation({
                   value={scanInput}
                   onChange={(e) => setScanInput(e.target.value)}
                   placeholder="Scan or type ticket code (e.g. TKT-ACME-...)"
-                  className="flex-1 px-4 py-3 bg-[#141413] border border-white/15 rounded-xl font-mono text-sm text-white focus:outline-none focus:border-emerald-400 placeholder:text-white/30"
+                  className="flex-1 px-4 py-3 bg-[#121819] border border-white/15 rounded-xl font-mono text-sm text-white focus:outline-none focus:border-emerald-400 placeholder:text-white/30"
                   autoFocus
                 />
                 <button
@@ -377,10 +377,10 @@ export default function CheckInStation({
                     key={t.id}
                     type="button"
                     onClick={() => handleExecuteCheckIn(t.ticketCode)}
-                    className="p-2 rounded-xl bg-[#141413] hover:bg-[#252523] border border-white/10 text-left transition-all cursor-pointer group"
+                    className="p-2 rounded-xl bg-[#121819] hover:bg-[#243033] border border-white/10 text-left transition-all cursor-pointer group"
                   >
-                    <p className="text-xs font-bold text-white truncate group-hover:text-[#FCF8B3]">{t.name}</p>
-                    <p className="text-[10px] font-mono text-[#FB9378] truncate">{t.ticketCode}</p>
+                    <p className="text-xs font-bold text-white truncate group-hover:text-[#E0E7E9]">{t.name}</p>
+                    <p className="text-[10px] font-mono text-[#6C7A89] truncate">{t.ticketCode}</p>
                   </button>
                 ))}
               </div>
@@ -417,7 +417,7 @@ export default function CheckInStation({
                 {lastScanResult.attendee && (
                   <button
                     onClick={() => setBadgeModalAttendee(lastScanResult.attendee)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold text-xs shadow-md shrink-0 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold text-xs shadow-md shrink-0 cursor-pointer"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Print Badge</span>
@@ -433,10 +433,10 @@ export default function CheckInStation({
         <div className="lg:col-span-5 space-y-6">
           
           {/* Manual Search Fallback (FR-2.2) */}
-          <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
             <div>
               <h2 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                <Search className="w-5 h-5 text-[#E0C97E]" />
+                <Search className="w-5 h-5 text-[#A3C6C4]" />
                 <span>Manual Search Fallback (FR-2.2)</span>
               </h2>
               <p className="text-xs text-white/50 mt-1">
@@ -451,7 +451,7 @@ export default function CheckInStation({
                 value={manualQuery}
                 onChange={(e) => setManualQuery(e.target.value)}
                 placeholder="Search attendee by name, email or phone..."
-                className="w-full pl-10 pr-4 py-2.5 bg-[#141413] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-[#E0C97E] placeholder:text-white/30"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#121819] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-[#A3C6C4] placeholder:text-white/30"
               />
             </div>
 
@@ -463,7 +463,7 @@ export default function CheckInStation({
                   return (
                     <div 
                       key={attendee.id} 
-                      className="p-3 bg-[#141413] rounded-xl border border-white/10 flex items-center justify-between gap-3 text-xs"
+                      className="p-3 bg-[#121819] rounded-xl border border-white/10 flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="min-w-0">
                         <p className="font-bold text-white truncate">{attendee.name}</p>
@@ -485,7 +485,7 @@ export default function CheckInStation({
                         )}
                         <button
                           onClick={() => setBadgeModalAttendee(attendee)}
-                          className="p-1.5 rounded-lg bg-[#252523] hover:bg-[#323230] text-white/80 hover:text-white transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#243033] hover:bg-[#2f3e42] text-white/80 hover:text-white transition-colors cursor-pointer"
                           title="Print Badge"
                         >
                           <Printer className="w-3.5 h-3.5" />
@@ -499,7 +499,7 @@ export default function CheckInStation({
           </div>
 
           {/* Recently Checked-In Live Stream */}
-          <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-heading font-extrabold text-xs uppercase tracking-wider text-white/60">
                 Recently Checked-In Queue
@@ -516,7 +516,7 @@ export default function CheckInStation({
                 .slice(-6)
                 .reverse()
                 .map(attendee => (
-                  <div key={attendee.id} className="p-3 bg-[#141413] rounded-xl border border-white/5 flex items-center justify-between text-xs">
+                  <div key={attendee.id} className="p-3 bg-[#121819] rounded-xl border border-white/5 flex items-center justify-between text-xs">
                     <div className="min-w-0">
                       <p className="font-bold text-white truncate">{attendee.name}</p>
                       <p className="text-[10px] text-white/40 truncate">
@@ -548,9 +548,9 @@ export default function CheckInStation({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
           
           {/* Iridescent Gradient Border Container */}
-          <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-6">
+          <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-6">
             
-            <div className="relative w-full bg-[#1a1a19] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
+            <div className="relative w-full bg-[#182224] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
               
               {/* Close Button */}
               <button
@@ -563,7 +563,7 @@ export default function CheckInStation({
 
               {/* Header */}
               <div className="flex items-center gap-3.5 mb-5 shrink-0">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black flex items-center justify-center shadow-lg shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] flex items-center justify-center shadow-lg shrink-0">
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
@@ -583,11 +583,11 @@ export default function CheckInStation({
                   onClick={() => setStaffModalTab('roster')}
                   className={`pb-2.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                     staffModalTab === 'roster'
-                      ? 'border-[#FB9378] text-[#FCF8B3] font-extrabold'
+                      ? 'border-[#6C7A89] text-[#E0E7E9] font-extrabold'
                       : 'border-transparent text-white/50 hover:text-white'
                   }`}
                 >
-                  <Users className="w-4 h-4 text-[#FB9378]" />
+                  <Users className="w-4 h-4 text-[#6C7A89]" />
                   <span>Team Roster &amp; Add Staff ({staffList.length})</span>
                 </button>
                 <button
@@ -595,11 +595,11 @@ export default function CheckInStation({
                   onClick={() => setStaffModalTab('qr')}
                   className={`pb-2.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                     staffModalTab === 'qr'
-                      ? 'border-[#FB9378] text-[#FCF8B3] font-extrabold'
+                      ? 'border-[#6C7A89] text-[#E0E7E9] font-extrabold'
                       : 'border-transparent text-white/50 hover:text-white'
                   }`}
                 >
-                  <Smartphone className="w-4 h-4 text-[#E0C97E]" />
+                  <Smartphone className="w-4 h-4 text-[#A3C6C4]" />
                   <span>Mobile QR Fast Connect</span>
                 </button>
               </div>
@@ -622,9 +622,9 @@ export default function CheckInStation({
                   <div className="space-y-5">
                     
                     {/* Add New Staff Form Card */}
-                    <div className="bg-[#141413] border border-white/10 rounded-2xl p-4 sm:p-5">
-                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-[#FCF8B3] flex items-center gap-1.5 mb-3">
-                        <UserPlus className="w-4 h-4 text-[#FB9378]" />
+                    <div className="bg-[#121819] border border-white/10 rounded-2xl p-4 sm:p-5">
+                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E0E7E9] flex items-center gap-1.5 mb-3">
+                        <UserPlus className="w-4 h-4 text-[#6C7A89]" />
                         <span>Provision New Staff Scanner</span>
                       </h4>
 
@@ -642,7 +642,7 @@ export default function CheckInStation({
                               value={newStaffName}
                               onChange={(e) => setNewStaffName(e.target.value)}
                               placeholder="e.g. Kwame Mensah"
-                              className="w-full px-3 py-2 bg-[#1c1c1b] border border-white/15 focus:border-[#FB9378] rounded-xl text-xs text-white focus:outline-none"
+                              className="w-full px-3 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none"
                             />
                           </div>
 
@@ -656,7 +656,7 @@ export default function CheckInStation({
                               value={newStaffEmail}
                               onChange={(e) => setNewStaffEmail(e.target.value)}
                               placeholder="e.g. kwame@eventplan.cloud"
-                              className="w-full px-3 py-2 bg-[#1c1c1b] border border-white/15 focus:border-[#FB9378] rounded-xl text-xs text-white focus:outline-none"
+                              className="w-full px-3 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none"
                             />
                           </div>
 
@@ -671,7 +671,7 @@ export default function CheckInStation({
                               value={newStaffStation}
                               onChange={(e) => setNewStaffStation(e.target.value)}
                               placeholder="e.g. Desk 4 - Fast Track Gate"
-                              className="w-full px-3 py-2 bg-[#1c1c1b] border border-white/15 focus:border-[#FB9378] rounded-xl text-xs text-white focus:outline-none"
+                              className="w-full px-3 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none"
                             />
                           </div>
 
@@ -684,7 +684,7 @@ export default function CheckInStation({
                               <select
                                 value={newStaffRole}
                                 onChange={(e) => setNewStaffRole(e.target.value)}
-                                className="w-full px-2.5 py-2 bg-[#1c1c1b] border border-white/15 focus:border-[#FB9378] rounded-xl text-xs text-white focus:outline-none cursor-pointer"
+                                className="w-full px-2.5 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none cursor-pointer"
                               >
                                 <option value="Check-In Scanner">Scanner</option>
                                 <option value="Lead Supervisor">Supervisor</option>
@@ -702,7 +702,7 @@ export default function CheckInStation({
                                 value={newStaffPin}
                                 onChange={(e) => setNewStaffPin(e.target.value)}
                                 placeholder="PIN"
-                                className="w-full px-2.5 py-2 bg-[#1c1c1b] border border-white/15 focus:border-[#FB9378] rounded-xl text-xs text-center font-mono font-bold text-[#FCF8B3] focus:outline-none"
+                                className="w-full px-2.5 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-center font-mono font-bold text-[#E0E7E9] focus:outline-none"
                               />
                             </div>
                           </div>
@@ -712,7 +712,7 @@ export default function CheckInStation({
                         <div className="pt-2 flex justify-end">
                           <button
                             type="submit"
-                            className="px-5 py-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-90 text-black font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                            className="px-5 py-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] hover:opacity-90 text-black font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                           >
                             <UserPlus className="w-3.5 h-3.5" />
                             <span>Add Staff Member</span>
@@ -731,14 +731,14 @@ export default function CheckInStation({
                       {staffList.map((staff) => (
                         <div
                           key={staff.id}
-                          className="p-3.5 bg-[#141413] border border-white/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/20 transition-all group"
+                          className="p-3.5 bg-[#121819] border border-white/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/20 transition-all group"
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             {/* Staff Initial Monogram */}
                             <div 
                               className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-xs text-black shrink-0 shadow-inner"
                               style={{ 
-                                background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)'
+                                background: 'linear-gradient(135deg, #354649 0%, #6C7A89 50%, #A3C6C4 100%)'
                               }}
                             >
                               {staff.name.charAt(0)}
@@ -748,7 +748,7 @@ export default function CheckInStation({
                                 <p className="font-heading font-extrabold text-xs text-white truncate">
                                   {staff.name}
                                 </p>
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#E0C97E]/15 text-[#FCF8B3] border border-[#E0C97E]/30 uppercase">
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30 uppercase">
                                   {staff.role}
                                 </span>
                               </div>
@@ -766,10 +766,10 @@ export default function CheckInStation({
                                 setSelectedStaffForQr(staff);
                                 setStaffModalTab('qr');
                               }}
-                              className="px-3 py-1.5 rounded-xl bg-[#252523] hover:bg-[#323230] text-xs font-semibold text-white/90 border border-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-xs font-semibold text-white/90 border border-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
                               title="Show personalized mobile scanner QR code"
                             >
-                              <QrCode className="w-3.5 h-3.5 text-[#FB9378]" />
+                              <QrCode className="w-3.5 h-3.5 text-[#6C7A89]" />
                               <span>Mobile QR Pass</span>
                             </button>
 
@@ -787,7 +787,7 @@ export default function CheckInStation({
                       ))}
 
                       {staffList.length === 0 && (
-                        <div className="py-8 text-center text-xs text-white/40 bg-[#141413] rounded-2xl border border-white/5">
+                        <div className="py-8 text-center text-xs text-white/40 bg-[#121819] rounded-2xl border border-white/5">
                           No staff members added yet. Fill out the form above to add your event check-in team!
                         </div>
                       )}
@@ -803,7 +803,7 @@ export default function CheckInStation({
                   <div className="space-y-4">
                     
                     {/* Staff Member Selector for QR */}
-                    <div className="bg-[#141413] p-3 rounded-2xl border border-white/10 flex items-center justify-between gap-3">
+                    <div className="bg-[#121819] p-3 rounded-2xl border border-white/10 flex items-center justify-between gap-3">
                       <span className="text-xs font-bold text-white/70">
                         Station Pass For:
                       </span>
@@ -818,7 +818,7 @@ export default function CheckInStation({
                             setSelectedStaffForQr(found || null);
                           }
                         }}
-                        className="bg-[#1c1c1b] border border-white/15 rounded-xl px-3 py-1.5 text-xs font-bold text-[#FCF8B3] focus:outline-none cursor-pointer"
+                        className="bg-[#1a2325] border border-white/15 rounded-xl px-3 py-1.5 text-xs font-bold text-[#E0E7E9] focus:outline-none cursor-pointer"
                       >
                         <option value="all">★ All Staff (General Scanner Link)</option>
                         {staffList.map((s) => (
@@ -830,8 +830,8 @@ export default function CheckInStation({
                     </div>
 
                     {/* QR Code Card */}
-                    <div className="bg-[#141413] p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center">
-                      <div className="p-3 bg-white rounded-2xl shadow-xl mb-3 border-2 border-[#E0C97E]/30">
+                    <div className="bg-[#121819] p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center">
+                      <div className="p-3 bg-white rounded-2xl shadow-xl mb-3 border-2 border-[#A3C6C4]/30">
                         {staffQrDataUrl ? (
                           <img src={staffQrDataUrl} alt="Staff Portal QR" className="w-44 h-44 object-contain" />
                         ) : (
@@ -844,18 +844,18 @@ export default function CheckInStation({
                       </span>
                       <p className="text-xs text-white/60 max-w-sm mb-4 leading-relaxed">
                         Point any smartphone camera at this QR code to immediately launch the scanner desk pre-configured for{" "}
-                        <strong className="text-[#FCF8B3]">{selectedStaffForQr ? selectedStaffForQr.station : "this event"}</strong>.
+                        <strong className="text-[#E0E7E9]">{selectedStaffForQr ? selectedStaffForQr.station : "this event"}</strong>.
                       </p>
 
                       {/* Direct URL Share */}
                       <div className="w-full max-w-md bg-black/60 border border-white/10 p-2.5 rounded-xl flex items-center justify-between gap-2">
-                        <span className="font-mono text-[11px] text-[#FCF8B3] truncate flex-1 text-left">
+                        <span className="font-mono text-[11px] text-[#E0E7E9] truncate flex-1 text-left">
                           {activeStaffPortalLink}
                         </span>
                         <button
                           type="button"
                           onClick={handleCopyStaffLink}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#252523] hover:bg-[#323230] text-white font-bold text-xs shrink-0 transition-colors border border-white/15 cursor-pointer"
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#243033] hover:bg-[#2f3e42] text-white font-bold text-xs shrink-0 transition-colors border border-white/15 cursor-pointer"
                         >
                           {copiedStaffLink ? (
                             <>
@@ -864,7 +864,7 @@ export default function CheckInStation({
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5 text-[#FB9378]" />
+                              <Copy className="w-3.5 h-3.5 text-[#6C7A89]" />
                               <span>Copy Link</span>
                             </>
                           )}
@@ -883,7 +883,7 @@ export default function CheckInStation({
                 <button
                   type="button"
                   onClick={() => setIsMultiStaffModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#252523] hover:bg-[#323230] text-white font-semibold border border-white/10 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-white font-semibold border border-white/10 transition-colors cursor-pointer"
                 >
                   Close Coordinator
                 </button>

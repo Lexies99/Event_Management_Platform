@@ -34,7 +34,7 @@ export default function RegistrationQrModal({
       generateQrDataUrl(registrationLink, {
         width: 400,
         margin: 1,
-        darkColor: '#141413',
+        darkColor: '#121819',
         lightColor: '#ffffff'
       }).then(url => setQrDataUrl(url));
     }
@@ -66,10 +66,10 @@ export default function RegistrationQrModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       
       {/* Iridescent Gradient Border Container */}
-      <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-6">
+      <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-6">
         
         {/* Modal Interior */}
-        <div className="relative w-full bg-[#1a1a19] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
+        <div className="relative w-full bg-[#182224] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
           
           {/* Close Button */}
           <button
@@ -85,18 +85,18 @@ export default function RegistrationQrModal({
             <div 
               className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shrink-0"
               style={{ 
-                background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
-                color: '#141413'
+                background: 'linear-gradient(135deg, #354649 0%, #6C7A89 50%, #A3C6C4 100%)',
+                color: '#121819'
               }}
             >
-              <QrCode className="w-6 h-6 text-[#141413]" />
+              <QrCode className="w-6 h-6 text-[#121819]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-heading font-extrabold text-white">
                   Attendee Registration QR & Sign
                 </h2>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FB9378]/15 text-[#FB9378] border border-[#FB9378]/30 uppercase tracking-wider font-mono">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#6C7A89]/15 text-[#6C7A89] border border-[#6C7A89]/30 uppercase tracking-wider font-mono">
                   Instant Scan
                 </span>
               </div>
@@ -112,22 +112,22 @@ export default function RegistrationQrModal({
               onClick={() => setActiveTab('sign')}
               className={`pb-2.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                 activeTab === 'sign' 
-                  ? 'border-[#FB9378] text-[#FCF8B3] font-extrabold' 
+                  ? 'border-[#6C7A89] text-[#E0E7E9] font-extrabold' 
                   : 'border-transparent text-white/50 hover:text-white'
               }`}
             >
-              <Printer className="w-4 h-4 text-[#FB9378]" />
+              <Printer className="w-4 h-4 text-[#6C7A89]" />
               <span>Printable Entrance Sign / Flyer</span>
             </button>
             <button
               onClick={() => setActiveTab('preview')}
               className={`pb-2.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                 activeTab === 'preview' 
-                  ? 'border-[#FB9378] text-[#FCF8B3] font-extrabold' 
+                  ? 'border-[#6C7A89] text-[#E0E7E9] font-extrabold' 
                   : 'border-transparent text-white/50 hover:text-white'
               }`}
             >
-              <Smartphone className="w-4 h-4 text-[#E0C97E]" />
+              <Smartphone className="w-4 h-4 text-[#A3C6C4]" />
               <span>Digital QR & Quick Links</span>
             </button>
           </div>
@@ -138,21 +138,21 @@ export default function RegistrationQrModal({
             {/* TAB 1: PRINTABLE ENTRANCE SIGN / FLYER */}
             {activeTab === 'sign' && (
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 bg-[#141413] p-3 rounded-2xl border border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-[#121819] p-3 rounded-2xl border border-white/10">
                   <span className="text-xs text-white/70">
                     Ready-to-print 8.5x11 / A4 event sign for attendee check-in desks & venue gates.
                   </span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleDownloadQr}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#252523] hover:bg-[#323230] text-xs font-semibold text-white/90 border border-white/10 transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-xs font-semibold text-white/90 border border-white/10 transition-colors cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5 text-[#E0C97E]" />
+                      <Download className="w-3.5 h-3.5 text-[#A3C6C4]" />
                       <span>Download QR</span>
                     </button>
                     <button
                       onClick={handlePrintFlyer}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-90 text-xs font-extrabold text-black shadow-lg shadow-[#FB9378]/25 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] hover:opacity-90 text-xs font-extrabold text-black shadow-lg shadow-[#6C7A89]/25 transition-all cursor-pointer"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Print Entrance Sign</span>
@@ -163,7 +163,7 @@ export default function RegistrationQrModal({
                 {/* The Actual Printable Sign Container (ID captured by printElementCleanly) */}
                 <div 
                   id="registration-sign-print-area" 
-                  className="bg-white text-[#141413] rounded-3xl p-8 border-4 border-[#E0C97E]/40 shadow-2xl flex flex-col items-center text-center max-w-lg mx-auto"
+                  className="bg-white text-[#121819] rounded-3xl p-8 border-4 border-[#A3C6C4]/40 shadow-2xl flex flex-col items-center text-center max-w-lg mx-auto"
                   style={{ width: '100%', maxWidth: '480px' }}
                 >
                   {/* Brand Bar */}
@@ -175,14 +175,14 @@ export default function RegistrationQrModal({
                         className="rounded-xl shadow-sm border border-stone-200"
                       />
                       <div className="text-left">
-                        <p className="text-sm font-extrabold text-[#141413] uppercase tracking-tight">{tenant?.name}</p>
+                        <p className="text-sm font-extrabold text-[#121819] uppercase tracking-tight">{tenant?.name}</p>
                         <p className="text-[10px] text-stone-500 font-semibold tracking-wider uppercase font-mono">Official Event Portal</p>
                       </div>
                     </div>
                     <span 
                       className="px-3 py-1 rounded-full text-[10px] font-black text-black uppercase tracking-wider font-mono shadow-sm"
                       style={{ 
-                        background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)'
+                        background: 'linear-gradient(135deg, #354649 0%, #6C7A89 50%, #A3C6C4 100%)'
                       }}
                     >
                       Official Pass
@@ -190,27 +190,27 @@ export default function RegistrationQrModal({
                   </div>
 
                   {/* Event Heading */}
-                  <span className="text-[11px] font-extrabold tracking-widest text-[#AB6088] uppercase mb-1">
+                  <span className="text-[11px] font-extrabold tracking-widest text-[#354649] uppercase mb-1">
                     Welcome Attendees
                   </span>
-                  <h1 className="text-2xl font-black text-[#141413] leading-tight mb-2">
+                  <h1 className="text-2xl font-black text-[#121819] leading-tight mb-2">
                     {event?.title || 'Annual Technology Summit 2026'}
                   </h1>
                   
                   <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-stone-600 mb-6 font-medium">
                     <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-[#FB9378]" />
+                      <MapPin className="w-3.5 h-3.5 text-[#6C7A89]" />
                       {event?.venue || 'Main Auditorium'}
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-[#AB6088]" />
+                      <Calendar className="w-3.5 h-3.5 text-[#354649]" />
                       {new Date(event?.startsAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
 
                   {/* Big QR Code Box */}
-                  <div className="relative p-4 bg-stone-50 rounded-3xl border-2 border-dashed border-[#FB9378]/50 mb-5 shadow-inner">
+                  <div className="relative p-4 bg-stone-50 rounded-3xl border-2 border-dashed border-[#6C7A89]/50 mb-5 shadow-inner">
                     {qrDataUrl ? (
                       <img 
                         src={qrDataUrl} 
@@ -229,7 +229,7 @@ export default function RegistrationQrModal({
 
                   {/* Instructions */}
                   <div className="space-y-1.5 max-w-sm">
-                    <h3 className="text-base font-extrabold text-[#141413]">
+                    <h3 className="text-base font-extrabold text-[#121819]">
                       Scan Here to Register & Check In
                     </h3>
                     <p className="text-xs text-stone-600 leading-relaxed">
@@ -252,8 +252,8 @@ export default function RegistrationQrModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   
                   {/* QR Display Card */}
-                  <div className="bg-[#141413] p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center justify-center">
-                    <div className="p-3 bg-white rounded-2xl shadow-xl mb-4 border-2 border-[#E0C97E]/30">
+                  <div className="bg-[#121819] p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center justify-center">
+                    <div className="p-3 bg-white rounded-2xl shadow-xl mb-4 border-2 border-[#A3C6C4]/30">
                       {qrDataUrl && (
                         <img 
                           src={qrDataUrl} 
@@ -266,25 +266,25 @@ export default function RegistrationQrModal({
                     <p className="text-[11px] text-white/50 mb-4">Encodes direct URL to {tenant?.name}&apos;s attendee portal</p>
                     <button
                       onClick={handleDownloadQr}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#252523] hover:bg-[#323230] text-xs font-semibold text-white/90 border border-white/10 transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-xs font-semibold text-white/90 border border-white/10 transition-colors cursor-pointer"
                     >
-                      <Download className="w-4 h-4 text-[#FB9378]" />
+                      <Download className="w-4 h-4 text-[#6C7A89]" />
                       <span>Download High-Res PNG</span>
                     </button>
                   </div>
 
                   {/* Link & Instructions */}
-                  <div className="flex flex-col justify-between space-y-4 bg-[#141413] p-5 rounded-2xl border border-white/10">
+                  <div className="flex flex-col justify-between space-y-4 bg-[#121819] p-5 rounded-2xl border border-white/10">
                     <div className="space-y-3">
                       <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Share2 className="w-4 h-4 text-[#FB9378]" /> Shareable Registration Link
+                        <Share2 className="w-4 h-4 text-[#6C7A89]" /> Shareable Registration Link
                       </h4>
                       <p className="text-xs text-white/60 leading-relaxed">
                         Send this link via WhatsApp, email blast, LinkedIn or company Slack to invite attendees:
                       </p>
                       
                       <div className="bg-black/60 border border-white/10 p-3 rounded-xl">
-                        <p className="text-[11px] font-mono text-[#FCF8B3] break-all select-all">
+                        <p className="text-[11px] font-mono text-[#E0E7E9] break-all select-all">
                           {registrationLink}
                         </p>
                       </div>
@@ -293,7 +293,7 @@ export default function RegistrationQrModal({
                     <div className="space-y-2 pt-2">
                       <button
                         onClick={handleCopy}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] hover:opacity-90 font-extrabold text-xs text-black shadow-lg shadow-[#FB9378]/25 transition-all cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] hover:opacity-90 font-extrabold text-xs text-black shadow-lg shadow-[#6C7A89]/25 transition-all cursor-pointer"
                       >
                         {copiedLink ? <Check className="w-4 h-4 text-emerald-950" /> : <Copy className="w-4 h-4" />}
                         <span>{copiedLink ? "Registration Link Copied!" : "Copy Registration Link"}</span>
@@ -303,9 +303,9 @@ export default function RegistrationQrModal({
                         href={registrationLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#252523] hover:bg-[#323230] text-xs font-semibold text-white/80 border border-white/10 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-xs font-semibold text-white/80 border border-white/10 transition-colors"
                       >
-                        <ExternalLink className="w-3.5 h-3.5 text-[#E0C97E]" />
+                        <ExternalLink className="w-3.5 h-3.5 text-[#A3C6C4]" />
                         <span>Test Registration Page in New Tab</span>
                       </a>
                     </div>
@@ -322,7 +322,7 @@ export default function RegistrationQrModal({
             <span>Attendee responses are isolated to <strong className="text-white">{tenant?.name}</strong></span>
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-[#252523] hover:bg-[#323230] text-white font-semibold border border-white/10 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-white font-semibold border border-white/10 transition-colors cursor-pointer"
             >
               Done
             </button>

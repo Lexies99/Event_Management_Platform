@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --color-champagne: #E0C97E;
-  --color-butter: #FCF8B3;
-  --color-coral: #FB9378;
-  --color-mauve: #AB6088;
-  --color-body-bg: #1a1a19;
+  --color-slate-deep: #354649;
+  --color-slate-cool: #6C7A89;
+  --color-sage-aqua: #A3C6C4;
+  --color-mist-frost: #E0E7E9;
+  --color-body-bg: #121819;
+  --color-surface-bg: #1a2325;
 }
 
 html {
@@ -17,8 +18,8 @@ html {
 body {
   margin: 0;
   font-family: 'Roboto', system-ui, -apple-system, sans-serif;
-  background-color: #1a1a19;
-  color: #ffffff;
+  background-color: #121819;
+  color: #E0E7E9;
   overflow-x: hidden;
 }
 
@@ -28,41 +29,41 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1a1a19;
+  background: #121819;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333330;
+  background: #243033;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a4a46;
+  background: #354649;
 }
 
-/* Luxury Multi-color Palette Gradient Text: Mauve -> Coral -> Champagne -> Butter */
+/* Nordic Palette Gradient Text: Cool Slate -> Sage Aqua -> Frost Mist */
 .text-palette-gradient {
-  background: linear-gradient(to right, #AB6088 0%, #FB9378 30%, #E0C97E 65%, #FCF8B3 100%);
+  background: linear-gradient(to right, #6C7A89 0%, #A3C6C4 50%, #E0E7E9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* Reverse Palette Gradient */
 .text-palette-gradient-rev {
-  background: linear-gradient(to right, #FCF8B3 0%, #E0C97E 30%, #FB9378 70%, #AB6088 100%);
+  background: linear-gradient(to right, #E0E7E9 0%, #A3C6C4 50%, #6C7A89 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Iridescent Button from Unifato Reference */
+/* Iridescent Button from Unifato Reference - Nordic Slate Palette */
 .btn-unifato {
   display: inline-flex;
-  background: linear-gradient(160deg, #AB6088, #FB9378 33%, #E0C97E 67%, #FCF8B3);
+  background: linear-gradient(160deg, #354649, #6C7A89 33%, #A3C6C4 67%, #E0E7E9);
   padding: 1.5px;
   border-radius: 0.75rem;
   transition: all 0.3s ease;
 }
 
 .btn-unifato-inner {
-  background-color: #1a1a19;
+  background-color: #121819;
   border-radius: calc(0.75rem - 1.5px);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -72,7 +73,7 @@ body {
 }
 
 .btn-unifato:hover span {
-  color: #1a1a19 !important;
+  color: #121819 !important;
 }
 
 /* =========================================================
@@ -147,9 +148,6 @@ body {
     max-width: 10.5in !important;
     background: #fffbeb !important;
     color: #0f172a !important;
-    border: 8px double #b45309 !important;
-    page-break-inside: avoid !important;
-    page-break-after: avoid !important;
-    page-break-before: avoid !important;
+    border: 8px double #354649 !important;
   }
 }

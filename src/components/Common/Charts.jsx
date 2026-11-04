@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 
 // Custom 4-color luxury palette constants
 export const PALETTE = {
-  mauve: '#AB6088',
-  coral: '#FB9378',
-  gold: '#E0C97E',
-  butter: '#FCF8B3',
-  dark: '#141413',
-  card: '#1c1c1b'
+  slateDeep: '#354649',
+  slateCool: '#6C7A89',
+  sageAqua: '#A3C6C4',
+  mistFrost: '#E0E7E9',
+  dark: '#121819',
+  card: '#1a2325'
 };
 
 const DEFAULT_COLORS = [
-  '#AB6088', // Mauve
-  '#FB9378', // Warm Coral
-  '#E0C97E', // Champagne Gold
-  '#FCF8B3', // Butter Vanilla
+  '#354649', // Mauve
+  '#6C7A89', // Warm Coral
+  '#A3C6C4', // Champagne Gold
+  '#E0E7E9', // Butter Vanilla
   '#C9889F', // Muted Rose
   '#E8A882'  // Peach
 ];
@@ -116,7 +116,7 @@ export function DonutChart({
           <span className="font-heading font-extrabold text-2xl text-white">
             {hoveredIdx !== null ? slices[hoveredIdx]?.val : total}
           </span>
-          <span className="text-[10px] font-bold text-[#FCF8B3]">
+          <span className="text-[10px] font-bold text-[#E0E7E9]">
             {hoveredIdx !== null ? `${slices[hoveredIdx]?.percent}%` : '100%'}
           </span>
         </div>
@@ -199,7 +199,7 @@ export function BarGraph({
             >
               {/* Hover Value Popover */}
               {isSelected && (
-                <div className="absolute -top-7 px-2 py-0.5 rounded-lg bg-[#252523] border border-white/20 text-[#FCF8B3] text-[10px] font-mono font-bold whitespace-nowrap shadow-xl z-20 animate-in fade-in zoom-in-95">
+                <div className="absolute -top-7 px-2 py-0.5 rounded-lg bg-[#252523] border border-white/20 text-[#E0E7E9] text-[10px] font-mono font-bold whitespace-nowrap shadow-xl z-20 animate-in fade-in zoom-in-95">
                   {val} ({item.unit || 'units'})
                 </div>
               )}
@@ -210,8 +210,8 @@ export function BarGraph({
                 style={{
                   height: `${heightPercent}%`,
                   background: isSelected 
-                    ? 'linear-gradient(180deg, #FCF8B3 0%, #FB9378 50%, #AB6088 100%)' 
-                    : 'linear-gradient(180deg, #FB9378 0%, #AB6088 100%)',
+                    ? 'linear-gradient(180deg, #E0E7E9 0%, #6C7A89 50%, #354649 100%)' 
+                    : 'linear-gradient(180deg, #6C7A89 0%, #354649 100%)',
                   boxShadow: isSelected ? '0 0 15px rgba(251, 147, 120, 0.4)' : 'none'
                 }}
               >
@@ -277,14 +277,14 @@ export function AreaTrendGraph({
       >
         <defs>
           <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FB9378" stopOpacity="0.4" />
-            <stop offset="60%" stopColor="#AB6088" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#141413" stopOpacity="0" />
+            <stop offset="0%" stopColor="#6C7A89" stopOpacity="0.4" />
+            <stop offset="60%" stopColor="#354649" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#121819" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#AB6088" />
-            <stop offset="50%" stopColor="#FB9378" />
-            <stop offset="100%" stopColor="#E0C97E" />
+            <stop offset="0%" stopColor="#354649" />
+            <stop offset="50%" stopColor="#6C7A89" />
+            <stop offset="100%" stopColor="#A3C6C4" />
           </linearGradient>
         </defs>
 
@@ -307,8 +307,8 @@ export function AreaTrendGraph({
               cx={p.x}
               cy={p.y}
               r="4.5"
-              fill="#141413"
-              stroke="#E0C97E"
+              fill="#121819"
+              stroke="#A3C6C4"
               strokeWidth="2.5"
               className="group-hover:r-6 transition-all"
             />

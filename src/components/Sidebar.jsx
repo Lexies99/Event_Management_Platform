@@ -46,7 +46,7 @@ function EventPlanMonogram({ size = 38, className = "" }) {
         fontWeight="900" 
         fontSize="44" 
         letterSpacing="-2" 
-        fill="#141413"
+        fill="#121819"
       >
         EP
       </text>
@@ -161,11 +161,11 @@ export default function Sidebar({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-heading font-extrabold text-white text-lg tracking-tight">EventPlan</span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider bg-white/10 text-[#FCF8B3] uppercase border border-[#E0C97E]/30">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider bg-white/10 text-[#E0E7E9] uppercase border border-[#A3C6C4]/30">
                   v1.0
                 </span>
               </div>
-              <span className="text-[11px] text-white/50 flex items-center gap-1 group-hover:text-[#FB9378] transition-colors">
+              <span className="text-[11px] text-white/50 flex items-center gap-1 group-hover:text-[#6C7A89] transition-colors">
                 Public Website <ArrowUpRight className="w-3 h-3" />
               </span>
             </div>
@@ -196,15 +196,15 @@ export default function Sidebar({
             <>
               <button
                 onClick={() => setIsTenantDropdownOpen(!isTenantDropdownOpen)}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1c1c1b] hover:bg-[#252523] border border-amber-500/30 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1a2325] hover:bg-[#243033] border border-amber-500/30 transition-colors text-left group"
                 title="Switch company workspace (Operator Fleet Mode)"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div 
                     className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-inner"
                     style={{ 
-                      background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
-                      color: '#141413'
+                      background: 'linear-gradient(135deg, #354649 0%, #6C7A89 50%, #A3C6C4 100%)',
+                      color: '#E0E7E9'
                     }}
                   >
                     {activeTenant?.name?.charAt(0) || 'T'}
@@ -224,7 +224,7 @@ export default function Sidebar({
 
               {/* Fleet Switcher Dropdown (Only for Platform Operator) */}
               {isTenantDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1c1c1b] border border-white/15 rounded-xl shadow-2xl overflow-hidden py-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1a2325] border border-white/15 rounded-xl shadow-2xl overflow-hidden py-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 border-b border-white/10 flex items-center justify-between">
                     <span>Switch Tenant Fleet</span>
                     <span className="text-[9px] text-amber-400 font-mono">Platform Admin</span>
@@ -246,7 +246,7 @@ export default function Sidebar({
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div 
                               className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                              style={{ backgroundColor: t.brandColor || '#AB6088' }}
+                              style={{ backgroundColor: t.brandColor || '#354649' }}
                             >
                               {t.name.charAt(0)}
                             </div>
@@ -255,19 +255,19 @@ export default function Sidebar({
                               <p className="text-[10px] text-white/40 font-mono">/{t.slug}</p>
                             </div>
                           </div>
-                          {isSelected && <Check className="w-4 h-4 text-[#FB9378] shrink-0" />}
+                          {isSelected && <Check className="w-4 h-4 text-[#6C7A89] shrink-0" />}
                         </button>
                       );
                     })}
                   </div>
 
-                  <div className="p-2 border-t border-white/10 bg-[#141413]">
+                  <div className="p-2 border-t border-white/10 bg-[#121819]">
                     <button
                       onClick={() => {
                         setIsTenantDropdownOpen(false);
                         onOpenCompanyRegistration();
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black hover:opacity-90 transition-opacity"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] hover:opacity-90 transition-opacity"
                     >
                       <PlusCircle className="w-3.5 h-3.5" />
                       Register New Company
@@ -278,13 +278,13 @@ export default function Sidebar({
             </>
           ) : (
             /* Normal Company Workspace: Strictly Isolated. Non-clickable, cannot see competitors */
-            <div className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1c1c1b] border border-white/10 shadow-sm">
+            <div className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#1a2325] border border-white/10 shadow-sm">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div 
                   className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-inner"
                   style={{ 
-                    background: 'linear-gradient(135deg, #AB6088 0%, #FB9378 50%, #E0C97E 100%)',
-                    color: '#141413'
+                    background: 'linear-gradient(135deg, #354649 0%, #6C7A89 50%, #A3C6C4 100%)',
+                    color: '#E0E7E9'
                   }}
                 >
                   {activeTenant?.name?.charAt(0) || 'T'}
@@ -321,16 +321,16 @@ export default function Sidebar({
               }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all ${
                 activeRole === 'super-admin'
-                  ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-lg shadow-[#FB9378]/20'
+                  ? 'bg-[#354649] text-[#E0E7E9] border border-[#A3C6C4]/40 font-extrabold shadow-md shadow-[#354649]/50'
                   : 'text-amber-300 hover:text-white hover:bg-amber-500/10 border border-amber-500/20'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className={`w-4 h-4 shrink-0 ${activeRole === 'super-admin' ? 'text-black' : 'text-amber-400'}`} />
+                <ShieldCheck className={`w-4 h-4 shrink-0 ${activeRole === 'super-admin' ? 'text-[#A3C6C4]' : 'text-amber-400'}`} />
                 <span className="truncate">Super-Admin Fleet</span>
               </div>
               <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-bold ${
-                activeRole === 'super-admin' ? 'bg-black/20 text-black' : 'bg-amber-500/20 text-amber-300'
+                activeRole === 'super-admin' ? 'bg-black/20 text-[#E0E7E9]' : 'bg-amber-500/20 text-amber-300'
               }`}>
                 Platform
               </span>
@@ -350,16 +350,16 @@ export default function Sidebar({
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all text-left ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-lg shadow-[#FB9378]/20'
+                    ? 'bg-[#354649] text-[#E0E7E9] border border-[#A3C6C4]/40 font-extrabold shadow-md shadow-[#354649]/50'
                     : 'text-white/70 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-black' : 'text-white/50'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#A3C6C4]' : 'text-white/50'}`} />
                   <span className="truncate">{item.label}</span>
                 </div>
                 <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                  isActive ? 'text-black translate-x-0.5' : 'text-white/20'
+                  isActive ? 'text-[#A3C6C4] translate-x-0.5' : 'text-white/20'
                 }`} />
               </button>
             );
@@ -367,7 +367,7 @@ export default function Sidebar({
         </div>
 
         {/* Quick Actions Card */}
-        <div className="p-3 rounded-xl bg-[#1c1c1b] border border-white/10 space-y-2">
+        <div className="p-3 rounded-xl bg-[#1a2325] border border-white/10 space-y-2">
           <div className="text-[10px] font-mono uppercase tracking-wider text-white/40">
             {isOperatorUnlocked ? 'Platform Actions' : 'Event Quick Actions'}
           </div>
@@ -382,7 +382,7 @@ export default function Sidebar({
                 }}
                 className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
               >
-                <PlusCircle className="w-3.5 h-3.5 text-[#E0C97E]" />
+                <PlusCircle className="w-3.5 h-3.5 text-[#A3C6C4]" />
                 <span>+ Register New Company</span>
               </button>
 
@@ -409,7 +409,7 @@ export default function Sidebar({
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left group"
                 title="Display or print entrance registration QR flyer"
               >
-                <QrCode className="w-3.5 h-3.5 text-[#FB9378] group-hover:scale-110 transition-transform shrink-0" />
+                <QrCode className="w-3.5 h-3.5 text-[#6C7A89] group-hover:scale-110 transition-transform shrink-0" />
                 <span className="truncate">Registration QR Flyer</span>
               </button>
 
@@ -432,7 +432,7 @@ export default function Sidebar({
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 text-[#E0C97E] group-hover:scale-110 transition-transform shrink-0" />
+                    <Copy className="w-3.5 h-3.5 text-[#A3C6C4] group-hover:scale-110 transition-transform shrink-0" />
                     <span className="truncate">Copy Registration URL</span>
                   </>
                 )}
@@ -447,7 +447,7 @@ export default function Sidebar({
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left group"
                 title="Download attendee roster as spreadsheet"
               >
-                <Download className="w-3.5 h-3.5 text-[#FCF8B3] group-hover:scale-110 transition-transform shrink-0" />
+                <Download className="w-3.5 h-3.5 text-[#E0E7E9] group-hover:scale-110 transition-transform shrink-0" />
                 <span className="truncate">Export Attendees (CSV)</span>
               </button>
             </>
@@ -458,7 +458,7 @@ export default function Sidebar({
       {/* BOTTOM SECTION: NETWORK STATUS & DISCREET OPERATOR ACCESS */}
       <div className="pt-4 mt-6 border-t border-white/10 space-y-3">
         {/* Offline / Online Sync Controller */}
-        <div className="p-2.5 rounded-xl bg-[#1c1c1b] border border-white/10">
+        <div className="p-2.5 rounded-xl bg-[#1a2325] border border-white/10">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setIsOffline(!isOffline)}
@@ -488,7 +488,7 @@ export default function Sidebar({
               </span>
               <button
                 onClick={onSyncOffline}
-                className="flex items-center gap-1 text-[10px] font-bold text-[#E0C97E] hover:underline"
+                className="flex items-center gap-1 text-[10px] font-bold text-[#A3C6C4] hover:underline"
               >
                 <RotateCcw className="w-3 h-3" /> Sync Now
               </button>
@@ -514,7 +514,7 @@ export default function Sidebar({
       {/* Operator PIN Modal */}
       {isPinModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#1c1c1b] border border-white/15 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl relative">
+          <div className="bg-[#1a2325] border border-white/15 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl relative">
             <button 
               onClick={() => {
                 setIsPinModalOpen(false);
@@ -527,7 +527,7 @@ export default function Sidebar({
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#AB6088] via-[#FB9378] to-[#E0C97E] flex items-center justify-center text-black shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] flex items-center justify-center text-[#E0E7E9] shadow-lg">
                 <KeyRound className="w-5 h-5" />
               </div>
               <div>
@@ -550,7 +550,7 @@ export default function Sidebar({
                   }}
                   placeholder="Enter PIN (demo: admin123)"
                   autoFocus
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#141413] border border-white/15 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#FB9378]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#121819] border border-white/15 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#6C7A89]"
                 />
                 {pinError && (
                   <p className="text-xs text-rose-400 mt-1 font-medium">{pinError}</p>
@@ -567,7 +567,7 @@ export default function Sidebar({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black hover:opacity-90"
+                  className="flex-1 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] hover:opacity-90"
                 >
                   Unlock Fleet
                 </button>
@@ -582,11 +582,11 @@ export default function Sidebar({
   return (
     <>
       {/* MOBILE TOP BAR (visible on < lg screens) */}
-      <header className="lg:hidden sticky top-0 z-40 bg-[#141413]/95 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
+      <header className="lg:hidden sticky top-0 z-40 bg-[#121819]/95 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 rounded-xl bg-[#1c1c1b] border border-white/10 text-white hover:bg-white/10"
+            className="p-2 rounded-xl bg-[#1a2325] border border-white/10 text-white hover:bg-white/10"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -597,7 +597,7 @@ export default function Sidebar({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="text-[11px] font-mono px-2 py-1 rounded-lg bg-[#1c1c1b] border border-white/10 text-white/80">
+          <div className="text-[11px] font-mono px-2 py-1 rounded-lg bg-[#1a2325] border border-white/10 text-white/80">
             /{activeTenant?.slug || 'test'}
           </div>
           <button
@@ -617,14 +617,14 @@ export default function Sidebar({
             className="fixed inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <aside className="relative w-72 max-w-[85vw] h-full bg-[#141413] border-r border-white/15 p-5 shadow-2xl z-10 overflow-y-auto">
+          <aside className="relative w-72 max-w-[85vw] h-full bg-[#121819] border-r border-white/15 p-5 shadow-2xl z-10 overflow-y-auto">
             {sidebarContent}
           </aside>
         </div>
       )}
 
       {/* DESKTOP STICKY LEFT SIDEBAR (visible on >= lg screens) */}
-      <aside className="hidden lg:flex w-72 shrink-0 h-screen sticky top-0 bg-[#141413] border-r border-white/10 p-5 z-30 flex-col">
+      <aside className="hidden lg:flex w-72 shrink-0 h-screen sticky top-0 bg-[#121819] border-r border-white/10 p-5 z-30 flex-col">
         {sidebarContent}
       </aside>
     </>

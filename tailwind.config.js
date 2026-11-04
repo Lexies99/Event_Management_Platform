@@ -8,27 +8,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        champagne: '#E0C97E',
-        butter: '#FCF8B3',
-        coral: '#FB9378',
-        mauve: '#AB6088',
-        body: '#1a1a19',
+        slateDeep: '#354649',
+        slateCool: '#6C7A89',
+        sageAqua: '#A3C6C4',
+        mistFrost: '#E0E7E9',
+        champagne: '#A3C6C4',
+        butter: '#E0E7E9',
+        coral: '#6C7A89',
+        mauve: '#354649',
+        body: '#121819',
+        surface: '#1a2325',
         midnight: {
-          DEFAULT: '#1a1a19',
-          light: '#222220',
-          elevated: '#2a2a28'
+          DEFAULT: '#121819',
+          light: '#1a2325',
+          elevated: '#243033'
         },
         brand: {
-          50: '#fdfbf2',
-          100: '#faf5de',
-          200: '#f4e9b9',
-          300: '#ebd78b',
-          400: '#E0C97E',
-          500: '#d4b761',
-          600: '#bc9c4a',
-          700: '#9c7d3b',
-          800: '#806434',
-          900: '#6b532f',
+          50: '#f4f7f7',
+          100: '#e4ebec',
+          200: '#cddadb',
+          300: '#A3C6C4',
+          400: '#6C7A89',
+          500: '#354649',
+          600: '#2c3b3e',
+          700: '#233032',
+          800: '#1c2628',
+          900: '#121819',
         }
       },
       fontFamily: {

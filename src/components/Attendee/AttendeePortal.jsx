@@ -89,7 +89,7 @@ export default function AttendeePortal({
       generateQrDataUrl(currentAttendee.ticketCode, {
         width: 220,
         margin: 1,
-        darkColor: '#141413',
+        darkColor: '#121819',
         lightColor: '#ffffff'
       }).then(url => setActiveTicketQr(url));
     }
@@ -255,13 +255,13 @@ export default function AttendeePortal({
     <div className="max-w-4xl mx-auto space-y-6">
       
       {/* Top Navigation: Register New vs View My Ticket Pass */}
-      <div className="flex items-center justify-between bg-[#1c1c1b] border border-white/10 rounded-2xl p-2.5 shadow-xl">
+      <div className="flex items-center justify-between bg-[#1a2325] border border-white/10 rounded-2xl p-2.5 shadow-xl">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveView('ticket')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeView === 'ticket'
-                ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-md shadow-[#FB9378]/20'
+                ? 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold shadow-md shadow-[#6C7A89]/20'
                 : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -271,7 +271,7 @@ export default function AttendeePortal({
             onClick={() => setActiveView('register')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeView === 'register'
-                ? 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-md shadow-[#FB9378]/20'
+                ? 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold shadow-md shadow-[#6C7A89]/20'
                 : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -283,15 +283,15 @@ export default function AttendeePortal({
         {activeView === 'ticket' && eventRegistrations.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-white/50 hidden sm:inline flex items-center gap-1 font-medium">
-              <Users className="w-3.5 h-3.5 text-[#E0C97E]" /> Pass Preview:
+              <Users className="w-3.5 h-3.5 text-[#A3C6C4]" /> Pass Preview:
             </span>
             <select
               value={currentAttendee?.id || ''}
               onChange={(e) => setCurrentAttendeeId(e.target.value)}
-              className="bg-[#141413] text-xs text-white border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none font-semibold min-w-[190px] shadow-sm"
+              className="bg-[#121819] text-xs text-white border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none font-semibold min-w-[190px] shadow-sm"
             >
               {eventRegistrations.map(r => (
-                <option key={r.id} value={r.id} className="bg-[#141413] text-white">
+                <option key={r.id} value={r.id} className="bg-[#121819] text-white">
                   {r.name} ({r.status === 'attended' ? 'Attended' : 'Registered'})
                 </option>
               ))}
@@ -302,8 +302,8 @@ export default function AttendeePortal({
 
       {/* EMPTY STATE IF 0 REGISTRATIONS (when viewing ticket pass) */}
       {activeView === 'ticket' && eventRegistrations.length === 0 && (
-        <div className="bg-[#1c1c1b] p-8 sm:p-12 rounded-3xl border border-white/10 text-center max-w-lg mx-auto space-y-4 my-6 shadow-2xl">
-          <div className="w-16 h-16 bg-[#E0C97E]/10 border border-[#E0C97E]/30 text-[#E0C97E] rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+        <div className="bg-[#1a2325] p-8 sm:p-12 rounded-3xl border border-white/10 text-center max-w-lg mx-auto space-y-4 my-6 shadow-2xl">
+          <div className="w-16 h-16 bg-[#A3C6C4]/10 border border-[#A3C6C4]/30 text-[#A3C6C4] rounded-2xl flex items-center justify-center mx-auto shadow-lg">
             <UserCheck className="w-8 h-8" />
           </div>
           <h3 className="font-heading font-extrabold text-xl text-white">No Registrations Yet for {tenant?.name}</h3>
@@ -313,7 +313,7 @@ export default function AttendeePortal({
           <div className="pt-2">
             <button
               onClick={() => setActiveView('register')}
-              className="px-6 py-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold rounded-xl text-xs shadow-lg shadow-[#FB9378]/20 transition-all hover:opacity-95"
+              className="px-6 py-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold rounded-xl text-xs shadow-lg shadow-[#6C7A89]/20 transition-all hover:opacity-95"
             >
               Open Public Registration Page (FR-1)
             </button>
@@ -326,18 +326,18 @@ export default function AttendeePortal({
         <div className="space-y-6">
           
           {/* Ticket Card (Styled like high-end Apple Wallet / Conference Pass) */}
-          <div className="max-w-md mx-auto bg-[#1c1c1b] rounded-3xl border border-white/15 shadow-2xl overflow-hidden relative">
+          <div className="max-w-md mx-auto bg-[#1a2325] rounded-3xl border border-white/15 shadow-2xl overflow-hidden relative">
             
             {/* Top Brand Banner with Warm Palette Gradient */}
-            <div className="p-5 text-black flex items-center justify-between bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E]">
+            <div className="p-5 text-black flex items-center justify-between bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4]">
               <div className="flex items-center gap-3">
                 <TenantLogo tenant={tenant} size={40} className="rounded-xl shadow-md" />
                 <div>
-                  <h3 className="font-heading font-extrabold text-sm leading-tight text-[#141413]">{tenant?.name}</h3>
+                  <h3 className="font-heading font-extrabold text-sm leading-tight text-[#121819]">{tenant?.name}</h3>
                   <p className="text-[10px] text-black/70 uppercase tracking-wider font-mono font-bold">Official Pass</p>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-black/20 text-[#141413] uppercase tracking-wider border border-black/15 font-mono">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-black/20 text-[#121819] uppercase tracking-wider border border-black/15 font-mono">
                 {currentAttendee.category}
               </span>
             </div>
@@ -349,23 +349,23 @@ export default function AttendeePortal({
               </h2>
               <div className="flex items-center justify-center gap-3 text-xs text-white/60 mt-2">
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#E0C97E]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#A3C6C4]" />
                   {new Date(event?.startsAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1 truncate max-w-[200px]">
-                  <MapPin className="w-3.5 h-3.5 text-[#FB9378]" />
+                  <MapPin className="w-3.5 h-3.5 text-[#6C7A89]" />
                   {event?.venue?.split(',')[0]}
                 </span>
               </div>
             </div>
 
             {/* Attendee Profile Section */}
-            <div className="p-6 flex items-center gap-4 bg-[#141413] border-b border-white/10">
+            <div className="p-6 flex items-center gap-4 bg-[#121819] border-b border-white/10">
               <img
                 src={currentAttendee.photoUrl}
                 alt={currentAttendee.name}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#E0C97E]/50 shadow-md shrink-0 bg-[#1c1c1b]"
+                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#A3C6C4]/50 shadow-md shrink-0 bg-[#1a2325]"
               />
               <div className="flex-1 min-w-0">
                 <h4 className="font-heading font-bold text-base text-white truncate">
@@ -373,7 +373,7 @@ export default function AttendeePortal({
                 </h4>
                 <p className="text-xs text-white/80 font-medium truncate">{currentAttendee.jobTitle}</p>
                 <p className="text-[11px] text-white/50 truncate flex items-center gap-1 mt-0.5">
-                  <Building2 className="w-3 h-3 text-[#E0C97E]" /> {currentAttendee.organization}
+                  <Building2 className="w-3 h-3 text-[#A3C6C4]" /> {currentAttendee.organization}
                 </p>
               </div>
             </div>
@@ -382,7 +382,7 @@ export default function AttendeePortal({
             <div className="px-6 py-3 bg-[#181817] border-b border-white/10 flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-white/40">Tier:</span>
-                <span className="font-bold text-[#FCF8B3] uppercase text-[11px]">
+                <span className="font-bold text-[#E0E7E9] uppercase text-[11px]">
                   {currentAttendee.passType === 'full_week' 
                     ? 'Full Week Access (5 Days)' 
                     : currentAttendee.passType === 'three_day' 
@@ -398,8 +398,8 @@ export default function AttendeePortal({
                       key={d.id}
                       className={`w-4 h-4 rounded text-[8px] font-black flex items-center justify-center border ${
                         isPermitted 
-                          ? 'bg-[#E0C97E]/20 text-[#FCF8B3] border-[#E0C97E]/50' 
-                          : 'bg-[#141413] text-white/20 border-white/5 line-through'
+                          ? 'bg-[#A3C6C4]/20 text-[#E0E7E9] border-[#A3C6C4]/50' 
+                          : 'bg-[#121819] text-white/20 border-white/5 line-through'
                       }`}
                       title={`${d.label}: ${isPermitted ? 'Permitted' : 'No Access'}`}
                     >
@@ -430,15 +430,15 @@ export default function AttendeePortal({
             </div>
 
             {/* Status Footer */}
-            <div className="p-4 bg-[#141413] border-t border-white/10 text-xs flex items-center justify-between text-white/60">
+            <div className="p-4 bg-[#121819] border-t border-white/10 text-xs flex items-center justify-between text-white/60">
               <div className="flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-full ${currentAttendee.status === 'attended' ? 'bg-emerald-400' : 'bg-[#E0C97E]'}`} />
+                <span className={`w-2.5 h-2.5 rounded-full ${currentAttendee.status === 'attended' ? 'bg-emerald-400' : 'bg-[#A3C6C4]'}`} />
                 <span>Status: <strong className="text-white capitalize">{currentAttendee.status}</strong></span>
               </div>
               {currentAttendee.status === 'attended' && (
                 <button
                   onClick={() => setIsCertificateOpen(true)}
-                  className="text-[#E0C97E] hover:text-[#FCF8B3] font-semibold flex items-center gap-1"
+                  className="text-[#A3C6C4] hover:text-[#E0E7E9] font-semibold flex items-center gap-1"
                 >
                   <Award className="w-3.5 h-3.5" /> Certificate
                 </button>
@@ -451,28 +451,28 @@ export default function AttendeePortal({
           <div className="max-w-md mx-auto flex items-center justify-between gap-3">
             <button
               onClick={() => setIsBadgeModalOpen(true)}
-              className="flex-1 py-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[#FB9378]/20 transition-all hover:opacity-95 active:scale-95"
+              className="flex-1 py-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[#6C7A89]/20 transition-all hover:opacity-95 active:scale-95"
             >
               <span>🏷️ View Lanyard Tag Badge</span>
             </button>
             <button
               onClick={() => window.print()}
-              className="flex-1 py-2.5 bg-[#252523] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-white/15 transition-colors"
+              className="flex-1 py-2.5 bg-[#243033] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-white/15 transition-colors"
             >
-              <Printer className="w-4 h-4 text-[#E0C97E]" />
+              <Printer className="w-4 h-4 text-[#A3C6C4]" />
               <span>Print Ticket</span>
             </button>
 
             {currentAttendee.status === 'attended' ? (
               <button
                 onClick={onNavigateToChat}
-                className="flex-1 py-2.5 bg-[#252523] hover:bg-[#2e2e2b] text-[#FCF8B3] rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-[#E0C97E]/30 transition-all"
+                className="flex-1 py-2.5 bg-[#243033] hover:bg-[#2e2e2b] text-[#E0E7E9] rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-[#A3C6C4]/30 transition-all"
               >
                 <span>Enter Chat</span>
-                <ArrowRight className="w-4 h-4 text-[#FB9378]" />
+                <ArrowRight className="w-4 h-4 text-[#6C7A89]" />
               </button>
             ) : (
-              <div className="flex-1 py-2 px-3 bg-[#1c1c1b] rounded-xl text-center text-[11px] text-white/50 border border-white/10">
+              <div className="flex-1 py-2 px-3 bg-[#1a2325] rounded-xl text-center text-[11px] text-white/50 border border-white/10">
                 Chat unlocks on-site
               </div>
             )}
@@ -483,13 +483,13 @@ export default function AttendeePortal({
 
       {/* VIEW 2: PUBLIC REGISTRATION FORM (FR-1.1 - FR-1.6) */}
       {activeView === 'register' && (
-        <div className="bg-[#1c1c1b] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl space-y-6">
+        <div className="bg-[#1a2325] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl space-y-6">
           
           {/* Header Banner */}
           <div className="flex items-center gap-4 pb-6 border-b border-white/10">
             <TenantLogo tenant={tenant} size={56} className="rounded-2xl" />
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#E0C97E] bg-[#E0C97E]/10 px-2.5 py-0.5 rounded-full border border-[#E0C97E]/30">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#A3C6C4] bg-[#A3C6C4]/10 px-2.5 py-0.5 rounded-full border border-[#A3C6C4]/30">
                 Official Event Registration
               </span>
               <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-white tracking-tight mt-1.5">
@@ -502,12 +502,12 @@ export default function AttendeePortal({
           </div>
 
           {/* Shareable Public Registration Link bar */}
-          <div className="bg-[#141413] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-inner">
+          <div className="bg-[#121819] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-inner">
             <div className="flex items-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
               <div>
                 <p className="font-bold text-white">Public Shareable Link for Attendees:</p>
-                <p className="font-mono text-[#FCF8B3] text-[11px] truncate max-w-xs sm:max-w-md">
+                <p className="font-mono text-[#E0E7E9] text-[11px] truncate max-w-xs sm:max-w-md">
                   {`${window.location.origin}/?tenant=${tenant?.slug}&role=attendee&register=true`}
                 </p>
               </div>
@@ -520,7 +520,7 @@ export default function AttendeePortal({
                 setCopiedRegLink(true);
                 setTimeout(() => setCopiedRegLink(false), 2500);
               }}
-              className="px-3.5 py-1.5 bg-[#252523] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 border border-white/15 transition-all shrink-0 active:scale-95"
+              className="px-3.5 py-1.5 bg-[#243033] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 border border-white/15 transition-all shrink-0 active:scale-95"
             >
               {copiedRegLink ? (
                 <>
@@ -529,7 +529,7 @@ export default function AttendeePortal({
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-[#FB9378]" />
+                  <Copy className="w-3.5 h-3.5 text-[#6C7A89]" />
                   <span>Copy Link</span>
                 </>
               )}
@@ -558,7 +558,7 @@ export default function AttendeePortal({
                     placeholder="e.g. Ama Mensah"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#141413] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+                    className="w-full bg-[#121819] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
                   />
                 </div>
               </div>
@@ -575,7 +575,7 @@ export default function AttendeePortal({
                     placeholder="e.g. ama.mensah@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#141413] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+                    className="w-full bg-[#121819] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
                   />
                 </div>
               </div>
@@ -591,7 +591,7 @@ export default function AttendeePortal({
                     placeholder="e.g. +233 24 000 0000"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-[#141413] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+                    className="w-full bg-[#121819] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
                   />
                 </div>
               </div>
@@ -603,10 +603,10 @@ export default function AttendeePortal({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-[#141413] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#FB9378]"
+                  className="w-full bg-[#121819] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#6C7A89]"
                 >
                   {event?.categories?.map(c => (
-                    <option key={c} value={c} className="bg-[#141413] text-white">{c}</option>
+                    <option key={c} value={c} className="bg-[#121819] text-white">{c}</option>
                   )) || (
                     <>
                       <option value="Attendee">Attendee</option>
@@ -629,7 +629,7 @@ export default function AttendeePortal({
                     placeholder="e.g. Bank of Ghana / Independent"
                     value={organization}
                     onChange={(e) => setOrganization(e.target.value)}
-                    className="w-full bg-[#141413] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+                    className="w-full bg-[#121819] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
                   />
                 </div>
               </div>
@@ -645,7 +645,7 @@ export default function AttendeePortal({
                     placeholder="e.g. Senior Software Engineer"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
-                    className="w-full bg-[#141413] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+                    className="w-full bg-[#121819] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
                   />
                 </div>
               </div>
@@ -656,14 +656,14 @@ export default function AttendeePortal({
               <div className="flex items-center justify-between">
                 <div>
                   <label className="block text-xs font-bold text-white flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-[#FB9378]" />
+                    <Calendar className="w-4 h-4 text-[#6C7A89]" />
                     <span>Select Multi-Day Pass & Attendance Schedule *</span>
                   </label>
                   <p className="text-[11px] text-white/50 mt-0.5">
                     Choose whether you will attend all 5 days, a 3-day bundle, or custom days.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-[#FCF8B3] bg-[#E0C97E]/15 px-2.5 py-0.5 rounded-full border border-[#E0C97E]/30">
+                <span className="text-[10px] font-mono font-bold text-[#E0E7E9] bg-[#A3C6C4]/15 px-2.5 py-0.5 rounded-full border border-[#A3C6C4]/30">
                   {selectedDays.length} of {eventDays.length} Days Selected
                 </span>
               </div>
@@ -678,14 +678,14 @@ export default function AttendeePortal({
                   }}
                   className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     passType === 'full_week'
-                      ? 'bg-[#FB9378]/15 border-[#FB9378] shadow-md shadow-[#FB9378]/10'
-                      : 'bg-[#141413] border-white/10 hover:border-white/20'
+                      ? 'bg-[#6C7A89]/15 border-[#6C7A89] shadow-md shadow-[#6C7A89]/10'
+                      : 'bg-[#121819] border-white/10 hover:border-white/20'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-extrabold text-white">Full Week Pass</span>
                     <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                      passType === 'full_week' ? 'border-[#FB9378] bg-[#FB9378]' : 'border-white/30'
+                      passType === 'full_week' ? 'border-[#6C7A89] bg-[#6C7A89]' : 'border-white/30'
                     }`}>
                       {passType === 'full_week' && <span className="w-1.5 h-1.5 bg-black rounded-full" />}
                     </span>
@@ -693,7 +693,7 @@ export default function AttendeePortal({
                   <p className="text-[11px] text-white/60">
                     All-access to all 5 event days (Mon - Fri) including gala.
                   </p>
-                  <span className="mt-2 inline-block text-[10px] font-bold text-[#FCF8B3] bg-white/10 px-2 py-0.5 rounded">
+                  <span className="mt-2 inline-block text-[10px] font-bold text-[#E0E7E9] bg-white/10 px-2 py-0.5 rounded">
                     5 Days Included
                   </span>
                 </div>
@@ -706,14 +706,14 @@ export default function AttendeePortal({
                   }}
                   className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     passType === 'three_day'
-                      ? 'bg-[#E0C97E]/15 border-[#E0C97E] shadow-md shadow-[#E0C97E]/10'
-                      : 'bg-[#141413] border-white/10 hover:border-white/20'
+                      ? 'bg-[#A3C6C4]/15 border-[#A3C6C4] shadow-md shadow-[#A3C6C4]/10'
+                      : 'bg-[#121819] border-white/10 hover:border-white/20'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-extrabold text-white">3-Day Pass</span>
                     <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                      passType === 'three_day' ? 'border-[#E0C97E] bg-[#E0C97E]' : 'border-white/30'
+                      passType === 'three_day' ? 'border-[#A3C6C4] bg-[#A3C6C4]' : 'border-white/30'
                     }`}>
                       {passType === 'three_day' && <span className="w-1.5 h-1.5 bg-black rounded-full" />}
                     </span>
@@ -721,7 +721,7 @@ export default function AttendeePortal({
                   <p className="text-[11px] text-white/60">
                     Access to Day 1 to Day 3 (Opening Summit & Masterclasses).
                   </p>
-                  <span className="mt-2 inline-block text-[10px] font-bold text-[#E0C97E] bg-[#E0C97E]/20 px-2 py-0.5 rounded">
+                  <span className="mt-2 inline-block text-[10px] font-bold text-[#A3C6C4] bg-[#A3C6C4]/20 px-2 py-0.5 rounded">
                     Days 1, 2, 3 Bundle
                   </span>
                 </div>
@@ -733,14 +733,14 @@ export default function AttendeePortal({
                   }}
                   className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     passType === 'custom'
-                      ? 'bg-[#AB6088]/20 border-[#AB6088] shadow-md shadow-[#AB6088]/10'
-                      : 'bg-[#141413] border-white/10 hover:border-white/20'
+                      ? 'bg-[#354649]/20 border-[#354649] shadow-md shadow-[#354649]/10'
+                      : 'bg-[#121819] border-white/10 hover:border-white/20'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-extrabold text-white">Custom Days</span>
                     <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                      passType === 'custom' ? 'border-[#AB6088] bg-[#AB6088]' : 'border-white/30'
+                      passType === 'custom' ? 'border-[#354649] bg-[#354649]' : 'border-white/30'
                     }`}>
                       {passType === 'custom' && <span className="w-1.5 h-1.5 bg-black rounded-full" />}
                     </span>
@@ -748,7 +748,7 @@ export default function AttendeePortal({
                   <p className="text-[11px] text-white/60">
                     Pick and choose specific individual days according to schedule.
                   </p>
-                  <span className="mt-2 inline-block text-[10px] font-bold text-[#FCF8B3] bg-white/10 px-2 py-0.5 rounded">
+                  <span className="mt-2 inline-block text-[10px] font-bold text-[#E0E7E9] bg-white/10 px-2 py-0.5 rounded">
                     Custom Schedule
                   </span>
                 </div>
@@ -767,8 +767,8 @@ export default function AttendeePortal({
                         key={d.id}
                         className={`p-2.5 rounded-xl border text-xs cursor-pointer flex items-start gap-2 transition-all ${
                           isChecked 
-                            ? 'bg-[#1c1c1b] border-[#FB9378] text-white shadow-sm' 
-                            : 'bg-[#141413] border-white/10 text-white/40 hover:border-white/20'
+                            ? 'bg-[#1a2325] border-[#6C7A89] text-white shadow-sm' 
+                            : 'bg-[#121819] border-white/10 text-white/40 hover:border-white/20'
                         }`}
                       >
                         <input
@@ -786,12 +786,12 @@ export default function AttendeePortal({
                               setPassType('custom');
                             }
                           }}
-                          className="mt-0.5 rounded accent-[#FB9378]"
+                          className="mt-0.5 rounded accent-[#6C7A89]"
                         />
                         <div className="leading-tight">
                           <span className="font-bold block text-white">{d.label}</span>
                           <span className="text-[10px] text-white/50 block">{d.name.split(' - ')[1] || d.name}</span>
-                          <span className="text-[10px] text-[#E0C97E] font-mono">{d.date}</span>
+                          <span className="text-[10px] text-[#A3C6C4] font-mono">{d.date}</span>
                         </div>
                       </label>
                     );
@@ -807,13 +807,13 @@ export default function AttendeePortal({
                 <span className="text-[11px] text-white/40">Headshot with clear face</span>
               </label>
 
-              <div className="bg-[#141413] border border-white/10 rounded-2xl p-4 space-y-4">
+              <div className="bg-[#121819] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div className="flex flex-col sm:flex-row items-center gap-5">
                   <div className="relative group">
                     <img
                       src={photoUrl}
                       alt="Selected Avatar"
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-[#E0C97E]/60 shadow-md shrink-0 bg-[#1c1c1b]"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-[#A3C6C4]/60 shadow-md shrink-0 bg-[#1a2325]"
                     />
                     <div className="absolute -bottom-1.5 -right-1.5 bg-emerald-500 text-[10px] text-white px-1.5 py-0.2 rounded-full font-bold shadow">
                       Ready
@@ -828,15 +828,15 @@ export default function AttendeePortal({
                         className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md ${
                           isCameraActive
                             ? 'bg-rose-600 hover:bg-rose-500 text-white'
-                            : 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold hover:opacity-95'
+                            : 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold hover:opacity-95'
                         }`}
                       >
                         <Camera className="w-4 h-4 text-black" />
                         <span>{isCameraActive ? 'Close Camera' : 'Take Picture'}</span>
                       </button>
 
-                      <label className="cursor-pointer px-3.5 py-2 bg-[#252523] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/15 shadow-sm">
-                        <Upload className="w-4 h-4 text-[#E0C97E]" />
+                      <label className="cursor-pointer px-3.5 py-2 bg-[#243033] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-white/15 shadow-sm">
+                        <Upload className="w-4 h-4 text-[#A3C6C4]" />
                         <span>Upload Photo File</span>
                         <input
                           type="file"
@@ -859,7 +859,7 @@ export default function AttendeePortal({
                               setPhotoUrl(url);
                             }}
                             className={`w-9 h-9 rounded-lg overflow-hidden border transition-all ${
-                              photoUrl === url ? 'ring-2 ring-[#FB9378] border-white scale-105' : 'border-white/10 opacity-60 hover:opacity-100'
+                              photoUrl === url ? 'ring-2 ring-[#6C7A89] border-white scale-105' : 'border-white/10 opacity-60 hover:opacity-100'
                             }`}
                           >
                             <img src={url} alt={`Preset ${idx}`} className="w-full h-full object-cover" />
@@ -887,7 +887,7 @@ export default function AttendeePortal({
                       </button>
                     </div>
 
-                    <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl overflow-hidden bg-black shadow-2xl border-2 border-[#FB9378]/60">
+                    <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl overflow-hidden bg-black shadow-2xl border-2 border-[#6C7A89]/60">
                       <video
                         ref={videoRef}
                         autoPlay
@@ -896,8 +896,8 @@ export default function AttendeePortal({
                         className="w-full h-full object-cover transform -scale-x-100"
                       />
                       {/* Reticle / Face framing guide */}
-                      <div className="absolute inset-4 border-2 border-dashed border-[#E0C97E]/60 rounded-full pointer-events-none flex items-end justify-center pb-2">
-                        <span className="bg-black/80 backdrop-blur-md text-[10px] text-[#FCF8B3] px-2.5 py-0.5 rounded-full font-medium border border-[#E0C97E]/30">
+                      <div className="absolute inset-4 border-2 border-dashed border-[#A3C6C4]/60 rounded-full pointer-events-none flex items-end justify-center pb-2">
+                        <span className="bg-black/80 backdrop-blur-md text-[10px] text-[#E0E7E9] px-2.5 py-0.5 rounded-full font-medium border border-[#A3C6C4]/30">
                           Align face in circle
                         </span>
                       </div>
@@ -907,7 +907,7 @@ export default function AttendeePortal({
                       <button
                         type="button"
                         onClick={capturePhoto}
-                        className="px-5 py-2.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-[#FB9378]/20 transition-all hover:scale-105 active:scale-95"
+                        className="px-5 py-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-[#6C7A89]/20 transition-all hover:scale-105 active:scale-95"
                       >
                         <Camera className="w-4 h-4 text-black" />
                         <span>Snap Picture</span>
@@ -915,7 +915,7 @@ export default function AttendeePortal({
                       <button
                         type="button"
                         onClick={stopCamera}
-                        className="px-4 py-2.5 bg-[#252523] hover:bg-white/10 text-white rounded-xl text-xs font-medium transition-colors border border-white/10"
+                        className="px-4 py-2.5 bg-[#243033] hover:bg-white/10 text-white rounded-xl text-xs font-medium transition-colors border border-white/10"
                       >
                         Cancel
                       </button>
@@ -951,7 +951,7 @@ export default function AttendeePortal({
                   required
                   checked={consentAccepted}
                   onChange={(e) => setConsentAccepted(e.target.checked)}
-                  className="mt-0.5 rounded accent-[#FB9378]"
+                  className="mt-0.5 rounded accent-[#6C7A89]"
                 />
                 <span className="text-[11px] text-white/50 leading-relaxed">
                   I agree to the processing of my registration details and photograph for attendee verification, on-site badge printing, and event communication in compliance with Ghana's Data Protection Act, 2012 (Act 843).
@@ -963,7 +963,7 @@ export default function AttendeePortal({
             <div className="pt-3 flex justify-end">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black rounded-2xl font-extrabold text-xs shadow-xl shadow-[#FB9378]/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
+                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] rounded-2xl font-extrabold text-xs shadow-xl shadow-[#6C7A89]/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:scale-95"
               >
                 <Sparkles className="w-4 h-4 text-black" />
                 <span>Complete Registration & Issue Ticket Pass</span>

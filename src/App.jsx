@@ -276,7 +276,7 @@ export default function App() {
   // Left-Sidebar layout on desktop, top-bar + drawer on mobile
   // =========================================================================
   return (
-    <div className="min-h-screen bg-[#141413] text-white flex flex-col lg:flex-row font-sans selection:bg-[#FB9378]/30">
+    <div className="min-h-screen bg-[#121819] text-white flex flex-col lg:flex-row font-sans selection:bg-[#6C7A89]/30">
       
       {/* Left-Sidebar Vertical Navigation */}
       <Sidebar
@@ -300,17 +300,17 @@ export default function App() {
       />
 
       {/* Main Content Area (Right Side on Desktop) */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen bg-[#141413]">
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen bg-[#121819]">
         
         {/* TOP HEADER BAR: Section Breadcrumb & SIGN-OUT IN TOP RIGHT CORNER */}
-        <header className="h-16 border-b border-white/10 px-4 sm:px-8 flex items-center justify-between bg-[#141413]/90 backdrop-blur-md sticky top-0 z-30">
+        <header className="h-16 border-b border-white/10 px-4 sm:px-8 flex items-center justify-between bg-[#121819]/90 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-white/40 hidden sm:inline">Workspace:</span>
-            <span className="text-xs font-heading font-bold text-white bg-[#1c1c1b] px-2.5 py-1 rounded-lg border border-white/10 truncate max-w-[130px] sm:max-w-none">
+            <span className="text-xs font-heading font-bold text-white bg-[#1a2325] px-2.5 py-1 rounded-lg border border-white/10 truncate max-w-[130px] sm:max-w-none">
               {activeTenant?.name || 'Default Workspace'}
             </span>
             <ChevronRight className="w-3.5 h-3.5 text-white/30 shrink-0" />
-            <span className="text-xs font-bold text-[#FCF8B3] truncate">
+            <span className="text-xs font-bold text-[#E0E7E9] truncate">
               {activeRole === 'organizer' && 'Organizer Console'}
               {activeRole === 'staff' && 'Check-in Staff Station'}
               {activeRole === 'attendee' && 'Attendee Portal'}
@@ -323,7 +323,7 @@ export default function App() {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#1c1c1b] hover:bg-rose-500/15 text-white/80 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 transition-all shadow-sm group active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#1a2325] hover:bg-rose-500/15 text-white/80 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 transition-all shadow-sm group active:scale-95 cursor-pointer"
               title="Sign Out of Workspace"
             >
               <LogOut className="w-3.5 h-3.5 text-white/50 group-hover:text-rose-400 transition-colors" />
@@ -431,7 +431,7 @@ export default function App() {
         </main>
 
         {/* Authenticated Dashboard Footer */}
-        <footer className="border-t border-white/10 bg-[#141413] py-6 text-xs text-white/40">
+        <footer className="border-t border-white/10 bg-[#121819] py-6 text-xs text-white/40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-white">EventPlan Multi-Tenant Cloud</span>
@@ -443,7 +443,7 @@ export default function App() {
             <div className="flex items-center gap-3 text-white/50">
               <button
                 onClick={() => setViewMode('landing')}
-                className="text-[#E0C97E] hover:text-[#FCF8B3] underline font-medium"
+                className="text-[#A3C6C4] hover:text-[#E0E7E9] underline font-medium"
               >
                 Public Commercial Website
               </button>

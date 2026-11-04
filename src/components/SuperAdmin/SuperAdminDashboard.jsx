@@ -67,9 +67,9 @@ export default function SuperAdminDashboard({
   // Pie Chart Data 1: Subscription Tier Distribution
   const tierDistributionData = plans.map(p => {
     const count = tenants.filter(t => t.planId === p.id).length;
-    let color = '#AB6088';
-    if (p.id === 'growth') color = '#FB9378';
-    if (p.id === 'enterprise') color = '#E0C97E';
+    let color = '#354649';
+    if (p.id === 'growth') color = '#6C7A89';
+    if (p.id === 'enterprise') color = '#A3C6C4';
     return {
       label: `${p.name} Tier`,
       value: count,
@@ -79,9 +79,9 @@ export default function SuperAdminDashboard({
 
   // Pie Chart Data 2: Platform-wide Attendee Status
   const attendeeStatusData = [
-    { label: 'Checked In', value: totalAttended, color: '#FB9378' },
-    { label: 'Pending / Awaiting', value: Math.max(0, totalRegistrations - totalAttended), color: '#E0C97E' },
-    { label: 'Rented Quota Left', value: Math.max(10, 2000 - totalRegistrations), color: '#AB6088' }
+    { label: 'Checked In', value: totalAttended, color: '#6C7A89' },
+    { label: 'Pending / Awaiting', value: Math.max(0, totalRegistrations - totalAttended), color: '#A3C6C4' },
+    { label: 'Rented Quota Left', value: Math.max(10, 2000 - totalRegistrations), color: '#354649' }
   ];
 
   // Bar Graph Data: Registrations across workspaces
@@ -110,17 +110,17 @@ export default function SuperAdminDashboard({
     <div className="space-y-6">
       
       {/* Top Banner / Operator Heading */}
-      <div className="relative rounded-3xl bg-[#1c1c1b] border border-white/10 p-6 sm:p-8 text-white overflow-hidden shadow-2xl">
+      <div className="relative rounded-3xl bg-[#1a2325] border border-white/10 p-6 sm:p-8 text-white overflow-hidden shadow-2xl">
         {/* Subtle iridescent gradient rim on top edge */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E]" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4]" />
         
         {/* Background glow orb */}
-        <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#AB6088]/10 via-[#FB9378]/10 to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#354649]/10 via-[#6C7A89]/10 to-transparent blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E0C97E]/15 border border-[#E0C97E]/30 text-[#FCF8B3] text-xs font-mono font-bold mb-3">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#FB9378]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#A3C6C4]/15 border border-[#A3C6C4]/30 text-[#E0E7E9] text-xs font-mono font-bold mb-3">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#6C7A89]" />
               <span>Platform Operator Fleet Plane (Super-Admin)</span>
             </div>
             <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white tracking-tight">
@@ -134,7 +134,7 @@ export default function SuperAdminDashboard({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold text-xs shadow-lg shadow-[#FB9378]/20 transition-all hover:opacity-95 active:scale-95"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold text-xs shadow-lg shadow-[#6C7A89]/20 transition-all hover:opacity-95 active:scale-95"
             >
               <Plus className="w-4 h-4 text-black" />
               <span>New Company Workspace</span>
@@ -147,10 +147,10 @@ export default function SuperAdminDashboard({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Rented Workspaces */}
-        <div className="bg-[#1c1c1b] border border-white/10 p-5 rounded-2xl hover:border-[#E0C97E]/40 transition-all shadow-lg group">
+        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#A3C6C4]/40 transition-all shadow-lg group">
           <div className="flex items-center justify-between text-white/50 mb-2">
             <span className="text-xs font-semibold">Rented Workspaces</span>
-            <div className="w-8 h-8 rounded-xl bg-[#E0C97E]/10 flex items-center justify-center text-[#E0C97E]">
+            <div className="w-8 h-8 rounded-xl bg-[#A3C6C4]/10 flex items-center justify-center text-[#A3C6C4]">
               <Building2 className="w-4 h-4" />
             </div>
           </div>
@@ -158,42 +158,42 @@ export default function SuperAdminDashboard({
             <span className="font-heading font-extrabold text-3xl sm:text-4xl text-white">{totalTenants}</span>
             <span className="text-xs text-emerald-400 font-mono font-bold">({activeTenants} active)</span>
           </div>
-          <div className="w-full bg-[#141413] h-1.5 rounded-full mt-3 overflow-hidden border border-white/5">
+          <div className="w-full bg-[#121819] h-1.5 rounded-full mt-3 overflow-hidden border border-white/5">
             <div 
-              className="bg-gradient-to-r from-[#AB6088] to-[#E0C97E] h-full rounded-full transition-all duration-500" 
+              className="bg-gradient-to-r from-[#354649] to-[#A3C6C4] h-full rounded-full transition-all duration-500" 
               style={{ width: `${(activeTenants / (totalTenants || 1)) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Platform Registrants */}
-        <div className="bg-[#1c1c1b] border border-white/10 p-5 rounded-2xl hover:border-[#FB9378]/40 transition-all shadow-lg group">
+        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#6C7A89]/40 transition-all shadow-lg group">
           <div className="flex items-center justify-between text-white/50 mb-2">
             <span className="text-xs font-semibold">Platform Registrants</span>
-            <div className="w-8 h-8 rounded-xl bg-[#FB9378]/10 flex items-center justify-center text-[#FB9378]">
+            <div className="w-8 h-8 rounded-xl bg-[#6C7A89]/10 flex items-center justify-center text-[#6C7A89]">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#FB9378]">{totalRegistrations}</span>
+            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#6C7A89]">{totalRegistrations}</span>
             <span className="text-xs text-white/40 font-medium">total fleet</span>
           </div>
           <p className="text-[11px] text-white/50 mt-2">
-            Capacity: <span className="text-[#FCF8B3] font-semibold">{totalRegistrations} / 5,000 allocated</span>
+            Capacity: <span className="text-[#E0E7E9] font-semibold">{totalRegistrations} / 5,000 allocated</span>
           </p>
         </div>
 
         {/* Verified Check-ins */}
-        <div className="bg-[#1c1c1b] border border-white/10 p-5 rounded-2xl hover:border-[#FCF8B3]/40 transition-all shadow-lg group">
+        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#E0E7E9]/40 transition-all shadow-lg group">
           <div className="flex items-center justify-between text-white/50 mb-2">
             <span className="text-xs font-semibold">Verified Check-ins</span>
-            <div className="w-8 h-8 rounded-xl bg-[#FCF8B3]/10 flex items-center justify-center text-[#FCF8B3]">
+            <div className="w-8 h-8 rounded-xl bg-[#E0E7E9]/10 flex items-center justify-center text-[#E0E7E9]">
               <CheckCircle className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-heading font-extrabold text-3xl sm:text-4xl text-white">{totalAttended}</span>
-            <span className="text-xs text-[#E0C97E] font-mono font-bold">
+            <span className="text-xs text-[#A3C6C4] font-mono font-bold">
               {totalRegistrations > 0 ? Math.round((totalAttended / totalRegistrations) * 100) : 0}% rate
             </span>
           </div>
@@ -203,16 +203,16 @@ export default function SuperAdminDashboard({
         </div>
 
         {/* Estimated MRR / Billing */}
-        <div className="bg-[#1c1c1b] border border-white/10 p-5 rounded-2xl hover:border-[#AB6088]/40 transition-all shadow-lg group">
+        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#354649]/40 transition-all shadow-lg group">
           <div className="flex items-center justify-between text-white/50 mb-2">
             <span className="text-xs font-semibold">Estimated Monthly MRR</span>
-            <div className="w-8 h-8 rounded-xl bg-[#AB6088]/10 flex items-center justify-center text-[#AB6088]">
+            <div className="w-8 h-8 rounded-xl bg-[#354649]/10 flex items-center justify-center text-[#354649]">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#FCF8B3]">${estimatedRevenue}</span>
-            <span className="text-xs text-[#AB6088] font-mono font-bold">USD/mo</span>
+            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#E0E7E9]">${estimatedRevenue}</span>
+            <span className="text-xs text-[#354649] font-mono font-bold">USD/mo</span>
           </div>
           <p className="text-[11px] text-white/50 mt-2">
             Tiered subscription revenue
@@ -227,11 +227,11 @@ export default function SuperAdminDashboard({
           onClick={() => setActiveTab('tenants')}
           className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
             activeTab === 'tenants'
-              ? 'border-[#FB9378] text-white'
+              ? 'border-[#6C7A89] text-white'
               : 'border-transparent text-white/40 hover:text-white'
           }`}
         >
-          <Building2 className={`w-4 h-4 ${activeTab === 'tenants' ? 'text-[#FB9378]' : 'text-white/40'}`} />
+          <Building2 className={`w-4 h-4 ${activeTab === 'tenants' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
           <span>Tenant Companies ({tenants.length})</span>
         </button>
 
@@ -239,11 +239,11 @@ export default function SuperAdminDashboard({
           onClick={() => setActiveTab('analytics')}
           className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
             activeTab === 'analytics'
-              ? 'border-[#FB9378] text-white'
+              ? 'border-[#6C7A89] text-white'
               : 'border-transparent text-white/40 hover:text-white'
           }`}
         >
-          <PieIcon className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-[#FB9378]' : 'text-white/40'}`} />
+          <PieIcon className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
           <span>Fleet Analytics & Graphs</span>
         </button>
 
@@ -251,11 +251,11 @@ export default function SuperAdminDashboard({
           onClick={() => setActiveTab('plans')}
           className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
             activeTab === 'plans'
-              ? 'border-[#FB9378] text-white'
+              ? 'border-[#6C7A89] text-white'
               : 'border-transparent text-white/40 hover:text-white'
           }`}
         >
-          <CreditCard className={`w-4 h-4 ${activeTab === 'plans' ? 'text-[#FB9378]' : 'text-white/40'}`} />
+          <CreditCard className={`w-4 h-4 ${activeTab === 'plans' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
           <span>Subscription Plans & Tiers</span>
         </button>
 
@@ -263,11 +263,11 @@ export default function SuperAdminDashboard({
           onClick={() => setActiveTab('audit')}
           className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
             activeTab === 'audit'
-              ? 'border-[#FB9378] text-white'
+              ? 'border-[#6C7A89] text-white'
               : 'border-transparent text-white/40 hover:text-white'
           }`}
         >
-          <Activity className={`w-4 h-4 ${activeTab === 'audit' ? 'text-[#FB9378]' : 'text-white/40'}`} />
+          <Activity className={`w-4 h-4 ${activeTab === 'audit' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
           <span>Security & Audit Trail</span>
         </button>
       </div>
@@ -283,7 +283,7 @@ export default function SuperAdminDashboard({
                 placeholder="Search company, slug, organizer..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#1c1c1b] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FB9378]"
+                className="w-full bg-[#1a2325] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
               />
             </div>
             <span className="text-xs text-white/40 font-mono self-end sm:self-auto">
@@ -301,8 +301,8 @@ export default function SuperAdminDashboard({
               return (
                 <div
                   key={t.id}
-                  className={`bg-[#1c1c1b] rounded-3xl p-6 flex flex-col justify-between transition-all border shadow-xl ${
-                    isCurrent ? 'ring-2 ring-[#FB9378] border-[#FB9378]/50' : 'border-white/10 hover:border-white/20'
+                  className={`bg-[#1a2325] rounded-3xl p-6 flex flex-col justify-between transition-all border shadow-xl ${
+                    isCurrent ? 'ring-2 ring-[#6C7A89] border-[#6C7A89]/50' : 'border-white/10 hover:border-white/20'
                   }`}
                 >
                   <div>
@@ -315,7 +315,7 @@ export default function SuperAdminDashboard({
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span 
                               className="w-2 h-2 rounded-full inline-block shrink-0" 
-                              style={{ backgroundColor: t.brandColor || '#AB6088' }} 
+                              style={{ backgroundColor: t.brandColor || '#354649' }} 
                               title={`Brand: ${t.brandColor}`}
                             />
                             <span className="text-xs font-mono text-white/40 truncate">/{t.slug}</span>
@@ -333,7 +333,7 @@ export default function SuperAdminDashboard({
                     </div>
 
                     {/* Organizer details */}
-                    <div className="bg-[#141413] rounded-2xl p-3.5 text-xs space-y-1.5 mb-4 border border-white/10">
+                    <div className="bg-[#121819] rounded-2xl p-3.5 text-xs space-y-1.5 mb-4 border border-white/10">
                       <div className="flex justify-between text-white/50">
                         <span>Event Organizer:</span>
                         <span className="font-semibold text-white/90">{t.organizer?.name || 'Admin'}</span>
@@ -344,7 +344,7 @@ export default function SuperAdminDashboard({
                       </div>
                       <div className="flex justify-between text-white/50 pt-1 border-t border-white/5">
                         <span>Plan Tier:</span>
-                        <span className="font-bold text-[#FCF8B3] capitalize">{plan.name} (${plan.price}/{plan.billingPeriod})</span>
+                        <span className="font-bold text-[#E0E7E9] capitalize">{plan.name} (${plan.price}/{plan.billingPeriod})</span>
                       </div>
                     </div>
 
@@ -354,14 +354,14 @@ export default function SuperAdminDashboard({
                         <span>Registrations & Check-ins:</span>
                         <span className="text-white font-semibold">{tenantAttended} / {tenantRegs.length} attended</span>
                       </div>
-                      <div className="w-full bg-[#141413] h-2 rounded-full overflow-hidden flex border border-white/5">
+                      <div className="w-full bg-[#121819] h-2 rounded-full overflow-hidden flex border border-white/5">
                         <div 
-                          className="bg-gradient-to-r from-[#AB6088] to-[#FB9378] h-full" 
+                          className="bg-gradient-to-r from-[#354649] to-[#6C7A89] h-full" 
                           style={{ width: `${tenantRegs.length > 0 ? (tenantAttended / tenantRegs.length) * 100 : 0}%` }}
                           title="Attended"
                         />
                         <div 
-                          className="bg-[#E0C97E] h-full opacity-60" 
+                          className="bg-[#A3C6C4] h-full opacity-60" 
                           style={{ width: `${tenantRegs.length > 0 ? ((tenantRegs.length - tenantAttended) / tenantRegs.length) * 100 : 0}%` }}
                           title="Pending"
                         />
@@ -373,7 +373,7 @@ export default function SuperAdminDashboard({
                   <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
                     <button
                       onClick={() => copyTenantLink(t.slug, t.id)}
-                      className="px-2.5 py-1.5 bg-[#252523] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors border border-white/15"
+                      className="px-2.5 py-1.5 bg-[#243033] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors border border-white/15"
                       title="Copy Private Event Link for Organizer"
                     >
                       {copiedId === t.id ? (
@@ -383,7 +383,7 @@ export default function SuperAdminDashboard({
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3.5 h-3.5 text-[#E0C97E]" />
+                          <Copy className="w-3.5 h-3.5 text-[#A3C6C4]" />
                           <span>Private Link</span>
                         </>
                       )}
@@ -406,8 +406,8 @@ export default function SuperAdminDashboard({
                         onClick={() => onSelectTenant(t)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
                           isCurrent 
-                            ? 'bg-[#FB9378]/20 text-[#FB9378] border border-[#FB9378]/40' 
-                            : 'bg-gradient-to-r from-[#AB6088] via-[#FB9378] to-[#E0C97E] text-black font-extrabold shadow-md shadow-[#FB9378]/20 hover:opacity-95'
+                            ? 'bg-[#6C7A89]/20 text-[#6C7A89] border border-[#6C7A89]/40' 
+                            : 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold shadow-md shadow-[#6C7A89]/20 hover:opacity-95'
                         }`}
                       >
                         <span>{isCurrent ? "Active" : "Switch"}</span>
@@ -431,16 +431,16 @@ export default function SuperAdminDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Pie Chart 1: Subscription Tier Distribution */}
-            <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                    <PieIcon className="w-4 h-4 text-[#FB9378]" />
+                    <PieIcon className="w-4 h-4 text-[#6C7A89]" />
                     <span>Tenant Subscription Tier Breakdown</span>
                   </h3>
                   <p className="text-xs text-white/50">Distribution across Starter, Growth, and Enterprise plans</p>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-[#FCF8B3] border border-white/15">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-[#E0E7E9] border border-white/15">
                   {tenants.length} Workspaces
                 </span>
               </div>
@@ -456,11 +456,11 @@ export default function SuperAdminDashboard({
             </div>
 
             {/* Pie Chart 2: Platform-wide Attendee Status Ratio */}
-            <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                    <PieIcon className="w-4 h-4 text-[#E0C97E]" />
+                    <PieIcon className="w-4 h-4 text-[#A3C6C4]" />
                     <span>Fleet Attendance & Utilization Ratio</span>
                   </h3>
                   <p className="text-xs text-white/50">Checked-in delegates vs pending check-ins vs remaining capacity</p>
@@ -486,10 +486,10 @@ export default function SuperAdminDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Bar Graph: Registrations by Company */}
-            <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
               <div>
                 <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-[#FB9378]" />
+                  <BarChart3 className="w-4 h-4 text-[#6C7A89]" />
                   <span>Registrations Velocity by Company</span>
                 </h3>
                 <p className="text-xs text-white/50">Comparative delegate counts registered across active companies</p>
@@ -499,11 +499,11 @@ export default function SuperAdminDashboard({
             </div>
 
             {/* Area Trend Graph: Platform Check-in Activity */}
-            <div className="bg-[#1c1c1b] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-[#E0C97E]" />
+                    <TrendingUp className="w-4 h-4 text-[#A3C6C4]" />
                     <span>Peak Check-In Arrival Distribution</span>
                   </h3>
                   <p className="text-xs text-white/50">Optical scanner throughput and arrival frequency curve</p>
@@ -537,12 +537,12 @@ export default function SuperAdminDashboard({
               return (
                 <div
                   key={p.id}
-                  className={`bg-[#1c1c1b] rounded-3xl p-6 relative flex flex-col justify-between border shadow-xl ${
-                    p.popular ? 'border-[#FB9378] ring-2 ring-[#FB9378]/30' : 'border-white/10'
+                  className={`bg-[#1a2325] rounded-3xl p-6 relative flex flex-col justify-between border shadow-xl ${
+                    p.popular ? 'border-[#6C7A89] ring-2 ring-[#6C7A89]/30' : 'border-white/10'
                   }`}
                 >
                   {p.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-gradient-to-r from-[#AB6088] to-[#FB9378] text-white text-[10px] font-extrabold uppercase tracking-wider rounded-full shadow-lg">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-gradient-to-r from-[#354649] to-[#6C7A89] text-white text-[10px] font-extrabold uppercase tracking-wider rounded-full shadow-lg">
                       Most Popular Tier
                     </div>
                   )}
@@ -550,7 +550,7 @@ export default function SuperAdminDashboard({
                   <div>
                     <div className="flex justify-between items-baseline mb-2">
                       <h3 className="font-heading font-bold text-lg text-white">{p.name}</h3>
-                      <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[#141413] text-[#FCF8B3] border border-white/10">
+                      <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[#121819] text-[#E0E7E9] border border-white/10">
                         {activeWithPlan} active
                       </span>
                     </div>
@@ -562,14 +562,14 @@ export default function SuperAdminDashboard({
 
                     <p className="text-xs text-white/60 mb-5 leading-relaxed">{p.description}</p>
 
-                    <div className="bg-[#141413] rounded-2xl p-3.5 text-xs space-y-2 mb-5 border border-white/10">
+                    <div className="bg-[#121819] rounded-2xl p-3.5 text-xs space-y-2 mb-5 border border-white/10">
                       <div className="flex justify-between text-white/50">
                         <span>Max Events:</span>
                         <span className="text-white font-semibold">{p.limits.events === 999 ? 'Unlimited' : p.limits.events}</span>
                       </div>
                       <div className="flex justify-between text-white/50">
                         <span>Max Attendees:</span>
-                        <span className="text-[#FCF8B3] font-semibold">{p.limits.attendees.toLocaleString()}</span>
+                        <span className="text-[#E0E7E9] font-semibold">{p.limits.attendees.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-white/50">
                         <span>S3 Cloud Storage:</span>
@@ -586,7 +586,7 @@ export default function SuperAdminDashboard({
                     <ul className="space-y-2.5 text-xs text-white/70">
                       {p.features.map((feat, idx) => (
                         <li key={idx} className="flex items-center gap-2">
-                          <CheckCircle className="w-3.5 h-3.5 text-[#E0C97E] shrink-0" />
+                          <CheckCircle className="w-3.5 h-3.5 text-[#A3C6C4] shrink-0" />
                           <span>{feat}</span>
                         </li>
                       ))}
@@ -596,7 +596,7 @@ export default function SuperAdminDashboard({
                   <div className="pt-6 mt-6 border-t border-white/10">
                     <button
                       onClick={() => setIsNewModalOpen(true)}
-                      className="w-full py-2.5 rounded-xl font-extrabold text-xs bg-[#252523] hover:bg-[#2e2e2b] text-white transition-colors border border-white/15"
+                      className="w-full py-2.5 rounded-xl font-extrabold text-xs bg-[#243033] hover:bg-[#2e2e2b] text-white transition-colors border border-white/15"
                     >
                       Provision Workspace on {p.name}
                     </button>
@@ -611,7 +611,7 @@ export default function SuperAdminDashboard({
 
       {/* TAB 4: AUDIT TRAIL */}
       {activeTab === 'audit' && (
-        <div className="bg-[#1c1c1b] rounded-3xl p-6 border border-white/10 space-y-4 shadow-xl">
+        <div className="bg-[#1a2325] rounded-3xl p-6 border border-white/10 space-y-4 shadow-xl">
           <div className="flex justify-between items-center">
             <div>
               <h3 className="font-heading font-extrabold text-white text-base flex items-center gap-2">
@@ -626,7 +626,7 @@ export default function SuperAdminDashboard({
 
           <div className="overflow-x-auto rounded-2xl border border-white/10">
             <table className="w-full text-left text-xs text-white/80">
-              <thead className="bg-[#141413] text-white/50 font-semibold uppercase text-[10px] tracking-wider border-b border-white/10">
+              <thead className="bg-[#121819] text-white/50 font-semibold uppercase text-[10px] tracking-wider border-b border-white/10">
                 <tr>
                   <th className="py-3 px-3">Timestamp</th>
                   <th className="py-3 px-3">User / Actor</th>
@@ -645,7 +645,7 @@ export default function SuperAdminDashboard({
                       {log.user}
                     </td>
                     <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-[#E0C97E]/15 text-[#FCF8B3] border border-[#E0C97E]/30">
+                      <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30">
                         {log.action}
                       </span>
                     </td>
