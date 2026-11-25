@@ -103,6 +103,9 @@ export default function App() {
   const [registrations, setRegistrations] = useState(() => Storage.getRegistrations());
   const [chatMessages, setChatMessages] = useState(() => Storage.getChatMessages());
   const [auditLogs, setAuditLogs] = useState(() => Storage.getAuditLogs());
+  const [reminders, setReminders] = useState(() => Storage.getReminders());
+  const [broadcasts, setBroadcasts] = useState(() => Storage.getBroadcasts());
+  const [feedbackList, setFeedbackList] = useState(() => Storage.getFeedback());
   const [plans] = useState(() => Storage.getPlans());
   const [offlineQueue, setOfflineQueue] = useState(() => Storage.getOfflineQueue());
   const [isOffline, setIsOffline] = useState(false);
@@ -136,6 +139,9 @@ export default function App() {
     setRegistrations(Storage.getRegistrations());
     setChatMessages(Storage.getChatMessages());
     setAuditLogs(Storage.getAuditLogs());
+    setReminders(Storage.getReminders());
+    setBroadcasts(Storage.getBroadcasts());
+    setFeedbackList(Storage.getFeedback());
     setOfflineQueue(Storage.getOfflineQueue());
   }, []);
 
@@ -272,8 +278,8 @@ export default function App() {
     alert(`Synced ${count} pending offline check-in record(s).`);
   };
 
-  const handleCompanyRegistered = (data) => {
-    const created = Storage.addTenant(data);
+  const handleCompanyRegistered = async (data) => {
+    const created = await Storage.addTenantAsync(data);
     refreshState();
     saveSession({
       role: 'organizer',
@@ -727,6 +733,9 @@ export default function App() {
                 event={activeEvent}
                 registrations={registrations}
                 auditLogs={auditLogs}
+                reminders={reminders}
+                broadcasts={broadcasts}
+                feedbackList={feedbackList}
                 onCheckInByCode={handleCheckInByCode}
                 onReprintBadge={handleReprintBadge}
                 onRefresh={refreshState}
@@ -794,22 +803,22 @@ export default function App() {
                 event={activeEvent}
                 registrations={registrations}
                 chatMessages={chatMessages}
-                onSendMessage={(data) => {
-                  const msg = Storage.sendChatMessage(data);
+                onSendMessage={async (data) => {
+                  const msg = await Storage.sendChatMessageAsync(data);
                   refreshState();
                   return msg;
                 }}
-                onDeleteMessage={(id) => {
-                  Storage.deleteChatMessage(id, authSession?.user || 'Organizer', activeTenant.id);
+                onDeleteMessage={async (id) => {
+                  await Storage.deleteChatMessageAsync(id, authSession?.user || 'Organizer', activeTenant.id);
                   refreshState();
                 }}
-                onTogglePinMessage={(id) => {
-                  Storage.togglePinMessage(id);
+                onTogglePinMessage={async (id) => {
+                  await Storage.togglePinMessageAsync(id);
                   refreshState();
                 }}
                 currentAttendeeId={currentAttendeeId}
-                onCheckInByCode={handleCheckInByCode}
                 activeRole={currentRole}
+                authUser={authSession?.user}
               />
             )}
 

@@ -22,6 +22,10 @@ import {
   ShieldCheck,
   Palette,
   ExternalLink,
+  Bell,
+  Clock,
+  Star,
+  ArrowUpCircle,
 } from 'lucide-react';
 import { exportAttendeesToCSV } from '../../utils/export';
 import { generateQrDataUrl } from '../../utils/qr';
@@ -38,6 +42,9 @@ export default function OrganizerDashboard({
   event,
   registrations = [],
   auditLogs = [],
+  reminders = [],
+  broadcasts = [],
+  feedbackList = [],
   onCheckInByCode,
   onReprintBadge,
   onRefresh,
@@ -53,7 +60,12 @@ export default function OrganizerDashboard({
   const [broadcastTarget, setBroadcastTarget] = useState('ALL');
   const [broadcastSubject, setBroadcastSubject] = useState('');
   const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastPinToChat, setBroadcastPinToChat] = useState(true);
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
   const [broadcastSentNotice, setBroadcastSentNotice] = useState(null);
+  const [editingReminderId, setEditingReminderId] = useState(null);
+  const [reminderDraft, setReminderDraft] = useState({ subject: '', message: '' });
+  const [reminderBusyId, setReminderBusyId] = useState(null);
 
   const [exportNotice, setExportNotice] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -67,10 +79,17 @@ export default function OrganizerDashboard({
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
   const eventRegistrations = registrations.filter((r) => r.eventId === event?.id);
   const tenantAuditLogs = auditLogs.filter((l) => l.tenantId === tenant?.id);
+  const eventReminders = reminders.filter((r) => r.eventId === event?.id);
+  const eventBroadcasts = broadcasts.filter((b) => b.eventId === event?.id);
+  const eventFeedback = feedbackList.filter((f) => f.eventId === event?.id);
+  const avgRating = eventFeedback.length > 0
+    ? (eventFeedback.reduce((sum, f) => sum + Number(f.rating || 0), 0) / eventFeedback.length).toFixed(1)
+    : null;
 
   const totalRegistered = eventRegistrations.length;
+  const waitlistedCount = eventRegistrations.filter((r) => r.status === 'waitlisted').length;
   const attendedCount = eventRegistrations.filter((r) => r.status === 'attended').length;
-  const noShowCount = Math.max(0, totalRegistered - attendedCount);
+  const noShowCount = Math.max(0, totalRegistered - attendedCount - waitlistedCount);
   const attendanceRate = totalRegistered > 0 ? Math.round((attendedCount / totalRegistered) * 100) : 0;
 
   const dedicatedSiteLink = `${window.location.origin}/#/${tenant?.slug}`;
@@ -143,23 +162,78 @@ export default function OrganizerDashboard({
     setTimeout(() => setExportNotice(null), 4000);
   };
 
-  const handleSendBroadcast = (e) => {
+  const handleSendBroadcast = async (e) => {
     e.preventDefault();
-    if (!broadcastSubject.trim() || !broadcastMessage.trim()) return;
-    const count = broadcastTarget === 'ATTENDED' ? attendedCount : broadcastTarget === 'NOSHOW' ? noShowCount : totalRegistered;
-    Storage.addAuditLog({
-      tenantId: tenant?.id,
-      user: tenant?.organizer?.name || 'Organizer',
-      role: 'organizer',
-      action: 'BROADCAST_SENT',
-      severity: 'info',
-      target: `Sent "${broadcastSubject.trim()}" to ${count} recipient(s) (${broadcastTarget})`,
-    });
-    onRefresh?.();
-    setBroadcastSentNotice(`Broadcast "${broadcastSubject}" queued for ${count} delegate(s).`);
-    setBroadcastSubject('');
-    setBroadcastMessage('');
-    setTimeout(() => setBroadcastSentNotice(null), 5000);
+    if (!broadcastSubject.trim() || !broadcastMessage.trim() || broadcastBusy) return;
+    setBroadcastBusy(true);
+    try {
+      const record = await Storage.sendBroadcastAsync({
+        tenantId: tenant?.id,
+        eventId: event?.id,
+        target: broadcastTarget,
+        subject: broadcastSubject.trim(),
+        message: broadcastMessage.trim(),
+        channels: ['in_app', 'email', 'sms'],
+        senderName: tenant?.organizer?.name || 'Organizer',
+        pinToChat: broadcastPinToChat,
+      });
+      onRefresh?.();
+      setBroadcastSentNotice(`Broadcast "${record.subject}" dispatched to ${record.recipientCount} delegate(s) and pinned to live Event Chat.`);
+      setBroadcastSubject('');
+      setBroadcastMessage('');
+      setTimeout(() => setBroadcastSentNotice(null), 6000);
+    } catch (err) {
+      setBroadcastSentNotice(err.message || 'Failed to send broadcast.');
+    } finally {
+      setBroadcastBusy(false);
+    }
+  };
+
+  const handleToggleReminder = async (rem) => {
+    setReminderBusyId(rem.id);
+    try {
+      await Storage.updateReminderAsync(rem.id, { enabled: !rem.enabled });
+      onRefresh?.();
+    } finally {
+      setReminderBusyId(null);
+    }
+  };
+
+  const handleSaveReminderEdit = async (remId) => {
+    setReminderBusyId(remId);
+    try {
+      await Storage.updateReminderAsync(remId, {
+        subject: reminderDraft.subject,
+        message: reminderDraft.message,
+      });
+      setEditingReminderId(null);
+      onRefresh?.();
+    } finally {
+      setReminderBusyId(null);
+    }
+  };
+
+  const handleSendReminderNow = async (rem) => {
+    setReminderBusyId(rem.id);
+    try {
+      const res = await Storage.sendReminderNowAsync(rem.id, tenant?.organizer?.name || 'Organizer');
+      onRefresh?.();
+      setBroadcastSentNotice(`Reminder "${rem.label}" sent now to ${res.broadcast?.recipientCount || 0} delegate(s) and pinned in Event Chat.`);
+      setTimeout(() => setBroadcastSentNotice(null), 6000);
+    } catch (err) {
+      setBroadcastSentNotice(err.message || 'Failed to dispatch reminder.');
+    } finally {
+      setReminderBusyId(null);
+    }
+  };
+
+  const handlePromoteWaitlist = async (att) => {
+    try {
+      await Storage.promoteWaitlistedAsync(att.id, tenant?.organizer?.name || 'Organizer');
+      onRefresh?.();
+    } catch (err) {
+      alert(err.message || 'Failed to promote delegate');
+    }
   };
 
   return (
@@ -361,7 +435,13 @@ export default function OrganizerDashboard({
                     <tr key={att.id}>
                       <td>
                         <div className="flex items-center gap-2.5 min-w-[180px]">
-                          <img src={att.photoUrl} alt={att.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border" style={{ borderColor: 'var(--border-color)' }} />
+                          {att.photoUrl ? (
+                            <img src={att.photoUrl} alt={att.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border" style={{ borderColor: 'var(--border-color)' }} />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg shrink-0 border flex items-center justify-center font-bold text-xs" style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)', borderColor: 'var(--border-color)' }}>
+                              {(att.name || 'DE').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <div className="font-bold text-xs sm:text-sm truncate">{att.name}</div>
                             <div className="text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>{att.email}</div>
@@ -379,13 +459,28 @@ export default function OrganizerDashboard({
                       <td>
                         {att.status === 'attended' ? (
                           <span className="fp-tag-olive text-[11px]">Attended</span>
+                        ) : att.status === 'waitlisted' ? (
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(217,119,6,0.15)', color: 'var(--fp-amber)' }}>
+                            Waitlist #{att.waitlistPosition || '?'}
+                          </span>
                         ) : (
                           <span className="fp-tag-sage text-[11px]">Registered</span>
                         )}
                       </td>
                       <td className="text-right whitespace-nowrap">
                         <div className="inline-flex items-center gap-1.5">
-                          {att.status !== 'attended' && (
+                          {att.status === 'waitlisted' && (
+                            <button
+                              type="button"
+                              onClick={() => handlePromoteWaitlist(att)}
+                              className="btn-fp-outline px-2.5 py-1 text-[11px] inline-flex items-center gap-1"
+                              title="Promote from Waitlist"
+                            >
+                              <ArrowUpCircle className="w-3.5 h-3.5" />
+                              <span>Promote</span>
+                            </button>
+                          )}
+                          {att.status !== 'attended' && att.status !== 'waitlisted' && (
                             <button
                               type="button"
                               onClick={() => onCheckInByCode(att.ticketCode, tenant?.organizer?.name || 'Organizer', false, 'day-1', 'Day 1', { eventId: event?.id, tenantId: tenant?.id })}
@@ -433,41 +528,205 @@ export default function OrganizerDashboard({
         />
       )}
 
-      {/* TAB 4: BROADCAST */}
+      {/* TAB 4: AUTOMATED REMINDERS & BULK BROADCAST */}
       {activeTab === 'communication' && (
-        <div className="fp-card p-5 sm:p-6 max-w-2xl space-y-4">
-          <div>
-            <h3 className="text-base sm:text-lg font-bold m-0">Broadcast Announcement to Delegates</h3>
-            <p className="text-xs sm:text-sm mt-1 m-0" style={{ color: 'var(--text-muted)' }}>
-              Send schedule alerts, reminders, or post-event survey links to filtered registrants.
-            </p>
-          </div>
+        <div className="space-y-6">
           {broadcastSentNotice && (
-            <div className="p-3 rounded-lg border text-xs font-semibold" style={{ background: 'var(--fp-sage)', borderColor: 'var(--fp-olive)', color: 'var(--fp-sage-text)' }}>
+            <div className="p-3.5 rounded-xl border text-xs sm:text-sm font-semibold" style={{ background: 'var(--fp-sage)', borderColor: 'var(--fp-olive)', color: 'var(--fp-sage-text)' }}>
               {broadcastSentNotice}
             </div>
           )}
-          <form onSubmit={handleSendBroadcast} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold mb-1.5">Audience Segment</label>
-              <select value={broadcastTarget} onChange={(e) => setBroadcastTarget(e.target.value)} className="fp-input w-full px-3 py-2.5 text-sm">
-                <option value="ALL">All Registrants ({totalRegistered})</option>
-                <option value="ATTENDED">Checked-In Attendees Only ({attendedCount})</option>
-                <option value="NOSHOW">Pending / Not Checked In ({noShowCount})</option>
-              </select>
+
+          {/* Automated Event Reminders (7 Days Before, 1 Day Before, Event Day) */}
+          <div className="fp-card p-5 sm:p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-base sm:text-lg font-extrabold m-0 flex items-center gap-2">
+                  <Bell className="w-5 h-5" style={{ color: 'var(--fp-olive)' }} />
+                  <span>Automated Event Reminders (Server Scheduled)</span>
+                </h3>
+                <p className="text-xs sm:text-sm mt-1 m-0" style={{ color: 'var(--text-muted)' }}>
+                  Automatically sends bulk reminders 1 week before, 1 day before, and on the morning of {event?.title}. Runs continuously on the server and pins announcements into Event Chat.
+                </p>
+              </div>
+              <span className="fp-tag-sage text-[11px]">Auto-Scheduler Active</span>
             </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1.5">Subject *</label>
-              <input required value={broadcastSubject} onChange={(e) => setBroadcastSubject(e.target.value)} placeholder="e.g. Opening Keynote Starts at 9:30 AM" className="fp-input w-full px-3.5 py-2.5 text-sm" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {eventReminders.map((rem) => {
+                const isEditing = editingReminderId === rem.id;
+                const triggerDate = event?.startsAt
+                  ? new Date(new Date(event.startsAt).getTime() - rem.offsetDays * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  : 'Scheduled';
+                return (
+                  <div key={rem.id} className="p-4 rounded-xl border flex flex-col justify-between gap-3" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="fp-tag-olive text-[11px] inline-flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {rem.label}
+                        </span>
+                        <label className="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(rem.enabled)}
+                            disabled={reminderBusyId === rem.id}
+                            onChange={() => handleToggleReminder(rem)}
+                            className="accent-[#5A6552]"
+                          />
+                          <span>{rem.enabled ? 'On' : 'Off'}</span>
+                        </label>
+                      </div>
+
+                      <div className="text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                        Trigger: {triggerDate} · {rem.sentAt ? `Sent (${rem.lastRecipientsCount} delegates)` : 'Pending'}
+                      </div>
+
+                      {isEditing ? (
+                        <div className="space-y-2 pt-1">
+                          <input
+                            value={reminderDraft.subject}
+                            onChange={(e) => setReminderDraft((d) => ({ ...d, subject: e.target.value }))}
+                            className="fp-input w-full px-2.5 py-1.5 text-xs font-bold"
+                          />
+                          <textarea
+                            rows={3}
+                            value={reminderDraft.message}
+                            onChange={(e) => setReminderDraft((d) => ({ ...d, message: e.target.value }))}
+                            className="fp-input w-full px-2.5 py-1.5 text-xs"
+                          />
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => handleSaveReminderEdit(rem.id)} className="btn-fp-olive px-3 py-1.5 text-xs">Save</button>
+                            <button type="button" onClick={() => setEditingReminderId(null)} className="btn-fp-outline px-3 py-1.5 text-xs">Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="font-bold text-xs sm:text-sm leading-snug">{rem.subject}</div>
+                          <p className="text-xs m-0 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{rem.message}</p>
+                        </>
+                      )}
+                    </div>
+
+                    {!isEditing && (
+                      <div className="flex items-center gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingReminderId(rem.id);
+                            setReminderDraft({ subject: rem.subject, message: rem.message });
+                          }}
+                          className="btn-fp-outline flex-1 py-1.5 text-xs"
+                        >
+                          Edit Text
+                        </button>
+                        <button
+                          type="button"
+                          disabled={reminderBusyId === rem.id}
+                          onClick={() => handleSendReminderNow(rem)}
+                          className="btn-fp-olive flex-1 py-1.5 text-xs inline-flex items-center justify-center gap-1"
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>{reminderBusyId === rem.id ? 'Sending...' : 'Send Now'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1.5">Message *</label>
-              <textarea required rows={4} value={broadcastMessage} onChange={(e) => setBroadcastMessage(e.target.value)} placeholder="Write announcement..." className="fp-input w-full px-3.5 py-2.5 text-sm" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Manual Bulk Broadcast */}
+            <div className="lg:col-span-7 fp-card p-5 sm:p-6 space-y-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold m-0">Send Instant Bulk Broadcast</h3>
+                <p className="text-xs sm:text-sm mt-1 m-0" style={{ color: 'var(--text-muted)' }}>
+                  Dispatch custom announcements, room changes, or post-event survey links to filtered registrants.
+                </p>
+              </div>
+              <form onSubmit={handleSendBroadcast} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">Audience Segment</label>
+                  <select value={broadcastTarget} onChange={(e) => setBroadcastTarget(e.target.value)} className="fp-input w-full px-3 py-2.5 text-sm">
+                    <option value="ALL">All Registrants ({totalRegistered})</option>
+                    <option value="ATTENDED">Checked-In Attendees Only ({attendedCount})</option>
+                    <option value="NOSHOW">Pending / Not Checked In ({noShowCount})</option>
+                    {waitlistedCount > 0 && <option value="WAITLIST">Waitlisted Delegates ({waitlistedCount})</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">Subject *</label>
+                  <input required value={broadcastSubject} onChange={(e) => setBroadcastSubject(e.target.value)} placeholder="e.g. Opening Keynote Starts at 9:30 AM" className="fp-input w-full px-3.5 py-2.5 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">Message *</label>
+                  <textarea required rows={4} value={broadcastMessage} onChange={(e) => setBroadcastMessage(e.target.value)} placeholder="Write announcement..." className="fp-input w-full px-3.5 py-2.5 text-sm" />
+                </div>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={broadcastPinToChat} onChange={(e) => setBroadcastPinToChat(e.target.checked)} className="accent-[#5A6552]" />
+                  <span>Also pin announcement inside live Event Chat</span>
+                </label>
+                <button type="submit" disabled={broadcastBusy} className="btn-fp-olive px-5 py-2.5 text-sm inline-flex items-center gap-2">
+                  <Send className="w-4 h-4" /> {broadcastBusy ? 'Sending...' : 'Send Bulk Broadcast'}
+                </button>
+              </form>
             </div>
-            <button type="submit" className="btn-fp-olive px-5 py-2.5 text-sm inline-flex items-center gap-2">
-              <Send className="w-4 h-4" /> Send Broadcast
-            </button>
-          </form>
+
+            {/* Delivery Log & Feedback Summary */}
+            <div className="lg:col-span-5 space-y-5">
+              <div className="fp-card p-5 space-y-3">
+                <h3 className="text-sm sm:text-base font-bold m-0">Bulk Delivery History ({eventBroadcasts.length})</h3>
+                {eventBroadcasts.length === 0 ? (
+                  <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
+                    No broadcasts or reminders dispatched yet. Click &quot;Send Now&quot; on any reminder or send a custom broadcast.
+                  </p>
+                ) : (
+                  <div className="space-y-2.5 max-h-72 overflow-y-auto">
+                    {eventBroadcasts.map((b) => (
+                      <div key={b.id} className="p-3 rounded-xl border text-xs space-y-1" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold truncate">{b.subject}</span>
+                          <span className="fp-tag-sage text-[10px] shrink-0">{b.recipientCount} sent</span>
+                        </div>
+                        <p className="m-0 text-[11px]" style={{ color: 'var(--text-muted)' }}>{b.message}</p>
+                        <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
+                          {new Date(b.sentAt).toLocaleString()} · {b.target}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="fp-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm sm:text-base font-bold m-0 flex items-center gap-1.5">
+                    <Star className="w-4 h-4" style={{ color: 'var(--fp-amber)' }} />
+                    <span>Post-Event Feedback</span>
+                  </h3>
+                  {avgRating && <span className="fp-tag-olive text-xs">{avgRating} / 5.0 ({eventFeedback.length})</span>}
+                </div>
+                {eventFeedback.length === 0 ? (
+                  <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
+                    Checked-in attendees can submit star ratings and comments from their Ticket Portal.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto">
+                    {eventFeedback.map((fb) => (
+                      <div key={fb.id} className="p-3 rounded-xl border text-xs space-y-1" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+                        <div className="flex items-center justify-between">
+                          <strong className="truncate">{fb.attendeeName}</strong>
+                          <span className="font-bold" style={{ color: 'var(--fp-amber)' }}>{'★'.repeat(fb.rating)}{'☆'.repeat(5 - fb.rating)}</span>
+                        </div>
+                        {fb.comment && <p className="m-0 text-[11px]" style={{ color: 'var(--text-muted)' }}>{fb.comment}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

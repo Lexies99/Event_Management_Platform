@@ -22,7 +22,11 @@ import {
   AlertCircle,
   FileText,
   Globe,
+  Download,
+  Share2,
+  Star,
 } from 'lucide-react';
+import { Storage } from '../../data/storage';
 import { generateQrDataUrl } from '../../utils/qr';
 import confetti from 'canvas-confetti';
 import BadgeModal from '../Common/BadgeModal';
@@ -77,12 +81,54 @@ export default function AttendeePortal({
   const [activeTicketQr, setActiveTicketQr] = useState(null);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
+  const [surveyRating, setSurveyRating] = useState(5);
+  const [surveyComment, setSurveyComment] = useState('');
+  const [surveySaved, setSurveySaved] = useState(false);
+  const [surveyBusy, setSurveyBusy] = useState(false);
 
   const eventRegistrations = registrations.filter((r) => r.eventId === event?.id);
+  const confirmedSeatsCount = eventRegistrations.filter((r) => r.status !== 'waitlisted').length;
+  const seatCapacity = Number(event?.capacity || 500);
+  const isAtCapacity = confirmedSeatsCount >= seatCapacity;
   const currentAttendee =
     eventRegistrations.find((r) => r.id === currentAttendeeId) ||
     (justRegisteredAttendee && justRegisteredAttendee.eventId === event?.id ? justRegisteredAttendee : null) ||
     (isAuthenticated && isOrganizerOrAdmin ? eventRegistrations[0] : null);
+
+  const handleDownloadTicketPng = () => {
+    if (!activeTicketQr || !currentAttendee) return;
+    const a = document.createElement('a');
+    a.href = activeTicketQr;
+    a.download = `${currentAttendee.ticketCode}-QR-Pass.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!currentAttendee) return;
+    const msg = `My Event Pass for ${event?.title || tenant?.name}\nName: ${currentAttendee.name}\nTicket Code: ${currentAttendee.ticketCode}\nPortal: ${window.location.origin}/#/${tenant?.slug}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSubmitFeedback = async (e) => {
+    e.preventDefault();
+    if (!currentAttendee || surveyBusy) return;
+    setSurveyBusy(true);
+    try {
+      await Storage.submitFeedbackAsync({
+        tenantId: tenant.id,
+        eventId: event.id,
+        attendeeId: currentAttendee.id,
+        attendeeName: currentAttendee.name,
+        rating: surveyRating,
+        comment: surveyComment,
+      });
+      setSurveySaved(true);
+    } finally {
+      setSurveyBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (currentAttendee?.ticketCode) {
@@ -409,54 +455,133 @@ export default function AttendeePortal({
             </div>
           </div>
 
-          {/* Responsive Attendee Actions */}
-          <div className="max-w-md mx-auto grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <button
-              type="button"
-              onClick={() => setIsBadgeModalOpen(true)}
-              className="btn-fp-olive py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5"
-            >
-              <Printer className="w-4 h-4" />
-              <span>3.1&quot; Lanyard Tag</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => printElementCleanly('printable-ticket-card', `${currentAttendee.name} - Ticket`)}
-              className="btn-fp-outline py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print Ticket</span>
-            </button>
-            {currentAttendee.status === 'attended' ? (
+          {/* Responsive Attendee Actions + Save/WhatsApp Pass */}
+          <div className="max-w-md mx-auto space-y-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               <button
                 type="button"
-                onClick={onNavigateToChat}
+                onClick={() => setIsBadgeModalOpen(true)}
+                className="btn-fp-olive py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5"
+              >
+                <Printer className="w-4 h-4" />
+                <span>3.1&quot; Tag</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadTicketPng}
                 className="btn-fp-sage py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5"
               >
-                <span>Event Chat</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4" />
+                <span>Save QR</span>
               </button>
-            ) : (
-              <div className="py-2.5 px-3 rounded-lg border text-center text-[11px] font-medium" style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
-                Chat unlocks on check-in
-              </div>
-            )}
+              <button
+                type="button"
+                onClick={handleShareWhatsApp}
+                className="btn-fp-outline py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5 col-span-2 sm:col-span-1"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>WhatsApp</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => printElementCleanly('printable-ticket-card', `${currentAttendee.name} - Ticket`)}
+                className="btn-fp-outline py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print Full Ticket</span>
+              </button>
+              {currentAttendee.status === 'attended' ? (
+                <button
+                  type="button"
+                  onClick={onNavigateToChat}
+                  className="btn-fp-olive py-2.5 px-3 text-xs inline-flex items-center justify-center gap-1.5"
+                >
+                  <span>Open Event Chat</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <div className="py-2.5 px-3 rounded-lg border text-center text-[11px] font-medium" style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
+                  {currentAttendee.status === 'waitlisted'
+                    ? `Waitlist #${currentAttendee.waitlistPosition || 1} — Pending Seat`
+                    : 'Event Chat unlocks on check-in'}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Post-Event Feedback Survey (for Checked-In Delegates) */}
+          {currentAttendee.status === 'attended' && (
+            <div className="fp-card max-w-md mx-auto p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold m-0 flex items-center gap-1.5">
+                  <Star className="w-4 h-4" style={{ color: 'var(--fp-amber)' }} />
+                  <span>Rate Your Event Experience</span>
+                </h3>
+                {surveySaved && <span className="fp-tag-sage text-[10px]">Thank you!</span>}
+              </div>
+              {surveySaved ? (
+                <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>
+                  Your {surveyRating}/5 rating has been shared with the {tenant?.shortName || tenant?.name} organizers.
+                </p>
+              ) : (
+                <form onSubmit={handleSubmitFeedback} className="space-y-3">
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setSurveyRating(star)}
+                        className="p-1.5 rounded-lg border text-base leading-none cursor-pointer"
+                        style={{
+                          borderColor: star <= surveyRating ? 'var(--fp-amber)' : 'var(--border-color)',
+                          background: star <= surveyRating ? 'rgba(217,119,6,0.12)' : 'var(--bg-main)',
+                          color: star <= surveyRating ? 'var(--fp-amber)' : 'var(--text-muted)',
+                        }}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <span className="text-xs font-bold ml-1">{surveyRating} / 5</span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={surveyComment}
+                    onChange={(e) => setSurveyComment(e.target.value)}
+                    placeholder="Share quick feedback on sessions, check-in, or venue (optional)..."
+                    className="fp-input w-full px-3 py-2 text-xs"
+                  />
+                  <button type="submit" disabled={surveyBusy} className="btn-fp-olive w-full py-2 text-xs">
+                    {surveyBusy ? 'Submitting...' : 'Submit Event Rating'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* VIEW 2: PUBLIC REGISTRATION FORM */}
       {activeView === 'register' && (
         <div className="fp-card p-5 sm:p-8 space-y-6">
-          <div className="flex items-center gap-3.5 pb-5 border-b" style={{ borderColor: 'var(--border-color)' }}>
-            <TenantLogo tenant={tenant} size={52} className="rounded-xl" />
-            <div className="min-w-0">
-              <span className="fp-tag-sage mb-1">Official Event Registration</span>
-              <h2 className="text-lg sm:text-2xl font-extrabold m-0 leading-tight">{event?.title}</h2>
-              <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                Hosted by {tenant?.name} · {event?.venue}
-              </p>
+          <div className="flex items-center justify-between flex-wrap gap-3 pb-5 border-b" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="flex items-center gap-3.5 min-w-0">
+              <TenantLogo tenant={tenant} size={52} className="rounded-xl" />
+              <div className="min-w-0">
+                <span className="fp-tag-sage mb-1">
+                  {isAtCapacity ? 'Event Full — Waitlist Open' : 'Official Event Registration'}
+                </span>
+                <h2 className="text-lg sm:text-2xl font-extrabold m-0 leading-tight">{event?.title}</h2>
+                <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  Hosted by {tenant?.name} · {event?.venue}
+                </p>
+              </div>
             </div>
+            <span className="text-xs font-mono font-bold px-3 py-1 rounded-full border" style={{ borderColor: 'var(--border-color)', color: isAtCapacity ? 'var(--fp-amber)' : 'var(--fp-olive)' }}>
+              {isAtCapacity ? `Waitlist Active (${confirmedSeatsCount}/${seatCapacity})` : `${seatCapacity - confirmedSeatsCount} seats left`}
+            </span>
           </div>
 
           {/* Shareable Link Strip */}

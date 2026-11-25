@@ -23,6 +23,9 @@ const STORAGE_KEYS = {
   CURRENT_ATTENDEE_ID: 'emp_current_attendee_id_v1',
   STAFF_MEMBERS: 'emp_staff_members_v1',
   THEME: 'emp_theme_mode_v1',
+  REMINDERS: 'emp_reminders_v1',
+  BROADCASTS: 'emp_broadcasts_v1',
+  FEEDBACK: 'emp_feedback_v1',
 };
 
 const CURRENT_SCHEMA_VERSION = '2.0';
@@ -948,6 +951,238 @@ export const Storage = {
     if (Array.isArray(state.chat)) safeSet(STORAGE_KEYS.CHAT, state.chat);
     if (Array.isArray(state.auditLogs)) safeSet(STORAGE_KEYS.AUDIT, state.auditLogs);
     if (Array.isArray(state.staffMembers)) safeSet(STORAGE_KEYS.STAFF_MEMBERS, state.staffMembers);
+    if (Array.isArray(state.reminders)) safeSet(STORAGE_KEYS.REMINDERS, state.reminders);
+    if (Array.isArray(state.broadcasts)) safeSet(STORAGE_KEYS.BROADCASTS, state.broadcasts);
+    if (Array.isArray(state.feedback)) safeSet(STORAGE_KEYS.FEEDBACK, state.feedback);
+  },
+
+  getReminders(eventId) {
+    const all = safeGet(STORAGE_KEYS.REMINDERS, []);
+    return eventId ? all.filter((r) => r.eventId === eventId) : all;
+  },
+
+  getBroadcasts(eventId) {
+    const all = safeGet(STORAGE_KEYS.BROADCASTS, []);
+    return eventId ? all.filter((b) => b.eventId === eventId) : all;
+  },
+
+  getFeedback(eventId) {
+    const all = safeGet(STORAGE_KEYS.FEEDBACK, []);
+    return eventId ? all.filter((f) => f.eventId === eventId) : all;
+  },
+
+  async verifyOrganizerLoginAsync(tenantId, email, password) {
+    try {
+      const res = await fetch('/api/auth/organizer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId, email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.state) this.applyServerState(data.state);
+      if (res.ok && data.ok) return { ok: true, organizer: data.organizer };
+      return { ok: false, error: data.error || 'Invalid organizer credentials.' };
+    } catch {
+      // Offline / local dev fallback
+      const tenant = this.getTenants().find((t) => t.id === tenantId);
+      if (tenant && String(tenant.organizer?.email || '').toLowerCase() === String(email || '').trim().toLowerCase() && password === 'organizer123') {
+        return { ok: true, organizer: tenant.organizer };
+      }
+      return { ok: false, error: 'Unable to reach auth server. Check your email and password.' };
+    }
+  },
+
+  async sendChatMessageAsync(msgData) {
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msgData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return data.message;
+      }
+    } catch {
+      // fallback local
+    }
+    return this.sendChatMessage(msgData);
+  },
+
+  async deleteChatMessageAsync(msgId, actorName, tenantId) {
+    try {
+      const res = await fetch(`/api/chat/${encodeURIComponent(msgId)}`, { method: 'DELETE' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return true;
+      }
+    } catch {
+      // fallback local
+    }
+    return this.deleteChatMessage(msgId, actorName, tenantId);
+  },
+
+  async togglePinMessageAsync(msgId) {
+    try {
+      const res = await fetch(`/api/chat/${encodeURIComponent(msgId)}/pin`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return true;
+      }
+    } catch {
+      // fallback local
+    }
+    return this.togglePinMessage(msgId);
+  },
+
+  async updateReminderAsync(remId, patch) {
+    const res = await fetch(`/api/reminders/${encodeURIComponent(remId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to update reminder');
+    if (data.state) this.applyServerState(data.state);
+    return data.reminder;
+  },
+
+  async sendReminderNowAsync(remId, senderName) {
+    const res = await fetch(`/api/reminders/${encodeURIComponent(remId)}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderName }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to send reminder');
+    if (data.state) this.applyServerState(data.state);
+    return data;
+  },
+
+  async sendBroadcastAsync(payload) {
+    const res = await fetch('/api/broadcasts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to send broadcast');
+    if (data.state) this.applyServerState(data.state);
+    return data.broadcast;
+  },
+
+  async submitFeedbackAsync(payload) {
+    const res = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to submit feedback');
+    if (data.state) this.applyServerState(data.state);
+    return data.feedback;
+  },
+
+  async promoteWaitlistedAsync(regId, actorName) {
+    const res = await fetch(`/api/registrations/${encodeURIComponent(regId)}/promote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actorName }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to promote delegate');
+    if (data.state) this.applyServerState(data.state);
+    return data.registration;
+  },
+
+  async addTenantAsync(tenantData) {
+    try {
+      const res = await fetch('/api/tenants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tenantData),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) throw new Error(data.error || 'Slug already taken');
+      if (res.ok && data.tenant) {
+        if (data.state) this.applyServerState(data.state);
+        return data.tenant;
+      }
+    } catch (err) {
+      if (err?.message?.includes('already taken')) throw err;
+    }
+    return this.addTenant(tenantData);
+  },
+
+  async updateTenantAsync(tenantId, patch) {
+    try {
+      const res = await fetch(`/api/tenants/${encodeURIComponent(tenantId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return data.tenant;
+      }
+    } catch {
+      // fallback
+    }
+    return this.updateTenant(tenantId, patch);
+  },
+
+  async updateEventAsync(eventId, patch) {
+    try {
+      const res = await fetch(`/api/events/${encodeURIComponent(eventId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return data.event;
+      }
+    } catch {
+      // fallback
+    }
+    return this.updateEvent(eventId, patch);
+  },
+
+  async addStaffMemberAsync(staffData, actorName = 'Organizer') {
+    try {
+      const res = await fetch('/api/staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(staffData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return data.staff;
+      }
+    } catch {
+      // fallback
+    }
+    return this.addStaffMember(staffData, actorName);
+  },
+
+  async removeStaffMemberAsync(staffId, actorName = 'Organizer') {
+    try {
+      const res = await fetch(`/api/staff/${encodeURIComponent(staffId)}`, { method: 'DELETE' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) this.applyServerState(data.state);
+        return true;
+      }
+    } catch {
+      // fallback
+    }
+    return this.removeStaffMember(staffId, actorName);
   },
 
   async syncFromServer() {

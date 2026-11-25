@@ -49,7 +49,7 @@ export default function EventLoginPage({
   const sampleAttendees = Storage.getRegistrations(event?.id).slice(0, 3);
   const tenantStaff = Storage.getStaffMembers(tenant?.id);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -115,25 +115,26 @@ export default function EventLoginPage({
       return;
     }
 
-    // Organizer login
+    // Real Organizer Password Verification via Server API
     if (!orgEmail.trim()) {
       setError('Please enter your organizer work email.');
       return;
     }
-    Storage.addAuditLog({
-      tenantId: tenant.id,
-      user: tenant?.organizer?.name || orgEmail.trim(),
-      role: 'organizer',
-      action: 'ORGANIZER_LOGIN',
-      severity: 'info',
-      target: `Signed into Organizer Console (/${tenant.slug})`,
-    });
+    if (!orgPassword.trim()) {
+      setError('Please enter your organizer workspace password.');
+      return;
+    }
+    const authRes = await Storage.verifyOrganizerLoginAsync(tenant.id, orgEmail.trim(), orgPassword);
+    if (!authRes.ok) {
+      setError(authRes.error || 'Invalid organizer email or password.');
+      return;
+    }
     onLoginSuccess({
       role: 'organizer',
       tenantId: tenant.id,
       tenantSlug: tenant.slug,
-      user: tenant?.organizer?.name || orgEmail.trim(),
-      email: orgEmail.trim(),
+      user: authRes.organizer?.name || tenant?.organizer?.name || orgEmail.trim(),
+      email: authRes.organizer?.email || orgEmail.trim(),
     });
   };
 
@@ -379,7 +380,7 @@ export default function EventLoginPage({
                       type={showPassword ? 'text' : 'password'}
                       value={orgPassword}
                       onChange={(e) => setOrgPassword(e.target.value)}
-                      placeholder="Any password for demo access"
+                      placeholder="Enter workspace password (default: organizer123)"
                       className="fp-input w-full h-11 pl-3.5 pr-10 text-sm"
                     />
                     <button

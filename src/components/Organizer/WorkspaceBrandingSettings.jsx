@@ -50,11 +50,11 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
     reader.readAsDataURL(file);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!tenant?.id) return;
 
-    Storage.updateTenant(
+    await Storage.updateTenantAsync(
       tenant.id,
       {
         name: name.trim() || tenant.name,
@@ -65,25 +65,24 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
         accentColor: accentColor.toUpperCase(),
         neutralColor: neutralColor.toUpperCase(),
         logoUrl,
-      },
-      tenant?.organizer?.name || 'Organizer'
+        updatedBy: tenant?.organizer?.name || 'Organizer',
+      }
     );
 
     if (event?.id) {
-      Storage.updateEvent(
+      await Storage.updateEventAsync(
         event.id,
         {
           title: eventTitle.trim() || event.title,
           tagline: eventTagline.trim(),
           venue: eventVenue.trim() || event.venue,
           capacity: Number(capacity) || 500,
-        },
-        tenant?.organizer?.name || 'Organizer'
+        }
       );
     }
 
     onUpdated?.();
-    setNotice('Dedicated event website branding & settings saved!');
+    setNotice('Dedicated event website branding & settings saved across all devices!');
     setTimeout(() => setNotice(''), 4000);
   };
 

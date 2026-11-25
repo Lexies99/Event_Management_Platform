@@ -47,6 +47,7 @@ export default function OnboardOrganizationPage({
 
   const [organizerName, setOrganizerName] = useState('');
   const [organizerEmail, setOrganizerEmail] = useState('');
+  const [organizerPassword, setOrganizerPassword] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [planId, setPlanId] = useState('growth');
 
@@ -109,7 +110,7 @@ export default function OnboardOrganizationPage({
     setLogoPreview('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -135,7 +136,7 @@ export default function OnboardOrganizationPage({
     }
 
     try {
-      const tenant = onCompanyRegistered({
+      const tenant = await onCompanyRegistered({
         name: name.trim(),
         shortName: shortName.trim() || name.trim().slice(0, 24),
         slug: slug.trim().toLowerCase(),
@@ -147,6 +148,7 @@ export default function OnboardOrganizationPage({
         planId,
         organizerName: organizerName.trim(),
         organizerEmail: organizerEmail.trim(),
+        organizerPassword: organizerPassword.trim() || 'organizer123',
         contactPhone: contactPhone.trim(),
         eventTitle: eventTitle.trim() || `${name.trim()} Annual Summit 2026`,
         eventTagline: eventTagline.trim(),
@@ -422,6 +424,19 @@ export default function OnboardOrganizationPage({
                     className="fp-input w-full px-3.5 py-2.5 text-sm"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1.5">Organizer Console Password *</label>
+                <input
+                  required
+                  type="password"
+                  minLength={6}
+                  value={organizerPassword}
+                  onChange={(e) => setOrganizerPassword(e.target.value)}
+                  placeholder="Choose a secure password (min 6 characters)"
+                  className="fp-input w-full px-3.5 py-2.5 text-sm"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
