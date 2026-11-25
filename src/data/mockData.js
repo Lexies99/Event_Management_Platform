@@ -87,7 +87,7 @@ export const INITIAL_TENANTS = [
     neutralColor: "#FAFBF8",
     defaultTheme: "light",
     logoUrl: "",
-    heroImage: "/images/hero-summit.jpg",
+    heroImage: "/images/hero-keynote.jpg",
     website: "https://acmetech.africa",
     address: "Accra International Conference Centre, Ghana",
     planId: "growth",

@@ -106,7 +106,7 @@ export const Storage = {
           accentColor: t.accentColor || seed?.accentColor || '#3B7A57',
           neutralColor: t.neutralColor || seed?.neutralColor || '#FAFBF8',
           defaultTheme: t.defaultTheme || 'light',
-          heroImage: t.heroImage || seed?.heroImage || '/images/hero-summit.jpg',
+          heroImage: (t.heroImage && t.heroImage !== '/images/hero-summit.jpg' ? t.heroImage : null) || seed?.heroImage || '/images/hero-keynote.jpg',
           logoUrl,
         };
       });
@@ -305,7 +305,7 @@ export const Storage = {
       neutralColor: tenantData.neutralColor || "#FAFBF8",
       defaultTheme: tenantData.defaultTheme || "light",
       logoUrl: tenantData.logoUrl || "",
-      heroImage: tenantData.heroImage || "/images/hero-summit.jpg",
+      heroImage: tenantData.heroImage || "/images/hero-keynote.jpg",
       website: tenantData.website || "",
       address: tenantData.eventVenue || tenantData.address || "Accra International Conference Centre",
       planId: tenantData.planId || "growth",
