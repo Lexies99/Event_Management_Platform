@@ -485,7 +485,8 @@ export default function App() {
     authSession && (authSession.role === 'super-admin' || authSession.tenantSlug === activeTenant.slug)
   );
   const currentRole = isAuthedForTenant ? authSession.role : 'guest';
-  const isOrganizer = currentRole === 'organizer' || currentRole === 'super-admin';
+  const isSuperAdmin = currentRole === 'super-admin';
+  const isOrganizer = currentRole === 'organizer' || isSuperAdmin;
   const isStaff = currentRole === 'staff' || isOrganizer;
   const isAttendeeUser = currentRole === 'attendee';
 
