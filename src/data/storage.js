@@ -26,11 +26,20 @@ const STORAGE_KEYS = {
 };
 
 const CURRENT_SCHEMA_VERSION = '2.0';
+const memoryStore = {};
 
 function safeGet(key, defaultVal) {
+  if (Object.prototype.hasOwnProperty.call(memoryStore, key)) {
+    return memoryStore[key];
+  }
   try {
     const val = localStorage.getItem(key);
-    return val ? JSON.parse(val) : defaultVal;
+    if (val) {
+      const parsed = JSON.parse(val);
+      memoryStore[key] = parsed;
+      return parsed;
+    }
+    return defaultVal;
   } catch (e) {
     console.error('Storage read error', e);
     return defaultVal;
@@ -38,11 +47,16 @@ function safeGet(key, defaultVal) {
 }
 
 function safeSet(key, val) {
+  memoryStore[key] = val;
   try {
     localStorage.setItem(key, JSON.stringify(val));
-    window.dispatchEvent(new Event('emp_storage_updated'));
   } catch (e) {
-    console.error('Storage write error', e);
+    console.warn('Storage write fell back to memory (quota or private mode):', e);
+  }
+  try {
+    window.dispatchEvent(new Event('emp_storage_updated'));
+  } catch {
+    // Ignore in non-browser test environments
   }
 }
 
@@ -181,7 +195,11 @@ export const Storage = {
       safeSet(STORAGE_KEYS.STAFF_MEMBERS, [...fixedStaff, ...missingStaff]);
     }
 
-    localStorage.setItem(STORAGE_KEYS.SCHEMA_VERSION, CURRENT_SCHEMA_VERSION);
+    try {
+      localStorage.setItem(STORAGE_KEYS.SCHEMA_VERSION, CURRENT_SCHEMA_VERSION);
+    } catch {
+      // Ignore quota / private-mode storage restrictions
+    }
   },
 
   // Theme getter/setter
@@ -930,7 +948,11 @@ export const Storage = {
     safeSet(STORAGE_KEYS.AUDIT, INITIAL_AUDIT_LOGS);
     safeSet(STORAGE_KEYS.STAFF_MEMBERS, INITIAL_STAFF_MEMBERS);
     safeSet(STORAGE_KEYS.OFFLINE_QUEUE, []);
-    localStorage.setItem(STORAGE_KEYS.SCHEMA_VERSION, CURRENT_SCHEMA_VERSION);
+    try {
+      localStorage.setItem(STORAGE_KEYS.SCHEMA_VERSION, CURRENT_SCHEMA_VERSION);
+    } catch {
+      // Ignore quota / private-mode storage restrictions
+    }
     window.location.reload();
   }
 };

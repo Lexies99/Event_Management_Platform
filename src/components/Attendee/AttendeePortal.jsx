@@ -45,11 +45,13 @@ export default function AttendeePortal({
 }) {
   const effectiveDefaultView = isAuthenticated ? defaultView : 'register';
   const [activeView, setActiveView] = useState(effectiveDefaultView);
+  const [justRegisteredAttendee, setJustRegisteredAttendee] = useState(null);
   const [copiedRegLink, setCopiedRegLink] = useState(false);
 
   useEffect(() => {
+    if (justRegisteredAttendee) return;
     setActiveView(isAuthenticated ? defaultView : 'register');
-  }, [defaultView, isAuthenticated]);
+  }, [defaultView, isAuthenticated, justRegisteredAttendee]);
 
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
 
@@ -77,9 +79,10 @@ export default function AttendeePortal({
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
 
   const eventRegistrations = registrations.filter((r) => r.eventId === event?.id);
-  const currentAttendee = isAuthenticated
-    ? eventRegistrations.find((r) => r.id === currentAttendeeId) || (isOrganizerOrAdmin ? eventRegistrations[0] : null)
-    : null;
+  const currentAttendee =
+    eventRegistrations.find((r) => r.id === currentAttendeeId) ||
+    (justRegisteredAttendee && justRegisteredAttendee.eventId === event?.id ? justRegisteredAttendee : null) ||
+    (isAuthenticated && isOrganizerOrAdmin ? eventRegistrations[0] : null);
 
   useEffect(() => {
     if (currentAttendee?.ticketCode) {
@@ -128,8 +131,10 @@ export default function AttendeePortal({
       });
 
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      setJustRegisteredAttendee(newReg);
       setCurrentAttendeeId(newReg.id);
       setActiveView('ticket');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setFormError(err.message || 'Failed to complete registration.');
     }
@@ -138,13 +143,35 @@ export default function AttendeePortal({
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be smaller than 5MB.');
+    if (file.size > 15 * 1024 * 1024) {
+      setFormError('Image must be smaller than 15MB.');
       return;
     }
     stopCamera();
     const reader = new FileReader();
-    reader.onload = (ev) => setPhotoUrl(String(ev.target.result || ''));
+    reader.onload = (ev) => {
+      const rawDataUrl = String(ev.target.result || '');
+      // Compress/resize mobile camera photos to max 360x360 JPEG so iOS/Android localStorage never overflows
+      const img = new Image();
+      img.onload = () => {
+        const maxSide = 360;
+        const scale = Math.min(1, maxSide / Math.max(img.width || 1, img.height || 1));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          setPhotoUrl(canvas.toDataURL('image/jpeg', 0.78));
+        } catch {
+          setPhotoUrl(rawDataUrl);
+        }
+      };
+      img.onerror = () => setPhotoUrl(rawDataUrl);
+      img.src = rawDataUrl;
+    };
     reader.readAsDataURL(file);
   };
 

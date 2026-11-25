@@ -512,7 +512,7 @@ export default function App() {
       : 'Public Visitor';
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ background: 'var(--bg-main)', color: 'var(--text-main)' }}>
       {/* ─── SINGLE UNIFIED FULL-WIDTH TOP HEADER (64px, Zero Double Headers on Mobile!) ─── */}
       <header
         className="sticky top-0 z-[60] h-16 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 border-b"
