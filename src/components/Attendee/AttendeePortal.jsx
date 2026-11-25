@@ -123,7 +123,7 @@ export default function AttendeePortal({
         category,
         passType,
         selectedDays,
-        photoUrl: photoUrl || LOCAL_AVATARS[0],
+        photoUrl: photoUrl || '',
         consentAccepted: true,
       });
 

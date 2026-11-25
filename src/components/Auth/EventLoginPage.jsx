@@ -173,12 +173,12 @@ export default function EventLoginPage({
           </div>
           <button
             type="button"
-            onClick={onBackToDirectory}
+            onClick={onContinuePublic}
             className="inline-flex items-center gap-1 text-xs font-semibold opacity-80 hover:opacity-100 shrink-0"
             style={{ background: 'none', border: 'none', color: 'inherit' }}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>All Events</span>
+            <span>Event Page</span>
           </button>
         </div>
 
@@ -195,7 +195,7 @@ export default function EventLoginPage({
               <img src={tenant.logoUrl} alt={brandShort} className="w-full h-full object-contain p-4" />
             ) : (
               <img
-                src={tenant?.heroImage || '/images/hero-summit.jpg'}
+                src={tenant?.heroImage && tenant.heroImage !== '/images/hero-summit.jpg' ? tenant.heroImage : '/images/hero-keynote.jpg'}
                 alt={brandFull}
                 className="w-full h-full object-cover"
               />

@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   Calendar,
+  Check,
   CheckCircle2,
+  Copy,
+  Download,
   LogIn,
   MapPin,
   QrCode,
@@ -11,12 +14,13 @@ import {
   Users,
 } from 'lucide-react';
 import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
+import { generateQrDataUrl } from '../../utils/qr';
 import TenantLogo from '../Common/TenantLogo';
 
 /**
  * Dedicated Event Website Home / Overview Screen (inside /#/:slug)
  * Gives every registered organization a crisp branded public portal
- * where delegates can learn about the event, register, or sign in.
+ * with a live scannable Registration QR Code right on their event website.
  */
 export default function EventOverviewPanel({
   tenant,
@@ -28,6 +32,40 @@ export default function EventOverviewPanel({
   isAuthenticated,
 }) {
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
+  const registrationUrl = `${window.location.origin}/#/${tenant?.slug}/register`;
+  const [regQrUrl, setRegQrUrl] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!tenant?.slug) return;
+    generateQrDataUrl(registrationUrl, {
+      width: 240,
+      margin: 1,
+      darkColor: '#1a1d1a',
+      lightColor: '#ffffff',
+    }).then((url) => setRegQrUrl(url));
+  }, [registrationUrl, tenant?.slug]);
+
+  const heroSrc =
+    tenant?.heroImage && tenant.heroImage !== '/images/hero-summit.jpg'
+      ? tenant.heroImage
+      : '/images/hero-keynote.jpg';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(registrationUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadQr = () => {
+    if (!regQrUrl) return;
+    const a = document.createElement('a');
+    a.href = regQrUrl;
+    a.download = `${tenant?.slug || 'event'}-register-qr.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   return (
     <div className="space-y-6">
@@ -92,7 +130,7 @@ export default function EventOverviewPanel({
 
           <div className="lg:col-span-5 min-h-[220px] lg:min-h-full relative border-t lg:border-t-0 lg:border-l" style={{ borderColor: 'var(--border-color)' }}>
             <img
-              src={tenant?.heroImage || '/images/hero-summit.jpg'}
+              src={heroSrc}
               alt={event?.title}
               className="w-full h-full object-cover"
             />
@@ -114,7 +152,7 @@ export default function EventOverviewPanel({
           <div>
             <div className="text-xs font-bold uppercase" style={{ color: 'var(--text-muted)' }}>Dates</div>
             <div className="text-sm font-bold mt-0.5">
-              {new Date(event?.startsAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — {eventDays.length} Days
+              {new Date(event?.startsAt || '2026-11-20T09:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — {eventDays.length} Days
             </div>
           </div>
         </div>
@@ -125,6 +163,48 @@ export default function EventOverviewPanel({
             <div className="text-sm font-bold mt-0.5">
               {registrationsCount} registered · {event?.capacity || 500} max seats
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scan to Register QR Code Section (Directly on Event Website) */}
+      <div className="fp-card p-5 sm:p-6 flex flex-col md:flex-row items-center gap-6">
+        <div className="p-3 bg-white rounded-2xl border-2 border-dashed shrink-0 text-center" style={{ borderColor: 'var(--border-color)' }}>
+          {regQrUrl ? (
+            <img src={regQrUrl} alt={`Scan to register for ${event?.title}`} className="w-36 h-36 sm:w-40 sm:h-40 mx-auto" />
+          ) : (
+            <div className="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center">
+              <QrCode className="w-10 h-10 opacity-30" />
+            </div>
+          )}
+          <div className="text-[10px] font-mono font-bold text-slate-700 mt-1.5">SCAN TO REGISTER</div>
+        </div>
+
+        <div className="flex-1 min-w-0 space-y-2.5 text-center md:text-left">
+          <span className="fp-tag-sage text-[11px]">Instant Mobile Registration</span>
+          <h2 className="text-lg sm:text-xl font-extrabold m-0">
+            Scan QR Code to Register on Your Phone
+          </h2>
+          <p className="text-xs sm:text-sm m-0 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Point any smartphone camera at this QR code to open the {tenant?.shortName || tenant?.name} registration form, receive your instant QR ticket code, and print your 3.1-inch lanyard tag at check-in.
+          </p>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="btn-fp-outline px-3.5 py-2 text-xs inline-flex items-center gap-1.5"
+            >
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Registration Link Copied' : 'Copy Registration Link'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadQr}
+              className="btn-fp-sage px-3.5 py-2 text-xs inline-flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download QR PNG</span>
+            </button>
           </div>
         </div>
       </div>

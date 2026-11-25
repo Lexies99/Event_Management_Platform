@@ -667,14 +667,16 @@ export default function App() {
             </div>
 
             <div className="flex flex-col gap-1.5 pt-2 border-t text-xs" style={{ borderColor: 'var(--border-color)' }}>
-              <button
-                type="button"
-                onClick={() => navigateHash('/')}
-                className="text-left font-semibold hover:underline"
-                style={{ color: 'var(--fp-olive)', background: 'none', border: 'none', padding: 0 }}
-              >
-                ← All Event Websites Directory
-              </button>
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={() => navigateHash('/platform')}
+                  className="text-left font-semibold hover:underline"
+                  style={{ color: 'var(--fp-olive)', background: 'none', border: 'none', padding: 0 }}
+                >
+                  ← Platform Admin Directory
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setIsTermsOpen(true)}
@@ -751,6 +753,9 @@ export default function App() {
                       attendeeId: reg.id,
                     });
                   }
+                  if (route.sub === 'register') {
+                    navigateHash(`/${activeTenant.slug}`);
+                  }
                   setActiveTab('ticket');
                   return reg;
                 }}
@@ -824,14 +829,16 @@ export default function App() {
                 >
                   Terms &amp; Conditions
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigateHash('/')}
-                  className="hover:underline"
-                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none' }}
-                >
-                  All Events
-                </button>
+                {isSuperAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => navigateHash('/platform')}
+                    className="hover:underline"
+                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none' }}
+                  >
+                    Platform Admin
+                  </button>
+                )}
               </div>
             </div>
           </footer>

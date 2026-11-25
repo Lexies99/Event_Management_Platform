@@ -560,12 +560,21 @@ export default function CheckInStation({
 
               {lastScanResult.attendee && (
                 <div className="pt-3 border-t flex items-center gap-3" style={{ borderColor: 'var(--border-color)' }}>
-                  <img
-                    src={lastScanResult.attendee.photoUrl}
-                    alt={lastScanResult.attendee.name}
-                    className="w-11 h-11 rounded-xl object-cover border shrink-0"
-                    style={{ borderColor: 'var(--border-color)' }}
-                  />
+                  {lastScanResult.attendee.photoUrl ? (
+                    <img
+                      src={lastScanResult.attendee.photoUrl}
+                      alt={lastScanResult.attendee.name}
+                      className="w-11 h-11 rounded-xl object-cover border shrink-0"
+                      style={{ borderColor: 'var(--border-color)' }}
+                    />
+                  ) : (
+                    <div
+                      className="w-11 h-11 rounded-xl border shrink-0 flex items-center justify-center font-bold text-xs"
+                      style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)', borderColor: 'var(--border-color)' }}
+                    >
+                      {(lastScanResult.attendee.name || 'DE').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                    </div>
+                  )}
                   <div className="text-xs min-w-0">
                     <div className="font-bold truncate">{lastScanResult.attendee.name}</div>
                     <div className="truncate" style={{ color: 'var(--text-muted)' }}>
@@ -619,7 +628,16 @@ export default function CheckInStation({
                         style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <img src={att.photoUrl} alt={att.name} className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                          {att.photoUrl ? (
+                            <img src={att.photoUrl} alt={att.name} className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                          ) : (
+                            <div
+                              className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center font-bold text-[11px]"
+                              style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)' }}
+                            >
+                              {(att.name || 'DE').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <div className="text-xs font-bold truncate">{att.name}</div>
                             <div className="text-[11px] truncate font-mono" style={{ color: 'var(--text-muted)' }}>

@@ -91,12 +91,18 @@ export const Storage = {
 
     if (!localStorage.getItem(STORAGE_KEYS.TENANTS)) {
       safeSet(STORAGE_KEYS.TENANTS, INITIAL_TENANTS);
-    } else if (prevVersion !== CURRENT_SCHEMA_VERSION) {
-      // Migrate existing tenants to include FinPlanner branding palette & remove old external Unsplash stock
+    } else {
+      // Always heal stale hero-summit.jpg paths & migrate older schemas
       const existing = safeGet(STORAGE_KEYS.TENANTS, INITIAL_TENANTS);
+      let changed = prevVersion !== CURRENT_SCHEMA_VERSION;
       const migrated = existing.map((t) => {
         const seed = INITIAL_TENANTS.find((s) => s.id === t.id || s.slug === t.slug);
         const logoUrl = t.logoUrl && t.logoUrl.includes('unsplash.com') ? '' : (t.logoUrl || '');
+        const resolvedHero =
+          (t.heroImage && t.heroImage !== '/images/hero-summit.jpg' ? t.heroImage : null) ||
+          seed?.heroImage ||
+          '/images/hero-keynote.jpg';
+        if (resolvedHero !== t.heroImage || logoUrl !== (t.logoUrl || '')) changed = true;
         return {
           ...seed,
           ...t,
@@ -106,11 +112,11 @@ export const Storage = {
           accentColor: t.accentColor || seed?.accentColor || '#3B7A57',
           neutralColor: t.neutralColor || seed?.neutralColor || '#FAFBF8',
           defaultTheme: t.defaultTheme || 'light',
-          heroImage: (t.heroImage && t.heroImage !== '/images/hero-summit.jpg' ? t.heroImage : null) || seed?.heroImage || '/images/hero-keynote.jpg',
+          heroImage: resolvedHero,
           logoUrl,
         };
       });
-      safeSet(STORAGE_KEYS.TENANTS, migrated);
+      if (changed) safeSet(STORAGE_KEYS.TENANTS, migrated);
     }
 
     if (!localStorage.getItem(STORAGE_KEYS.EVENTS)) {
@@ -130,7 +136,7 @@ export const Storage = {
       const current = safeGet(STORAGE_KEYS.REGISTRATIONS, []);
       const migrated = current.map((r, idx) => {
         const seed = INITIAL_REGISTRATIONS.find((s) => s.id === r.id);
-        const hasOldPhoto = !r.photoUrl || r.photoUrl.includes('unsplash.com');
+        const hasOldPhoto = Boolean(r.photoUrl && r.photoUrl.includes('unsplash.com'));
         return {
           ...r,
           selectedDays: r.selectedDays && r.selectedDays.length > 0
@@ -470,7 +476,7 @@ export const Storage = {
       dailyAttendance: regData.dailyAttendance || {},
       status: "registered",
       ticketCode,
-      photoUrl: regData.photoUrl || LOCAL_AVATARS[0],
+      photoUrl: regData.photoUrl || '',
       registeredAt: new Date().toISOString(),
       checkedInAt: null,
       checkedInBy: null,

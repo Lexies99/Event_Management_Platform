@@ -422,11 +422,20 @@ export default function BadgeModal({
 
                 <div className="text-center px-3 py-2.5 my-auto">
                   <div className="relative inline-block mb-2">
-                    <img
-                      src={attendee.photoUrl}
-                      alt={customName}
-                      className="w-24 h-24 rounded-2xl object-cover border-4 border-slate-100 shadow-sm mx-auto"
-                    />
+                    {attendee.photoUrl ? (
+                      <img
+                        src={attendee.photoUrl}
+                        alt={customName}
+                        className="w-24 h-24 rounded-2xl object-cover border-4 border-slate-100 shadow-sm mx-auto"
+                      />
+                    ) : (
+                      <div
+                        className="w-24 h-24 rounded-2xl border-4 border-slate-100 shadow-sm mx-auto flex items-center justify-center font-black text-2xl"
+                        style={{ background: '#DCE7D0', color: '#3F4B3B' }}
+                      >
+                        {(customName || 'DE').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                      </div>
+                    )}
                     <span className="absolute -bottom-1.5 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-emerald-600 text-white flex items-center gap-0.5">
                       <CheckCircle2 className="w-2.5 h-2.5" /> VERIFIED
                     </span>
