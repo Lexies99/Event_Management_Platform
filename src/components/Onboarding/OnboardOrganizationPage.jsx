@@ -44,6 +44,7 @@ export default function OnboardOrganizationPage({
   const [eventVenue, setEventVenue] = useState('Accra International Conference Centre');
   const [eventDate, setEventDate] = useState('2026-11-20');
   const [capacity, setCapacity] = useState(350);
+  const [eventTerms, setEventTerms] = useState('');
 
   const [organizerName, setOrganizerName] = useState('');
   const [organizerEmail, setOrganizerEmail] = useState('');
@@ -155,6 +156,7 @@ export default function OnboardOrganizationPage({
         eventVenue: eventVenue.trim(),
         eventDate,
         capacity: Number(capacity) || 350,
+        eventTerms: eventTerms.trim(),
         termsAccepted: true,
       });
       setCreatedTenant(tenant);
@@ -426,18 +428,31 @@ export default function OnboardOrganizationPage({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Organizer Console Password *</label>
-                <input
-                  required
-                  type="password"
-                  minLength={6}
-                  value={organizerPassword}
-                  onChange={(e) => setOrganizerPassword(e.target.value)}
-                  placeholder="Choose a secure password (min 6 characters)"
-                  className="fp-input w-full px-3.5 py-2.5 text-sm"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">Organizer Console Password *</label>
+                  <input
+                    required
+                    type="password"
+                    minLength={6}
+                    value={organizerPassword}
+                    onChange={(e) => setOrganizerPassword(e.target.value)}
+                    placeholder="Choose a secure password (min 6 characters)"
+                    className="fp-input w-full px-3.5 py-2.5 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5">
+                    Your Event&apos;s Terms &amp; Conditions <span className="font-normal" style={{ color: 'var(--text-muted)' }}>(Optional — shown to your attendees)</span>
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={eventTerms}
+                    onChange={(e) => setEventTerms(e.target.value)}
+                    placeholder="Enter your event rules, refund policy, dress code, or photo consent. You can also edit this anytime in Branding & Settings."
+                    className="fp-input w-full px-3.5 py-2.5 text-sm"
+                  />
+                </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 {plans.map((p) => (

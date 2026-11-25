@@ -494,6 +494,8 @@ export default function App() {
           isOpen={isTermsOpen}
           onClose={() => setIsTermsOpen(false)}
           tenantName={activeTenant.name}
+          eventTitle={activeEvent?.title}
+          customTerms={activeEvent?.eventTerms}
         />
       </>
     );
@@ -875,6 +877,8 @@ export default function App() {
         isOpen={isTermsOpen}
         onClose={() => setIsTermsOpen(false)}
         tenantName={activeTenant.name}
+        eventTitle={activeEvent?.title}
+        customTerms={activeEvent?.eventTerms}
       />
     </div>
   );

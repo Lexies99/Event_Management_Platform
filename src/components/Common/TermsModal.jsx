@@ -3,10 +3,31 @@ import { X, ShieldCheck, FileText, CheckCircle2, Lock, Camera, Users, Scale } fr
 
 export const TERMS_VERSION = "v1.0 — Effective 2026";
 
-export default function TermsModal({ isOpen, onClose, onAccept, tenantName }) {
+export function buildDefaultEventTerms(orgName = 'the Event Organizer', eventTitle = 'this event') {
+  return `1. Registration & Admission
+All delegates registering for ${eventTitle} hosted by ${orgName} must provide accurate contact information. Admission is granted upon presentation of your valid QR ticket code or printed lanyard badge at the venue check-in desk.
+
+2. Cancellations & Transfers
+Tickets are personal to the registered delegate. Any substitution, transfer, or cancellation request must be submitted to ${orgName} at least 48 hours before the event start date.
+
+3. Code of Conduct
+All attendees, speakers, sponsors, and staff are expected to maintain respectful, professional conduct throughout ${eventTitle}, including in the live Event Community Chat. ${orgName} reserves the right to remove disruptive participants.
+
+4. Photography, Media & Data Protection (Ghana Act 843)
+By attending ${eventTitle}, you consent to event photography/video recording for official ${orgName} communications and to the processing of your registration details strictly for event admission, badge printing, and certificates in compliance with the Data Protection Act, 2012 (Act 843).
+
+5. Schedule & Venue Changes
+${orgName} reserves the right to update session timings, speakers, or venue rooms when necessary, with timely notice sent via Event Announcements and Reminders.`;
+}
+
+export default function TermsModal({ isOpen, onClose, onAccept, tenantName, eventTitle, customTerms }) {
   if (!isOpen) return null;
 
-  const scopeLabel = tenantName ? `${tenantName} & EventPlan Cloud` : "EventPlan Cloud (ManaMa Technologies)";
+  const isEventContext = Boolean(tenantName);
+  const trimmedCustom = String(customTerms || '').trim();
+  const scopeLabel = isEventContext
+    ? `${tenantName}${eventTitle ? ` · ${eventTitle}` : ''}`
+    : "EventPlan Cloud (ManaMa Technologies)";
 
   return (
     <div
@@ -53,13 +74,39 @@ export default function TermsModal({ isOpen, onClose, onAccept, tenantName }) {
 
         {/* Scrollable Legal Body */}
         <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-6 space-y-5 text-sm leading-relaxed" style={{ color: "var(--text-sub)" }}>
-          <div className="p-4 rounded-xl border flex items-start gap-3" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-            <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
-            <div className="text-xs sm:text-sm">
-              <strong style={{ color: "var(--text-main)" }}>Ghana Data Protection Act, 2012 (Act 843) &amp; Multi-Tenant Privacy Guarantee:</strong>{" "}
-              By registering an organization workspace or enrolling as an event delegate on EventPlan Cloud, you agree to the terms below governing ticketing, identity verification, badge printing, and audit logging.
-            </div>
-          </div>
+          {isEventContext && trimmedCustom ? (
+            <>
+              <div className="p-4 rounded-xl border flex items-start gap-3" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+                <FileText className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
+                <div className="text-xs sm:text-sm">
+                  <strong style={{ color: "var(--text-main)" }}>Official Event Terms &amp; Conditions — Provided by {tenantName}:</strong>{" "}
+                  These terms are set directly by the host organizer for {eventTitle || tenantName}.
+                </div>
+              </div>
+
+              <div
+                className="p-5 rounded-xl border whitespace-pre-line text-sm leading-relaxed"
+                style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-main)" }}
+              >
+                {trimmedCustom}
+              </div>
+
+              <div className="p-3.5 rounded-xl border text-xs flex items-start gap-2.5" style={{ background: "var(--bg-subtle)", borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
+                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
+                <span>
+                  Hosted on <strong>EventPlan Cloud (ManaMa Technologies)</strong>. Attendee registration data, QR tickets, and check-in audit logs are isolated to {tenantName}&apos;s workspace in compliance with the Ghana Data Protection Act, 2012 (Act 843).
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-4 rounded-xl border flex items-start gap-3" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+                <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
+                <div className="text-xs sm:text-sm">
+                  <strong style={{ color: "var(--text-main)" }}>Ghana Data Protection Act, 2012 (Act 843) &amp; Multi-Tenant Privacy Guarantee:</strong>{" "}
+                  By registering an organization workspace or enrolling as an event delegate on EventPlan Cloud, you agree to the terms below governing ticketing, identity verification, badge printing, and audit logging.
+                </div>
+              </div>
 
           <section className="space-y-2">
             <h3 className="text-base font-bold flex items-center gap-2" style={{ color: "var(--text-main)" }}>
@@ -123,6 +170,8 @@ export default function TermsModal({ isOpen, onClose, onAccept, tenantName }) {
               Participants using the attendance-gated Event Community Chat must maintain respectful, professional conduct. Organizers reserve the right to pin announcements or remove disruptive messages. Event schedules, speakers, or venues may be updated by the host organizer with reasonable notice to registered delegates.
             </p>
           </section>
+            </>
+          )}
         </div>
 
         {/* Footer */}

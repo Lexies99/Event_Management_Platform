@@ -7,6 +7,7 @@ import {
   Trash2,
   Upload,
   Calendar,
+  FileText,
 } from 'lucide-react';
 import {
   DEFAULT_BRANDING,
@@ -16,6 +17,7 @@ import {
 } from '../../utils/branding';
 import { Storage } from '../../data/storage';
 import TenantLogo from '../Common/TenantLogo';
+import { buildDefaultEventTerms } from '../Common/TermsModal';
 
 export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) {
   const [name, setName] = useState(tenant?.name || '');
@@ -30,6 +32,7 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
   const [eventTagline, setEventTagline] = useState(event?.tagline || '');
   const [eventVenue, setEventVenue] = useState(event?.venue || '');
   const [capacity, setCapacity] = useState(event?.capacity || 500);
+  const [eventTerms, setEventTerms] = useState(event?.eventTerms || '');
 
   const [notice, setNotice] = useState('');
 
@@ -77,6 +80,7 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
           tagline: eventTagline.trim(),
           venue: eventVenue.trim() || event.venue,
           capacity: Number(capacity) || 500,
+          eventTerms: eventTerms.trim(),
         }
       );
     }
@@ -238,6 +242,36 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
             <input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} className="fp-input w-full px-3.5 py-2.5 text-sm" />
           </div>
         </div>
+      </section>
+
+      {/* Organizer-Provided Event Terms & Conditions */}
+      <section className="fp-card p-5 sm:p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5" style={{ color: 'var(--fp-olive)' }} />
+            <div>
+              <h3 className="text-base font-bold m-0">Event Terms &amp; Conditions (Provided by Organizer)</h3>
+              <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                Shown to your attendees when they register or click Terms &amp; Conditions on your dedicated event website.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEventTerms(buildDefaultEventTerms(name || tenant?.name, eventTitle || event?.title))}
+            className="btn-fp-sage px-3 py-1.5 text-xs"
+          >
+            Load Starter Template
+          </button>
+        </div>
+
+        <textarea
+          rows={8}
+          value={eventTerms}
+          onChange={(e) => setEventTerms(e.target.value)}
+          placeholder="Paste or write your organization's event rules, refund/cancellation policy, dress code, photography consent, and code of conduct..."
+          className="fp-input w-full px-3.5 py-3 text-sm leading-relaxed"
+        />
       </section>
     </form>
   );
