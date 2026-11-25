@@ -95,7 +95,7 @@ export default function AttendeePortal({
     }
   }, [currentAttendee]);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setFormError(null);
 
@@ -113,7 +113,7 @@ export default function AttendeePortal({
     }
 
     try {
-      const newReg = onAddRegistration({
+      const newReg = await onAddRegistration({
         tenantId: tenant.id,
         eventId: event.id,
         name: title && !name.startsWith(title) ? `${title} ${name.trim()}` : name.trim(),

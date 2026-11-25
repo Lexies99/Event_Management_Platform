@@ -142,8 +142,18 @@ export default function App() {
   useEffect(() => {
     const onUpdate = () => refreshState();
     window.addEventListener('emp_storage_updated', onUpdate);
-    return () => window.removeEventListener('emp_storage_updated', onUpdate);
-  }, [refreshState]);
+    // Initial server sync + live 5s cross-device polling (phones <-> check-in laptops)
+    Storage.syncFromServer();
+    const timer = setInterval(() => {
+      if (!isOffline && document.visibilityState === 'visible') {
+        Storage.syncFromServer();
+      }
+    }, 5000);
+    return () => {
+      window.removeEventListener('emp_storage_updated', onUpdate);
+      clearInterval(timer);
+    };
+  }, [refreshState, isOffline]);
 
   useEffect(() => {
     const onHashOrPop = () => {
@@ -239,14 +249,19 @@ export default function App() {
     }
   };
 
-  const handleCheckInByCode = (ticketCode, staffUser, offlineFlag, dayId, dayLabel, options) => {
-    const result = Storage.checkInByCode(ticketCode, staffUser, offlineFlag, dayId, dayLabel, options);
+  const handleCheckInByCode = async (ticketCode, staffUser, offlineFlag, dayId, dayLabel, options) => {
+    const result = await Storage.checkInByCodeAsync(ticketCode, staffUser, offlineFlag, dayId, dayLabel, options);
     refreshState();
     return result;
   };
 
   const handleReprintBadge = (regId, staffUser, reason) => {
     const res = Storage.reprintBadge(regId, staffUser, reason);
+    fetch('/api/reprint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regId, staffName: staffUser, reason }),
+    }).then((r) => r.ok && r.json()).then((d) => d?.state && Storage.applyServerState(d.state)).catch(() => {});
     refreshState();
     return res;
   };
@@ -738,8 +753,8 @@ export default function App() {
                 tenant={activeTenant}
                 event={activeEvent}
                 registrations={registrations}
-                onAddRegistration={(data) => {
-                  const reg = Storage.addRegistration(data);
+                onAddRegistration={async (data) => {
+                  const reg = await Storage.addRegistrationAsync(data);
                   refreshState();
                   setCurrentAttendeeId(reg.id);
                   Storage.setCurrentAttendeeId(reg.id);

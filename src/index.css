@@ -79,6 +79,13 @@ html, body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Prevent iOS Safari auto-zoom & horizontal clipping when tapping inputs */
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: "Outfit", "Inter", sans-serif;
   color: var(--text-main);

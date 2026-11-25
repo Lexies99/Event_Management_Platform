@@ -939,6 +939,91 @@ export const Storage = {
     return true;
   },
 
+  // ── REAL MULTI-DEVICE SERVER SYNC (/api/...) ──────────────────────────────
+  applyServerState(state) {
+    if (!state || typeof state !== 'object') return;
+    if (Array.isArray(state.tenants)) safeSet(STORAGE_KEYS.TENANTS, state.tenants);
+    if (Array.isArray(state.events)) safeSet(STORAGE_KEYS.EVENTS, state.events);
+    if (Array.isArray(state.registrations)) safeSet(STORAGE_KEYS.REGISTRATIONS, state.registrations);
+    if (Array.isArray(state.chat)) safeSet(STORAGE_KEYS.CHAT, state.chat);
+    if (Array.isArray(state.auditLogs)) safeSet(STORAGE_KEYS.AUDIT, state.auditLogs);
+    if (Array.isArray(state.staffMembers)) safeSet(STORAGE_KEYS.STAFF_MEMBERS, state.staffMembers);
+  },
+
+  async syncFromServer() {
+    try {
+      const res = await fetch('/api/state', { cache: 'no-store' });
+      if (!res.ok) return false;
+      const data = await res.json();
+      this.applyServerState(data);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  async addRegistrationAsync(regData) {
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regData),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        throw new Error(data.error || 'A registration with this email already exists for this event.');
+      }
+      if (res.ok && data.registration) {
+        if (data.state) this.applyServerState(data.state);
+        return data.registration;
+      }
+      if (res.status >= 400 && res.status < 500) {
+        throw new Error(data.error || 'Registration failed.');
+      }
+    } catch (err) {
+      if (err?.message && (err.message.includes('already exists') || err.message.includes('required'))) {
+        throw err;
+      }
+      // Network/offline fallback
+    }
+    return this.addRegistration(regData);
+  },
+
+  async checkInByCodeAsync(
+    rawTicketInput,
+    staffName = 'Check-in Staff',
+    isOffline = false,
+    currentDayId = 'day-1',
+    currentDayLabel = 'Day 1',
+    options = {}
+  ) {
+    if (!isOffline) {
+      try {
+        const res = await fetch('/api/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticketCode: rawTicketInput,
+            staffName,
+            currentDayId,
+            currentDayLabel,
+            eventId: options?.eventId || null,
+            tenantId: options?.tenantId || null,
+            forceOverride: Boolean(options?.forceOverride),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.state) this.applyServerState(data.state);
+          return data;
+        }
+      } catch {
+        // Offline / server unavailable -> fall back to local check-in
+      }
+    }
+    return this.checkInByCode(rawTicketInput, staffName, isOffline, currentDayId, currentDayLabel, options);
+  },
+
   // Reset to seed data
   resetAll() {
     safeSet(STORAGE_KEYS.TENANTS, INITIAL_TENANTS);

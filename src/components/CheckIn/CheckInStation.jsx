@@ -191,11 +191,11 @@ export default function CheckInStation({
     }
   };
 
-  const handleExecuteCheckIn = (ticketCode, forceOverride = false) => {
+  const handleExecuteCheckIn = async (ticketCode, forceOverride = false) => {
     const trimmed = String(ticketCode || '').trim();
     if (!trimmed) return;
 
-    const result = onCheckInByCode(
+    const result = await onCheckInByCode(
       trimmed,
       staffName,
       isOffline,
