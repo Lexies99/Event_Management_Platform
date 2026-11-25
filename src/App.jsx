@@ -738,6 +738,8 @@ export default function App() {
                 onAddRegistration={(data) => {
                   const reg = Storage.addRegistration(data);
                   refreshState();
+                  setCurrentAttendeeId(reg.id);
+                  Storage.setCurrentAttendeeId(reg.id);
                   // Automatically sign in newly registered attendee to their personal ticket!
                   if (!isAuthedForTenant) {
                     saveSession({
@@ -749,17 +751,19 @@ export default function App() {
                       attendeeId: reg.id,
                     });
                   }
+                  setActiveTab('ticket');
                   return reg;
                 }}
-                currentAttendeeId={currentAttendeeId}
+                currentAttendeeId={isAuthedForTenant ? currentAttendeeId : null}
                 setCurrentAttendeeId={(id) => {
                   setCurrentAttendeeId(id);
                   Storage.setCurrentAttendeeId(id);
                 }}
                 onNavigateToChat={() => setActiveTab('chat')}
                 onOpenTerms={() => setIsTermsOpen(true)}
-                defaultView={activeTab === 'register' ? 'register' : 'ticket'}
+                defaultView={activeTab === 'register' || !isAuthedForTenant ? 'register' : 'ticket'}
                 isOrganizerOrAdmin={isOrganizer}
+                isAuthenticated={isAuthedForTenant}
               />
             )}
 

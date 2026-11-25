@@ -27,7 +27,7 @@ import { generateQrDataUrl } from '../../utils/qr';
 import confetti from 'canvas-confetti';
 import BadgeModal from '../Common/BadgeModal';
 import CertificateModal from '../Common/CertificateModal';
-import { DEFAULT_EVENT_DAYS, LOCAL_AVATARS } from '../../data/mockData';
+import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 import { printElementCleanly } from '../../utils/print';
 
 export default function AttendeePortal({
@@ -41,13 +41,15 @@ export default function AttendeePortal({
   onOpenTerms,
   defaultView = 'ticket',
   isOrganizerOrAdmin = false,
+  isAuthenticated = false,
 }) {
-  const [activeView, setActiveView] = useState(defaultView);
+  const effectiveDefaultView = isAuthenticated ? defaultView : 'register';
+  const [activeView, setActiveView] = useState(effectiveDefaultView);
   const [copiedRegLink, setCopiedRegLink] = useState(false);
 
   useEffect(() => {
-    setActiveView(defaultView);
-  }, [defaultView]);
+    setActiveView(isAuthenticated ? defaultView : 'register');
+  }, [defaultView, isAuthenticated]);
 
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
 
@@ -62,7 +64,7 @@ export default function AttendeePortal({
   const [category, setCategory] = useState(event?.categories?.[0] || 'Attendee');
   const [passType, setPassType] = useState('full_week');
   const [selectedDays, setSelectedDays] = useState(() => (event?.eventDays || DEFAULT_EVENT_DAYS).map((d) => d.id));
-  const [photoUrl, setPhotoUrl] = useState(LOCAL_AVATARS[0]);
+  const [photoUrl, setPhotoUrl] = useState('');
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
@@ -75,7 +77,9 @@ export default function AttendeePortal({
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
 
   const eventRegistrations = registrations.filter((r) => r.eventId === event?.id);
-  const currentAttendee = eventRegistrations.find((r) => r.id === currentAttendeeId) || eventRegistrations[0];
+  const currentAttendee = isAuthenticated
+    ? eventRegistrations.find((r) => r.id === currentAttendeeId) || (isOrganizerOrAdmin ? eventRegistrations[0] : null)
+    : null;
 
   useEffect(() => {
     if (currentAttendee?.ticketCode) {
@@ -203,42 +207,44 @@ export default function AttendeePortal({
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
-      {/* Top Switcher Bar (Cleanly Responsive on Phones!) */}
-      <div className="fp-card p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveView('ticket')}
-            className={`fp-subnav-pill text-xs py-2 px-3.5 ${activeView === 'ticket' ? 'active' : ''}`}
-          >
-            Digital Ticket Pass
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView('register')}
-            className={`fp-subnav-pill text-xs py-2 px-3.5 ${activeView === 'register' ? 'active' : ''}`}
-          >
-            Event Registration Form
-          </button>
-        </div>
-
-        {activeView === 'ticket' && isOrganizerOrAdmin && eventRegistrations.length > 0 && (
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Users className="w-4 h-4 shrink-0" style={{ color: 'var(--fp-olive)' }} />
-            <select
-              value={currentAttendee?.id || ''}
-              onChange={(e) => setCurrentAttendeeId(e.target.value)}
-              className="fp-input flex-1 sm:w-56 px-2.5 py-1.5 text-xs font-semibold"
+      {/* Top Switcher Bar (Only show Ticket switcher for authenticated users) */}
+      {isAuthenticated && (
+        <div className="fp-card p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveView('ticket')}
+              className={`fp-subnav-pill text-xs py-2 px-3.5 ${activeView === 'ticket' ? 'active' : ''}`}
             >
-              {eventRegistrations.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name} ({r.status === 'attended' ? 'Checked In' : 'Registered'})
-                </option>
-              ))}
-            </select>
+              Digital Ticket Pass
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('register')}
+              className={`fp-subnav-pill text-xs py-2 px-3.5 ${activeView === 'register' ? 'active' : ''}`}
+            >
+              Event Registration Form
+            </button>
           </div>
-        )}
-      </div>
+
+          {activeView === 'ticket' && isOrganizerOrAdmin && eventRegistrations.length > 0 && (
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Users className="w-4 h-4 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+              <select
+                value={currentAttendee?.id || ''}
+                onChange={(e) => setCurrentAttendeeId(e.target.value)}
+                className="fp-input flex-1 sm:w-56 px-2.5 py-1.5 text-xs font-semibold"
+              >
+                {eventRegistrations.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name} ({r.status === 'attended' ? 'Checked In' : 'Registered'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* EMPTY STATE */}
       {activeView === 'ticket' && !currentAttendee && (
@@ -290,12 +296,21 @@ export default function AttendeePortal({
 
             {/* Attendee Profile */}
             <div className="p-4 sm:p-5 flex items-center gap-3.5 border-b" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
-              <img
-                src={currentAttendee.photoUrl}
-                alt={currentAttendee.name}
-                className="w-16 h-16 rounded-2xl object-cover border shrink-0"
-                style={{ borderColor: 'var(--border-color)' }}
-              />
+              {currentAttendee.photoUrl ? (
+                <img
+                  src={currentAttendee.photoUrl}
+                  alt={currentAttendee.name}
+                  className="w-16 h-16 rounded-2xl object-cover border shrink-0"
+                  style={{ borderColor: 'var(--border-color)' }}
+                />
+              ) : (
+                <div
+                  className="w-16 h-16 rounded-2xl border shrink-0 flex items-center justify-center font-extrabold text-lg"
+                  style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)', borderColor: 'var(--border-color)' }}
+                >
+                  {(currentAttendee.name || 'DE').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="font-extrabold text-base truncate">{currentAttendee.name}</div>
                 <div className="text-xs font-medium truncate" style={{ color: 'var(--text-sub)' }}>{currentAttendee.jobTitle}</div>
@@ -583,22 +598,32 @@ export default function AttendeePortal({
               </div>
             </div>
 
-            {/* Attendee Photo & Authentic Black Preset Avatars */}
+            {/* Attendee Photo Capture / Upload (No pre-filled stock portrait) */}
             <div className="pt-4 border-t space-y-3" style={{ borderColor: 'var(--border-color)' }}>
               <label className="block text-xs sm:text-sm font-bold">
-                Attendee Photo (Printed on ID Badge)
+                Attendee Photo <span className="font-normal text-xs" style={{ color: 'var(--text-muted)' }}>(Optional — printed on your ID badge)</span>
               </label>
 
               <div className="p-4 rounded-xl border space-y-4" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <img
-                    src={photoUrl}
-                    alt="Selected Avatar"
-                    className="w-20 h-20 rounded-2xl object-cover border-2 shrink-0"
-                    style={{ borderColor: 'var(--fp-olive)' }}
-                  />
+                  {photoUrl ? (
+                    <img
+                      src={photoUrl}
+                      alt="Uploaded attendee portrait"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 shrink-0"
+                      style={{ borderColor: 'var(--fp-olive)' }}
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-2xl border-2 border-dashed shrink-0 flex flex-col items-center justify-center gap-1"
+                      style={{ borderColor: 'var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-muted)' }}
+                    >
+                      <User className="w-7 h-7" />
+                      <span className="text-[10px] font-semibold">No Photo</span>
+                    </div>
+                  )}
 
-                  <div className="space-y-3 flex-1 text-center sm:text-left">
+                  <div className="space-y-2 flex-1 text-center sm:text-left">
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                       <button
                         type="button"
@@ -614,30 +639,20 @@ export default function AttendeePortal({
                         <span>Upload Photo</span>
                         <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
                       </label>
-                    </div>
 
-                    <div>
-                      <span className="text-[11px] block mb-1.5" style={{ color: 'var(--text-muted)' }}>Or pick a sample portrait:</span>
-                      <div className="flex justify-center sm:justify-start gap-2">
-                        {LOCAL_AVATARS.map((url, idx) => (
-                          <button
-                            key={url}
-                            type="button"
-                            onClick={() => {
-                              stopCamera();
-                              setPhotoUrl(url);
-                            }}
-                            className="w-10 h-10 rounded-lg overflow-hidden border-2 transition-transform"
-                            style={{
-                              borderColor: photoUrl === url ? 'var(--fp-olive)' : 'var(--border-color)',
-                              transform: photoUrl === url ? 'scale(1.06)' : 'scale(1)',
-                            }}
-                          >
-                            <img src={url} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
-                          </button>
-                        ))}
-                      </div>
+                      {photoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setPhotoUrl('')}
+                          className="btn-fp-outline px-3 py-2 text-xs"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
+                    <p className="text-[11px] m-0" style={{ color: 'var(--text-muted)' }}>
+                      Capture a live portrait with your camera or upload a headshot from your device for your 3.1-inch lanyard badge.
+                    </p>
                   </div>
                 </div>
 
