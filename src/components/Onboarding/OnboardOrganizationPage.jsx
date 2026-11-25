@@ -45,6 +45,7 @@ export default function OnboardOrganizationPage({
   const [eventDate, setEventDate] = useState('2026-11-20');
   const [capacity, setCapacity] = useState(350);
   const [eventTerms, setEventTerms] = useState('');
+  const [eventTermsFile, setEventTermsFile] = useState(null);
 
   const [organizerName, setOrganizerName] = useState('');
   const [organizerEmail, setOrganizerEmail] = useState('');
@@ -157,6 +158,7 @@ export default function OnboardOrganizationPage({
         eventDate,
         capacity: Number(capacity) || 350,
         eventTerms: eventTerms.trim(),
+        eventTermsFile,
         termsAccepted: true,
       });
       setCreatedTenant(tenant);
@@ -441,15 +443,49 @@ export default function OnboardOrganizationPage({
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5">
-                    Your Event&apos;s Terms &amp; Conditions <span className="font-normal" style={{ color: 'var(--text-muted)' }}>(Optional — shown to your attendees)</span>
-                  </label>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="text-xs font-semibold">
+                      Your Event&apos;s Terms &amp; Conditions <span className="font-normal" style={{ color: 'var(--text-muted)' }}>(Optional — shown to your attendees)</span>
+                    </label>
+                    <label className="btn-fp-outline px-2.5 py-1 text-xs inline-flex items-center gap-1 cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload PDF / TXT</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.txt,.md,application/pdf,text/plain"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 4 * 1024 * 1024) {
+                            setError('Terms document must be 4 MB or smaller.');
+                            return;
+                          }
+                          const isText = file.type.startsWith('text/') || /\.(txt|md)$/i.test(file.name);
+                          const reader = new FileReader();
+                          if (isText) {
+                            reader.onload = (ev) => setEventTerms(String(ev.target.result || ''));
+                            reader.readAsText(file);
+                          } else {
+                            reader.onload = (ev) => setEventTermsFile({ name: file.name, type: file.type || 'application/pdf', dataUrl: String(ev.target.result || '') });
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {eventTermsFile?.name && (
+                    <div className="text-xs font-semibold px-3 py-1.5 rounded-lg border flex items-center justify-between" style={{ background: 'var(--bg-main)', borderColor: 'var(--fp-olive)' }}>
+                      <span>Attached: {eventTermsFile.name}</span>
+                      <button type="button" onClick={() => setEventTermsFile(null)} className="underline text-xs bg-transparent border-0 cursor-pointer" style={{ color: 'var(--fp-red)' }}>Remove</button>
+                    </div>
+                  )}
                   <textarea
                     rows={4}
                     value={eventTerms}
                     onChange={(e) => setEventTerms(e.target.value)}
-                    placeholder="Enter your event rules, refund policy, dress code, or photo consent. You can also edit this anytime in Branding & Settings."
+                    placeholder="Enter your event rules, refund policy, dress code, or photo consent. You can also upload a PDF/TXT file above."
                     className="fp-input w-full px-3.5 py-2.5 text-sm"
                   />
                 </div>

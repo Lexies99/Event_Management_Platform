@@ -1028,6 +1028,7 @@ const server = http.createServer(async (req, res) => {
         endsAt: tenantData.endsAt || '2026-12-05T17:00',
         capacity: Number(tenantData.capacity) || 350,
         eventTerms: String(tenantData.eventTerms || '').trim(),
+        eventTermsFile: tenantData.eventTermsFile || null,
         registrationDeadline: '2026-11-30T23:59',
         currency: tenantData.currency || 'GHS',
         price: Number(tenantData.price) || 0,

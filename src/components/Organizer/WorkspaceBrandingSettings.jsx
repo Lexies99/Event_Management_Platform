@@ -33,6 +33,7 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
   const [eventVenue, setEventVenue] = useState(event?.venue || '');
   const [capacity, setCapacity] = useState(event?.capacity || 500);
   const [eventTerms, setEventTerms] = useState(event?.eventTerms || '');
+  const [eventTermsFile, setEventTermsFile] = useState(event?.eventTermsFile || null);
 
   const [notice, setNotice] = useState('');
 
@@ -51,6 +52,32 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
     const reader = new FileReader();
     reader.onload = () => setLogoUrl(String(reader.result || ''));
     reader.readAsDataURL(file);
+  };
+
+  const handleTermsFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      alert('Terms document must be 4 MB or smaller.');
+      return;
+    }
+    const isText = file.type.startsWith('text/') || /\.(txt|md)$/i.test(file.name);
+    const reader = new FileReader();
+    if (isText) {
+      reader.onload = (ev) => {
+        setEventTerms(String(ev.target.result || ''));
+      };
+      reader.readAsText(file);
+    } else {
+      reader.onload = (ev) => {
+        setEventTermsFile({
+          name: file.name,
+          type: file.type || 'application/pdf',
+          dataUrl: String(ev.target.result || ''),
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = async (e) => {
@@ -81,6 +108,7 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
           venue: eventVenue.trim() || event.venue,
           capacity: Number(capacity) || 500,
           eventTerms: eventTerms.trim(),
+          eventTermsFile,
         }
       );
     }
@@ -256,14 +284,38 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setEventTerms(buildDefaultEventTerms(name || tenant?.name, eventTitle || event?.title))}
-            className="btn-fp-sage px-3 py-1.5 text-xs"
-          >
-            Load Starter Template
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="btn-fp-olive px-3 py-1.5 text-xs inline-flex items-center gap-1.5 cursor-pointer">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload PDF / TXT</span>
+              <input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain" className="hidden" onChange={handleTermsFileUpload} />
+            </label>
+            <button
+              type="button"
+              onClick={() => setEventTerms(buildDefaultEventTerms(name || tenant?.name, eventTitle || event?.title))}
+              className="btn-fp-sage px-3 py-1.5 text-xs"
+            >
+              Load Starter Template
+            </button>
+          </div>
         </div>
+
+        {eventTermsFile?.dataUrl && (
+          <div className="p-3 rounded-xl border flex items-center justify-between gap-2 text-xs" style={{ background: 'var(--bg-main)', borderColor: 'var(--fp-olive)' }}>
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="w-4 h-4 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+              <span className="font-bold truncate">Uploaded Terms Document: {eventTermsFile.name}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEventTermsFile(null)}
+              className="btn-fp-outline px-2.5 py-1 text-xs inline-flex items-center gap-1 shrink-0"
+              style={{ color: 'var(--fp-red)' }}
+            >
+              <Trash2 className="w-3 h-3" /> Remove
+            </button>
+          </div>
+        )}
 
         <textarea
           rows={8}

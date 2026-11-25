@@ -503,6 +503,7 @@ export default function App() {
           tenantName={activeTenant.name}
           eventTitle={activeEvent?.title}
           customTerms={activeEvent?.eventTerms}
+          customTermsFile={activeEvent?.eventTermsFile}
         />
       </>
     );
@@ -912,6 +913,7 @@ export default function App() {
         tenantName={activeTenant.name}
         eventTitle={activeEvent?.title}
         customTerms={activeEvent?.eventTerms}
+        customTermsFile={activeEvent?.eventTermsFile}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShieldCheck, FileText, CheckCircle2, Lock, Camera, Users, Scale } from 'lucide-react';
+import { X, ShieldCheck, FileText, CheckCircle2, Lock, Camera, Users, Scale, Download } from 'lucide-react';
 
 export const TERMS_VERSION = "v1.0 — Effective 2026";
 
@@ -20,11 +20,12 @@ By attending ${eventTitle}, you consent to event photography/video recording for
 ${orgName} reserves the right to update session timings, speakers, or venue rooms when necessary, with timely notice sent via Event Announcements and Reminders.`;
 }
 
-export default function TermsModal({ isOpen, onClose, onAccept, tenantName, eventTitle, customTerms }) {
+export default function TermsModal({ isOpen, onClose, onAccept, tenantName, eventTitle, customTerms, customTermsFile }) {
   if (!isOpen) return null;
 
   const isEventContext = Boolean(tenantName);
   const trimmedCustom = String(customTerms || '').trim();
+  const hasUploadedPdf = Boolean(customTermsFile?.dataUrl);
   const scopeLabel = isEventContext
     ? `${tenantName}${eventTitle ? ` · ${eventTitle}` : ''}`
     : "EventPlan Cloud (ManaMa Technologies)";
@@ -74,22 +75,46 @@ export default function TermsModal({ isOpen, onClose, onAccept, tenantName, even
 
         {/* Scrollable Legal Body */}
         <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-6 space-y-5 text-sm leading-relaxed" style={{ color: "var(--text-sub)" }}>
-          {isEventContext && trimmedCustom ? (
+          {isEventContext && (trimmedCustom || hasUploadedPdf) ? (
             <>
-              <div className="p-4 rounded-xl border flex items-start gap-3" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-                <FileText className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
-                <div className="text-xs sm:text-sm">
-                  <strong style={{ color: "var(--text-main)" }}>Official Event Terms &amp; Conditions — Provided by {tenantName}:</strong>{" "}
-                  These terms are set directly by the host organizer for {eventTitle || tenantName}.
+              <div className="p-4 rounded-xl border flex flex-wrap items-center justify-between gap-3" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <FileText className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
+                  <div className="text-xs sm:text-sm">
+                    <strong style={{ color: "var(--text-main)" }}>Official Event Terms &amp; Conditions — Provided by {tenantName}:</strong>{" "}
+                    These terms are set directly by the host organizer for {eventTitle || tenantName}.
+                  </div>
                 </div>
+                {hasUploadedPdf && (
+                  <a
+                    href={customTermsFile.dataUrl}
+                    download={customTermsFile.name || 'Event-Terms-and-Conditions.pdf'}
+                    className="btn-fp-olive px-3.5 py-2 text-xs inline-flex items-center gap-1.5 shrink-0"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download {customTermsFile.name || 'Document'}</span>
+                  </a>
+                )}
               </div>
 
-              <div
-                className="p-5 rounded-xl border whitespace-pre-line text-sm leading-relaxed"
-                style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-main)" }}
-              >
-                {trimmedCustom}
-              </div>
+              {hasUploadedPdf && (
+                <div className="rounded-xl border overflow-hidden bg-white" style={{ borderColor: "var(--border-color)" }}>
+                  <iframe
+                    src={customTermsFile.dataUrl}
+                    title={`${tenantName} Terms & Conditions`}
+                    className="w-full h-[420px] border-0"
+                  />
+                </div>
+              )}
+
+              {trimmedCustom && (
+                <div
+                  className="p-5 rounded-xl border whitespace-pre-line text-sm leading-relaxed"
+                  style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-main)" }}
+                >
+                  {trimmedCustom}
+                </div>
+              )}
 
               <div className="p-3.5 rounded-xl border text-xs flex items-start gap-2.5" style={{ background: "var(--bg-subtle)", borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--fp-olive)" }} />
