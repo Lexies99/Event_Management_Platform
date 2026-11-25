@@ -24,6 +24,18 @@ import {
   isValidHex,
 } from '../../utils/branding';
 
+const EVENT_TYPE_OPTIONS = [
+  'Conference / Summit',
+  'Organizational Meeting / Board Sign-In',
+  'Corporate Gala / Dinner',
+  'Team Building Event',
+  'Product Launch',
+  'Executive Seminar / Workshop',
+  'Trade Fair / Expo',
+  'AGM / Town Hall',
+  'Custom Corporate Event',
+];
+
 export default function OnboardOrganizationPage({
   tenants = [],
   plans = [],
@@ -39,6 +51,7 @@ export default function OnboardOrganizationPage({
   const [slug, setSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
+  const [eventType, setEventType] = useState('Conference / Summit');
   const [eventTitle, setEventTitle] = useState('');
   const [eventTagline, setEventTagline] = useState('Connecting Leaders, Innovators & Delegates');
   const [eventVenue, setEventVenue] = useState('Accra International Conference Centre');
@@ -152,6 +165,7 @@ export default function OnboardOrganizationPage({
         organizerEmail: organizerEmail.trim(),
         organizerPassword: organizerPassword.trim() || 'organizer123',
         contactPhone: contactPhone.trim(),
+        eventType,
         eventTitle: eventTitle.trim() || `${name.trim()} Annual Summit 2026`,
         eventTagline: eventTagline.trim(),
         eventVenue: eventVenue.trim(),
@@ -338,6 +352,23 @@ export default function OnboardOrganizationPage({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold mb-1.5">Event Type *</label>
+                  <select
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="fp-input w-full px-3.5 py-2.5 text-sm"
+                  >
+                    {EVENT_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  {eventType === 'Organizational Meeting / Board Sign-In' && (
+                    <p className="text-[11px] mt-1 mb-0" style={{ color: 'var(--fp-olive)' }}>
+                      Automatically provisions a Meeting Attendance Register with CSV roster upload, signature pad, and Door QR Sign-In.
+                    </p>
+                  )}
+                </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold mb-1.5">Flagship Event Title *</label>
                   <input

@@ -1020,6 +1020,7 @@ const server = http.createServer(async (req, res) => {
       const newEvent = {
         id: eventId,
         tenantId,
+        eventType: tenantData.eventType || 'Conference / Summit',
         title: tenantData.eventTitle || `${tenantData.name} Annual Conference 2026`,
         tagline: tenantData.eventTagline || 'Innovation, Leadership & Community Collaboration',
         description: tenantData.eventDescription || 'Dedicated event portal with self-registration, instant QR ticket passes, multi-desk check-in, and 3.1-inch lanyard badging.',
@@ -1062,6 +1063,22 @@ const server = http.createServer(async (req, res) => {
       db.events = [newEvent, ...db.events];
       db.staffMembers = [defaultStaff, ...db.staffMembers];
       db.reminders = [...buildDefaultReminders(newEvent, newTenant), ...db.reminders];
+
+      if (String(newEvent.eventType || '').toLowerCase().includes('meeting')) {
+        const starterMeeting = {
+          id: `mtg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          tenantId,
+          title: newEvent.title,
+          date: tenantData.eventDate || new Date().toISOString().slice(0, 10),
+          time: '09:00',
+          venue: newEvent.venue,
+          host: newTenant.organizer.name,
+          mode: 'hybrid',
+          createdAt: new Date().toISOString(),
+          attendees: [],
+        };
+        db.meetings = [starterMeeting, ...(db.meetings || [])];
+      }
 
       appendAudit({
         tenantId,

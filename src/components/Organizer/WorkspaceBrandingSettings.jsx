@@ -28,6 +28,7 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
   const [neutralColor, setNeutralColor] = useState(tenant?.neutralColor || DEFAULT_BRANDING.neutralColor);
   const [logoUrl, setLogoUrl] = useState(tenant?.logoUrl || '');
 
+  const [eventType, setEventType] = useState(event?.eventType || 'Conference / Summit');
   const [eventTitle, setEventTitle] = useState(event?.title || '');
   const [eventTagline, setEventTagline] = useState(event?.tagline || '');
   const [eventVenue, setEventVenue] = useState(event?.venue || '');
@@ -103,6 +104,7 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
       await Storage.updateEventAsync(
         event.id,
         {
+          eventType,
           title: eventTitle.trim() || event.title,
           tagline: eventTagline.trim(),
           venue: eventVenue.trim() || event.venue,
@@ -252,6 +254,24 @@ export default function WorkspaceBrandingSettings({ tenant, event, onUpdated }) 
           <div>
             <label className="block text-xs font-semibold mb-1.5">Short Display Name</label>
             <input value={shortName} onChange={(e) => setShortName(e.target.value)} className="fp-input w-full px-3.5 py-2.5 text-sm" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold mb-1.5">Event Type</label>
+            <select value={eventType} onChange={(e) => setEventType(e.target.value)} className="fp-input w-full px-3.5 py-2.5 text-sm">
+              {[
+                'Conference / Summit',
+                'Organizational Meeting / Board Sign-In',
+                'Corporate Gala / Dinner',
+                'Team Building Event',
+                'Product Launch',
+                'Executive Seminar / Workshop',
+                'Trade Fair / Expo',
+                'AGM / Town Hall',
+                'Custom Corporate Event',
+              ].map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold mb-1.5">Event Title</label>
