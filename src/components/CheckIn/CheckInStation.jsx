@@ -1,37 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  QrCode, 
-  Search, 
-  Camera, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Printer, 
-  Wifi, 
-  WifiOff, 
-  UserCheck, 
-  RefreshCw,
-  Sparkles,
-  ShieldAlert,
-  ArrowRight,
+import {
+  QrCode,
+  Search,
+  Camera,
+  CheckCircle2,
+  AlertTriangle,
+  Printer,
+  WifiOff,
   Users,
-  Share2,
   Copy,
   Check,
   Smartphone,
-  Plus,
   Monitor,
   Calendar,
   X,
   UserPlus,
   Trash2,
-  KeyRound,
-  Mail,
-  Phone,
-  ShieldCheck,
-  ExternalLink
+  ShieldAlert,
+  VideoOff,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import BadgeModal from '../Common/BadgeModal';
+import AuditTrailPanel from '../Organizer/AuditTrailPanel';
 import { generateQrDataUrl } from '../../utils/qr';
 import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 import { Storage } from '../../data/storage';
@@ -47,30 +37,38 @@ const STATION_PRESETS = [
 export default function CheckInStation({
   tenant,
   event,
-  registrations,
+  registrations = [],
+  auditLogs = [],
   onCheckInByCode,
   onReprintBadge,
   isOffline,
   offlineQueue,
-  onSyncOffline
+  onSyncOffline,
+  initialStation,
 }) {
   const [scanInput, setScanInput] = useState('');
-  const [staffName, setStaffName] = useState(STATION_PRESETS[0]);
+  const [staffList, setStaffList] = useState(() => Storage.getStaffMembers(tenant?.id));
+  const [staffName, setStaffName] = useState(initialStation || STATION_PRESETS[0]);
   const [activeDayId, setActiveDayId] = useState('day-1');
   const [lastScanResult, setLastScanResult] = useState(null);
   const [badgeModalAttendee, setBadgeModalAttendee] = useState(null);
   const [manualQuery, setManualQuery] = useState('');
+
+  // Real camera scanner state
   const [isCameraActive, setIsCameraActive] = useState(false);
-  
-  // Multi-Staff Management State
+  const [cameraStatus, setCameraStatus] = useState('');
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const scanLoopRef = useRef(null);
+  const scanInputRef = useRef(null);
+
+  // Multi-Staff Management Modal
   const [isMultiStaffModalOpen, setIsMultiStaffModalOpen] = useState(false);
-  const [staffModalTab, setStaffModalTab] = useState('roster'); // 'roster' | 'add' | 'qr'
-  const [staffList, setStaffList] = useState(() => Storage.getStaffMembers(tenant?.id));
+  const [staffModalTab, setStaffModalTab] = useState('roster');
   const [selectedStaffForQr, setSelectedStaffForQr] = useState(null);
   const [staffQrDataUrl, setStaffQrDataUrl] = useState(null);
   const [copiedStaffLink, setCopiedStaffLink] = useState(false);
 
-  // New staff form fields
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffEmail, setNewStaffEmail] = useState('');
   const [newStaffPhone, setNewStaffPhone] = useState('');
@@ -79,55 +77,161 @@ export default function CheckInStation({
   const [newStaffPin, setNewStaffPin] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
   const [staffSuccessNotice, setStaffSuccessNotice] = useState('');
 
-  const videoRef = useRef(null);
-
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
-  const currentDayObj = eventDays.find(d => d.id === activeDayId) || eventDays[0];
+  const currentDayObj = eventDays.find((d) => d.id === activeDayId) || eventDays[0];
+  const eventRegistrations = registrations.filter((r) => r.eventId === event?.id);
+  const tenantAuditLogs = auditLogs.filter((l) => l.tenantId === tenant?.id);
 
-  const eventRegistrations = registrations.filter(r => r.eventId === event?.id);
-
-  // Refresh staff roster when tenant changes
   useEffect(() => {
-    setStaffList(Storage.getStaffMembers(tenant?.id));
-  }, [tenant?.id]);
+    const members = Storage.getStaffMembers(tenant?.id);
+    setStaffList(members);
+    if (initialStation) {
+      setStaffName(initialStation);
+    } else if (members.length > 0) {
+      setStaffName(members[0].station);
+    }
+  }, [tenant?.id, initialStation]);
 
-  // Compute active station options dynamically
-  const stationOptions = staffList.length > 0 
-    ? [...new Set([...staffList.map(s => s.station), ...STATION_PRESETS])]
+  const stationOptions = staffList.length > 0
+    ? [...new Set([...staffList.map((s) => s.station), ...STATION_PRESETS])]
     : STATION_PRESETS;
 
-  // Compute staff portal link (with optional personalized station parameters)
-  const baseStaffPortalLink = `${window.location.origin}/?tenant=${tenant?.slug || 'test'}&role=staff`;
-  const activeStaffPortalLink = selectedStaffForQr 
-    ? `${baseStaffPortalLink}&station=${encodeURIComponent(selectedStaffForQr.station)}&staffUser=${encodeURIComponent(selectedStaffForQr.name)}`
-    : baseStaffPortalLink;
+  const baseStaffPortalLink = `${window.location.origin}/#/${tenant?.slug || 'acme'}/login`;
+  const activeStaffPortalLink = selectedStaffForQr
+    ? `${baseStaffPortalLink}?role=staff&station=${encodeURIComponent(selectedStaffForQr.station)}`
+    : `${baseStaffPortalLink}?role=staff`;
 
-  // Generate QR code for mobile scanners
   useEffect(() => {
     if (activeStaffPortalLink) {
       generateQrDataUrl(activeStaffPortalLink, {
-        width: 280,
+        width: 260,
         margin: 1,
-        darkColor: '#121819',
+        darkColor: '#1a1d1a',
         lightColor: '#ffffff'
-      }).then(url => setStaffQrDataUrl(url));
+      }).then((url) => setStaffQrDataUrl(url));
     }
-  }, [activeStaffPortalLink, selectedStaffForQr]);
+  }, [activeStaffPortalLink]);
 
-  // Handle adding new staff member
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
+  const stopCamera = () => {
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+    setCameraStatus('');
+  };
+
+  const startCamera = async () => {
+    setCameraStatus('Requesting camera access...');
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraStatus('Camera API unavailable on this device. Use ticket code entry or USB scanner below.');
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setIsCameraActive(true);
+      setCameraStatus('Camera active. Point at attendee QR ticket.');
+
+      setTimeout(() => {
+        if (videoRef.current && streamRef.current) {
+          videoRef.current.srcObject = streamRef.current;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 100);
+
+      // Use native BarcodeDetector if available (Chrome/Edge/Android)
+      if ('BarcodeDetector' in window) {
+        const detector = new window.BarcodeDetector({ formats: ['qr_code', 'code_128'] });
+        let lastDetected = '';
+        let lastDetectedAt = 0;
+
+        const tick = async () => {
+          if (!streamRef.current) return;
+          if (videoRef.current && videoRef.current.readyState === 4) {
+            try {
+              const barcodes = await detector.detect(videoRef.current);
+              if (barcodes.length > 0) {
+                const rawVal = barcodes[0].rawValue;
+                const now = Date.now();
+                if (rawVal && (rawVal !== lastDetected || now - lastDetectedAt > 3500)) {
+                  lastDetected = rawVal;
+                  lastDetectedAt = now;
+                  handleExecuteCheckIn(rawVal);
+                }
+              }
+            } catch {
+              // ignore frame decode error
+            }
+          }
+          scanLoopRef.current = requestAnimationFrame(tick);
+        };
+        scanLoopRef.current = requestAnimationFrame(tick);
+      } else {
+        setCameraStatus('Live camera preview on. Auto-QR decode requires Chrome/Edge — or enter ticket code below.');
+      }
+    } catch {
+      setCameraStatus('Camera permission denied or no camera found. Enter the ticket code manually below.');
+      stopCamera();
+    }
+  };
+
+  const handleExecuteCheckIn = (ticketCode, forceOverride = false) => {
+    const trimmed = String(ticketCode || '').trim();
+    if (!trimmed) return;
+
+    const result = onCheckInByCode(
+      trimmed,
+      staffName,
+      isOffline,
+      activeDayId,
+      currentDayObj.label,
+      { eventId: event?.id, tenantId: tenant?.id, forceOverride }
+    );
+    setLastScanResult(result);
+    setScanInput('');
+    scanInputRef.current?.focus();
+
+    if (result?.success) {
+      confetti({
+        particleCount: 45,
+        spread: 60,
+        origin: { y: 0.78 }
+      });
+    }
+  };
+
   const handleAddStaffSubmit = (e) => {
     e.preventDefault();
     if (!newStaffName.trim()) return;
 
-    const created = Storage.addStaffMember({
-      tenantId: tenant?.id || 'tenant-test',
-      name: newStaffName.trim(),
-      email: newStaffEmail.trim() || `${newStaffName.toLowerCase().replace(/\s+/g, '.')}@eventplan.cloud`,
-      phone: newStaffPhone.trim() || '+233 24 000 0000',
-      station: newStaffStation.trim(),
-      role: newStaffRole,
-      pin: newStaffPin.trim() || '1234'
-    });
+    const created = Storage.addStaffMember(
+      {
+        tenantId: tenant?.id,
+        name: newStaffName.trim(),
+        email: newStaffEmail.trim() || `${newStaffName.toLowerCase().replace(/\s+/g, '.')}@${tenant?.slug || 'event'}.org`,
+        phone: newStaffPhone.trim() || '+233 24 000 0000',
+        station: newStaffStation.trim(),
+        role: newStaffRole,
+        pin: newStaffPin.trim() || '1234'
+      },
+      staffName
+    );
 
     const updated = Storage.getStaffMembers(tenant?.id);
     setStaffList(updated);
@@ -136,765 +240,578 @@ export default function CheckInStation({
     setNewStaffEmail('');
     setNewStaffPhone('');
     setNewStaffPin(Math.floor(1000 + Math.random() * 9000).toString());
-    setStaffSuccessNotice(`Staff scanner "${created.name}" successfully provisioned for ${created.station}!`);
-    setTimeout(() => setStaffSuccessNotice(''), 3500);
+    setStaffSuccessNotice(`Staff scanner "${created.name}" provisioned (PIN: ${created.pin}) for ${created.station}.`);
+    setTimeout(() => setStaffSuccessNotice(''), 4000);
   };
 
-  // Handle removing staff member
   const handleRemoveStaff = (staffId) => {
-    Storage.removeStaffMember(staffId);
-    const updated = Storage.getStaffMembers(tenant?.id);
-    setStaffList(updated);
-    if (selectedStaffForQr?.id === staffId) {
-      setSelectedStaffForQr(null);
-    }
+    Storage.removeStaffMember(staffId, staffName);
+    setStaffList(Storage.getStaffMembers(tenant?.id));
+    if (selectedStaffForQr?.id === staffId) setSelectedStaffForQr(null);
   };
 
-  // Manual search matching
-  const searchResults = manualQuery.trim() === '' 
-    ? [] 
-    : eventRegistrations.filter(r => 
-        r.name.toLowerCase().includes(manualQuery.toLowerCase()) ||
-        r.email.toLowerCase().includes(manualQuery.toLowerCase()) ||
-        r.phone.includes(manualQuery) ||
-        r.ticketCode.toLowerCase().includes(manualQuery.toLowerCase())
-      ).slice(0, 5);
+  // Manual search matching (name, email, phone, org, or ticket code)
+  const searchResults = manualQuery.trim() === ''
+    ? []
+    : eventRegistrations
+        .filter((r) => {
+          const q = manualQuery.trim().toLowerCase();
+          return (
+            r.name.toLowerCase().includes(q) ||
+            r.email.toLowerCase().includes(q) ||
+            (r.phone || '').toLowerCase().includes(q) ||
+            (r.organization || '').toLowerCase().includes(q) ||
+            r.ticketCode.toLowerCase().includes(q)
+          );
+        })
+        .slice(0, 6);
 
-  const handleExecuteCheckIn = (ticketCode) => {
-    if (!ticketCode.trim()) return;
+  // Split quick-test tickets so staff see unchecked tickets first!
+  const awaitingTickets = eventRegistrations.filter(
+    (r) => !(r.dailyAttendance?.[activeDayId]?.checkedIn || r.dailyAttendance?.[activeDayId]?.attended)
+  );
+  const checkedInTodayList = eventRegistrations.filter(
+    (r) => r.dailyAttendance?.[activeDayId]?.checkedIn || r.dailyAttendance?.[activeDayId]?.attended
+  );
+  const quickTestTickets = [...awaitingTickets.slice(0, 3), ...checkedInTodayList.slice(0, 1)].slice(0, 4);
 
-    const result = onCheckInByCode(
-      ticketCode.trim(), 
-      staffName, 
-      isOffline, 
-      activeDayId, 
-      currentDayObj.label
-    );
-    setLastScanResult(result);
-    setScanInput('');
-
-    if (result.success) {
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.8 }
-      });
-    }
-  };
-
-  const handleCopyStaffLink = () => {
-    navigator.clipboard.writeText(activeStaffPortalLink);
-    setCopiedStaffLink(true);
-    setTimeout(() => setCopiedStaffLink(false), 2500);
-  };
-
-  // Sample tickets for quick testing demo
-  const sampleTickets = eventRegistrations.slice(0, 4);
-
-  // Daily multi-day stats
-  const eligibleTodayCount = eventRegistrations.filter(r => (r.selectedDays || []).includes(activeDayId)).length;
-  const checkedInTodayCount = eventRegistrations.filter(r => (r.dailyAttendance?.[activeDayId]?.checkedIn || r.dailyAttendance?.[activeDayId]?.attended || !!r.dailyAttendance?.[activeDayId])).length;
-  const pendingTodayCount = eligibleTodayCount - checkedInTodayCount;
+  const eligibleTodayCount = eventRegistrations.filter((r) => {
+    const days = r.selectedDays && r.selectedDays.length > 0 ? r.selectedDays : eventDays.map((d) => d.id);
+    return days.includes(activeDayId);
+  }).length;
+  const checkedInTodayCount = checkedInTodayList.length;
+  const pendingTodayCount = Math.max(0, eligibleTodayCount - checkedInTodayCount);
 
   return (
     <div className="space-y-6">
-      
-      {/* Top Banner with Multi-Staff Identity & Status */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#1a2325] border border-white/10 rounded-3xl p-6 relative overflow-hidden shadow-xl">
+      {/* Top Station Control Header */}
+      <div className="fp-card p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-bold bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30 flex items-center gap-1.5">
-              <QrCode className="w-3.5 h-3.5 text-[#6C7A89]" /> High-Speed Check-In Station
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <span className="fp-tag-sage">
+              <QrCode className="w-3.5 h-3.5" />
+              <span>Check-In Workstation</span>
             </span>
-            <span className="text-xs text-white/50">• {event?.title}</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+              {event?.title}
+            </span>
           </div>
-          <h1 className="font-heading font-extrabold text-2xl text-white tracking-tight">
-            On-Site Check-In &amp; Badge Dispatch
+          <h1 className="text-xl sm:text-2xl font-extrabold m-0">
+            On-Site Check-In &amp; 3.1&quot; Badge Dispatch
           </h1>
-          <p className="text-xs text-white/60 mt-1 max-w-xl">
-            Supports multiple simultaneous entrance desks, mobile phone scanners, and instant badge printing.
+          <p className="text-xs sm:text-sm mt-1 m-0" style={{ color: 'var(--text-muted)' }}>
+            Enter any ticket code (full code, last 4 digits, or email) or scan QR passes. Every scan is logged to the audit trail.
           </p>
         </div>
 
-        {/* Multi-Admin Station Coordinator & Offline Badge */}
-        <div className="flex flex-wrap items-center gap-3">
-          
-          {/* Active Event Day Selector (Multi-Day Gate Control) */}
-          <div className="bg-[#121819] border border-white/15 rounded-2xl p-2 px-3 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#6C7A89] shrink-0" />
-            <div>
-              <span className="text-[10px] font-mono font-bold text-[#E0E7E9] uppercase tracking-wider block">
-                Active Event Day:
-              </span>
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
+          {/* Active Day Selector */}
+          <div className="p-2 px-3 rounded-lg border flex items-center gap-2" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+            <Calendar className="w-4 h-4 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold uppercase block" style={{ color: 'var(--text-muted)' }}>Active Event Day</span>
               <select
                 value={activeDayId}
                 onChange={(e) => {
                   setActiveDayId(e.target.value);
                   setLastScanResult(null);
                 }}
-                className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-bold w-full focus:outline-none cursor-pointer"
+                style={{ color: 'var(--text-main)' }}
               >
                 {eventDays.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-[#121819] text-white">
-                    {d.label} • {d.date}
+                  <option key={d.id} value={d.id}>
+                    {d.label} · {d.date}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Active Station Selector */}
-          <div className="bg-[#121819] border border-white/15 rounded-2xl p-2 px-3 flex items-center gap-2">
-            <Monitor className="w-4 h-4 text-[#A3C6C4] shrink-0" />
-            <div>
-              <span className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-wider block">
-                Active Station Desk:
-              </span>
+          {/* Active Station Desk */}
+          <div className="p-2 px-3 rounded-lg border flex items-center gap-2" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+            <Monitor className="w-4 h-4 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold uppercase block" style={{ color: 'var(--text-muted)' }}>Active Desk</span>
               <select
                 value={staffName}
                 onChange={(e) => setStaffName(e.target.value)}
-                className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-bold w-full focus:outline-none cursor-pointer"
+                style={{ color: 'var(--text-main)' }}
               >
                 {stationOptions.map((preset) => (
-                  <option key={preset} value={preset} className="bg-[#121819] text-white">
-                    {preset}
-                  </option>
+                  <option key={preset} value={preset}>{preset}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Add / Manage Staff Scanners Button */}
           <button
+            type="button"
             onClick={() => {
               setStaffModalTab('roster');
               setIsMultiStaffModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold text-xs shadow-lg shadow-[#354649]/30 transition-all hover:opacity-95 cursor-pointer"
-            title="Manage check-in staff team and issue mobile scanner passes"
+            className="btn-fp-olive px-4 py-2.5 text-xs inline-flex items-center justify-center gap-1.5"
           >
-            <Users className="w-4 h-4 text-[#E0E7E9]" />
-            <span>Manage Staff Scanners</span>
+            <Users className="w-4 h-4" />
+            <span>Manage Staff &amp; PINs</span>
           </button>
 
-          {/* Offline indicator if active */}
           {isOffline && (
-            <div className="px-3 py-2 bg-amber-500/20 border border-amber-500/40 rounded-2xl text-amber-300 text-xs font-semibold flex items-center gap-2 animate-pulse">
+            <button
+              type="button"
+              onClick={onSyncOffline}
+              className="px-3 py-2 rounded-lg text-xs font-bold inline-flex items-center justify-center gap-1.5 border"
+              style={{ background: 'rgba(180,83,9,0.12)', borderColor: 'var(--fp-amber)', color: 'var(--fp-amber)' }}
+            >
               <WifiOff className="w-4 h-4" />
-              <span>Offline ({offlineQueue?.length || 0})</span>
-            </div>
+              <span>Offline ({offlineQueue?.length || 0} queued)</span>
+            </button>
           )}
         </div>
       </div>
 
-      {/* Multi-Station & Multi-Day Live Metrics Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 bg-[#1a2325] p-3.5 rounded-2xl border border-white/10 text-xs shadow-lg">
-        <div className="px-3 py-1">
-          <span className="text-white/50 block text-[11px]">Total Event Registrants</span>
-          <span className="font-heading text-lg font-extrabold text-white">{eventRegistrations.length}</span>
+      {/* Live Metrics Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="fp-card p-4">
+          <div className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Total Registrants</div>
+          <div className="text-2xl font-extrabold mt-1">{eventRegistrations.length}</div>
         </div>
-        <div className="px-3 py-1 border-l border-white/10">
-          <span className="text-[#E0E7E9] block text-[11px] font-semibold">{currentDayObj.label} Passes</span>
-          <span className="font-heading text-lg font-extrabold text-[#E0E7E9]">{eligibleTodayCount}</span>
+        <div className="fp-card p-4">
+          <div className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{currentDayObj.label} Eligible</div>
+          <div className="text-2xl font-extrabold mt-1">{eligibleTodayCount}</div>
         </div>
-        <div className="px-3 py-1 border-l border-white/10">
-          <span className="text-emerald-400 block text-[11px] font-semibold">{currentDayObj.label} Scanned In</span>
-          <span className="font-heading text-lg font-extrabold text-emerald-400">{checkedInTodayCount}</span>
+        <div className="fp-card p-4">
+          <div className="text-xs font-medium" style={{ color: 'var(--fp-green)' }}>Checked In Today</div>
+          <div className="text-2xl font-extrabold mt-1" style={{ color: 'var(--fp-green)' }}>{checkedInTodayCount}</div>
         </div>
-        <div className="px-3 py-1 border-l border-white/10">
-          <span className="text-[#6C7A89] block text-[11px] font-semibold">{currentDayObj.label} Awaiting</span>
-          <span className="font-heading text-lg font-extrabold text-[#6C7A89]">{pendingTodayCount}</span>
-        </div>
-        <div className="px-3 py-1 border-l border-white/10 hidden lg:block">
-          <span className="text-white/50 block text-[11px]">Active Day Status</span>
-          <span className="text-emerald-400 font-bold flex items-center gap-1 mt-1 text-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            {currentDayObj.title || "Check-In Live"}
-          </span>
+        <div className="fp-card p-4">
+          <div className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Awaiting Arrival</div>
+          <div className="text-2xl font-extrabold mt-1">{pendingTodayCount}</div>
         </div>
       </div>
 
-      {/* Main Check-In Workstation Panels */}
+      {/* Main 2-Column Workstation */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* LEFT COLUMN: Optical & Hardware Scanner Workstation (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          
-          <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                <Camera className="w-5 h-5 text-emerald-400" />
-                <span>Camera &amp; Optical QR Scanner</span>
+        {/* LEFT COLUMN: Ticket Code Entry & Camera Scanner (7 cols) */}
+        <div className="lg:col-span-7 space-y-5">
+          <div className="fp-card p-5 sm:p-6 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-base sm:text-lg font-bold m-0 flex items-center gap-2">
+                <QrCode className="w-5 h-5" style={{ color: 'var(--fp-olive)' }} />
+                <span>Ticket Code Entry &amp; QR Scanner</span>
               </h2>
-              <span className="text-[11px] font-mono text-white/40">FR-2.1 Target &lt; 1s</span>
+              <button
+                type="button"
+                onClick={isCameraActive ? stopCamera : startCamera}
+                className={isCameraActive ? 'btn-fp-outline px-3 py-1.5 text-xs inline-flex items-center gap-1.5' : 'btn-fp-sage px-3 py-1.5 text-xs inline-flex items-center gap-1.5'}
+              >
+                {isCameraActive ? <VideoOff className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
+                <span>{isCameraActive ? 'Stop Camera' : 'Start Camera QR'}</span>
+              </button>
             </div>
 
-            {/* Video Scanner Viewport Mockup */}
-            <div className="relative aspect-video bg-[#121819] rounded-2xl border-2 border-dashed border-emerald-500/40 flex flex-col items-center justify-center overflow-hidden">
-              <div className="w-48 h-48 border-2 border-emerald-400 rounded-3xl relative flex items-center justify-center animate-pulse">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-400 shadow-[0_0_12px_#34d399] animate-bounce"></div>
-                <QrCode className="w-16 h-16 text-emerald-400/40" />
-                <span className="absolute bottom-3 text-[10px] font-mono text-emerald-300 text-center">
-                  Aim Camera at Delegate QR Ticket
-                </span>
-              </div>
-              <span className="mt-4 text-xs font-mono text-emerald-400/70">
-                Hardware Barcode / Optical Camera Active
-              </span>
-            </div>
-
-            {/* Manual Scan Input Field (High-speed barcode scanner input) */}
-            <form onSubmit={(e) => { e.preventDefault(); handleExecuteCheckIn(scanInput); }} className="space-y-2">
-              <label className="block text-xs font-bold font-mono text-white/70 uppercase tracking-wider">
-                Scan Input (Auto-Focus Barcode Reader or Ticket Code):
+            {/* Ticket Code Input Form — ALWAYS VISIBLE & FOCUSED */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleExecuteCheckIn(scanInput);
+              }}
+              className="space-y-2"
+            >
+              <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                Enter Ticket Code, Last 4 Digits, Email, or Scan Barcode:
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
+                  ref={scanInputRef}
                   type="text"
                   value={scanInput}
                   onChange={(e) => setScanInput(e.target.value)}
-                  placeholder="Scan or type ticket code (e.g. TKT-ACME-...)"
-                  className="flex-1 px-4 py-3 bg-[#121819] border border-white/15 rounded-xl font-mono text-sm text-white focus:outline-none focus:border-emerald-400 placeholder:text-white/30"
+                  placeholder={`e.g. ${awaitingTickets[0]?.ticketCode || 'TKT-ACM-3301'} or 3301`}
+                  className="fp-input flex-1 px-4 py-3 font-mono text-sm sm:text-base"
                   autoFocus
                 />
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm rounded-xl transition-colors cursor-pointer"
+                  className="btn-fp-olive px-6 py-3 text-sm font-bold shrink-0"
                 >
-                  Process
+                  Check In Ticket
                 </button>
               </div>
+              <p className="text-[11px] m-0" style={{ color: 'var(--text-muted)' }}>
+                Tip: Works with full ticket codes (e.g. <code>TKT-ACM-3301</code>), lowercase, without dashes, last 4 digits (<code>3301</code>), or attendee email.
+              </p>
             </form>
 
-            {/* Quick One-Click Demo Scans */}
-            <div className="pt-2">
-              <span className="text-[11px] font-mono text-white/40 block mb-2 uppercase">
-                Simulate Scans with Sample Attendee Tickets:
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {sampleTickets.map(t => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => handleExecuteCheckIn(t.ticketCode)}
-                    className="p-2 rounded-xl bg-[#121819] hover:bg-[#243033] border border-white/10 text-left transition-all cursor-pointer group"
-                  >
-                    <p className="text-xs font-bold text-white truncate group-hover:text-[#E0E7E9]">{t.name}</p>
-                    <p className="text-[10px] font-mono text-[#6C7A89] truncate">{t.ticketCode}</p>
-                  </button>
-                ))}
+            {/* Optional Live Webcam QR Viewport */}
+            {isCameraActive && (
+              <div className="rounded-xl overflow-hidden border bg-black relative aspect-video">
+                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-44 h-44 border-2 border-emerald-400 rounded-2xl shadow-[0_0_20px_rgba(52,211,153,0.4)]" />
+                </div>
               </div>
-            </div>
+            )}
+            {cameraStatus && (
+              <div className="text-xs px-3 py-2 rounded-lg border" style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border-color)', color: 'var(--text-sub)' }}>
+                {cameraStatus}
+              </div>
+            )}
 
+            {/* Quick One-Click Test Tickets */}
+            {quickTestTickets.length > 0 && (
+              <div className="pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                <span className="text-[11px] font-bold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-muted)' }}>
+                  Quick Test Tickets (Click to scan immediately):
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {quickTestTickets.map((t) => {
+                    const done = Boolean(t.dailyAttendance?.[activeDayId]);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => handleExecuteCheckIn(t.ticketCode)}
+                        className="p-2.5 rounded-xl border text-left transition-colors flex items-center justify-between gap-2"
+                        style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}
+                      >
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold truncate">{t.name}</div>
+                          <div className="text-[11px] font-mono" style={{ color: 'var(--fp-olive)' }}>{t.ticketCode}</div>
+                        </div>
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                          style={{
+                            background: done ? 'var(--fp-sage)' : 'var(--bg-subtle)',
+                            color: done ? 'var(--fp-sage-text)' : 'var(--text-muted)',
+                          }}
+                        >
+                          {done ? 'Checked In' : 'Awaiting'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Last Scan Result Feedback Card */}
+          {/* Scan Result Feedback Card */}
           {lastScanResult && (
-            <div className={`p-6 rounded-3xl border shadow-xl transition-all ${
-              lastScanResult.success 
-                ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200' 
-                : lastScanResult.alreadyCheckedIn
-                ? 'bg-amber-950/30 border-amber-500/40 text-amber-200'
-                : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
-            }`}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
+            <div
+              className="fp-card p-5 border-2 space-y-3"
+              style={{
+                borderColor: lastScanResult.success
+                  ? 'var(--fp-green)'
+                  : lastScanResult.alreadyCheckedIn || lastScanResult.notPermittedToday
+                  ? 'var(--fp-amber)'
+                  : 'var(--fp-red)',
+              }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
                   {lastScanResult.success ? (
-                    <CheckCircle2 className="w-8 h-8 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-7 h-7 shrink-0 mt-0.5" style={{ color: 'var(--fp-green)' }} />
+                  ) : lastScanResult.alreadyCheckedIn || lastScanResult.notPermittedToday ? (
+                    <AlertTriangle className="w-7 h-7 shrink-0 mt-0.5" style={{ color: 'var(--fp-amber)' }} />
                   ) : (
-                    <AlertTriangle className="w-8 h-8 text-amber-400 shrink-0" />
+                    <ShieldAlert className="w-7 h-7 shrink-0 mt-0.5" style={{ color: 'var(--fp-red)' }} />
                   )}
                   <div>
-                    <h3 className="font-heading font-extrabold text-lg text-white">
-                      {lastScanResult.success ? "Check-In Approved & Verified" : "Scan Attention Required"}
+                    <h3 className="text-base font-extrabold m-0">
+                      {lastScanResult.success
+                        ? 'Check-In Approved & Logged'
+                        : lastScanResult.alreadyCheckedIn
+                        ? 'Duplicate Scan Detected'
+                        : lastScanResult.notPermittedToday
+                        ? 'Pass Not Valid for Selected Day'
+                        : 'Ticket Not Verified'}
                     </h3>
-                    <p className="text-xs mt-0.5 leading-relaxed">
+                    <p className="text-xs sm:text-sm mt-1 m-0" style={{ color: 'var(--text-sub)' }}>
                       {lastScanResult.message}
                     </p>
                   </div>
                 </div>
 
                 {lastScanResult.attendee && (
-                  <button
-                    onClick={() => setBadgeModalAttendee(lastScanResult.attendee)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold text-xs shadow-md shrink-0 cursor-pointer"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Print Badge</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {lastScanResult.canOverride && (
+                      <button
+                        type="button"
+                        onClick={() => handleExecuteCheckIn(lastScanResult.attendee.ticketCode, true)}
+                        className="btn-fp-outline px-3 py-2 text-xs"
+                      >
+                        Supervisor Override
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setBadgeModalAttendee(lastScanResult.attendee)}
+                      className="btn-fp-olive px-3.5 py-2 text-xs inline-flex items-center gap-1.5"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print 3.1&quot; Badge</span>
+                    </button>
+                  </div>
                 )}
               </div>
+
+              {lastScanResult.attendee && (
+                <div className="pt-3 border-t flex items-center gap-3" style={{ borderColor: 'var(--border-color)' }}>
+                  <img
+                    src={lastScanResult.attendee.photoUrl}
+                    alt={lastScanResult.attendee.name}
+                    className="w-11 h-11 rounded-xl object-cover border shrink-0"
+                    style={{ borderColor: 'var(--border-color)' }}
+                  />
+                  <div className="text-xs min-w-0">
+                    <div className="font-bold truncate">{lastScanResult.attendee.name}</div>
+                    <div className="truncate" style={{ color: 'var(--text-muted)' }}>
+                      {lastScanResult.attendee.organization} · {lastScanResult.attendee.category} · <code>{lastScanResult.attendee.ticketCode}</code>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-
         </div>
 
-        {/* RIGHT COLUMN: Manual Fallback Search & Live Queue (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          
-          {/* Manual Search Fallback (FR-2.2) */}
-          <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+        {/* RIGHT COLUMN: Manual Search Fallback & Live Checked-In Queue (5 cols) */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* Manual Search */}
+          <div className="fp-card p-5 space-y-4">
             <div>
-              <h2 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                <Search className="w-5 h-5 text-[#A3C6C4]" />
-                <span>Manual Search Fallback (FR-2.2)</span>
+              <h2 className="text-base font-bold m-0 flex items-center gap-2">
+                <Search className="w-4 h-4" style={{ color: 'var(--fp-olive)' }} />
+                <span>Manual Attendee Lookup</span>
               </h2>
-              <p className="text-xs text-white/50 mt-1">
-                Search by delegate name, email, phone number, or ticket code if delegate forgot their ticket.
+              <p className="text-xs mt-1 m-0" style={{ color: 'var(--text-muted)' }}>
+                Search by delegate name, email, phone, company, or ticket code.
               </p>
             </div>
 
             <div className="relative">
-              <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-3.5" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
               <input
                 type="text"
                 value={manualQuery}
                 onChange={(e) => setManualQuery(e.target.value)}
-                placeholder="Search attendee by name, email or phone..."
-                className="w-full pl-10 pr-4 py-2.5 bg-[#121819] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-[#A3C6C4] placeholder:text-white/30"
+                placeholder="Search attendee name, email, phone, or code..."
+                className="fp-input w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm"
               />
             </div>
 
-            {/* Search Results Dropdown List */}
-            {searchResults.length > 0 && (
-              <div className="space-y-2 pt-2">
-                {searchResults.map(attendee => {
-                  const isCheckedIn = (attendee.dailyAttendance?.[activeDayId]?.checkedIn || attendee.dailyAttendance?.[activeDayId]?.attended);
-                  return (
-                    <div 
-                      key={attendee.id} 
-                      className="p-3 bg-[#121819] rounded-xl border border-white/10 flex items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-bold text-white truncate">{attendee.name}</p>
-                        <p className="text-[10px] text-white/50 truncate">{attendee.organization} • {attendee.ticketCode}</p>
-                      </div>
+            {manualQuery.trim() !== '' && (
+              <div className="space-y-2">
+                {searchResults.length === 0 ? (
+                  <div className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+                    No delegates match &quot;{manualQuery}&quot;.
+                  </div>
+                ) : (
+                  searchResults.map((att) => {
+                    const isChecked = Boolean(att.dailyAttendance?.[activeDayId]?.checkedIn || att.dailyAttendance?.[activeDayId]?.attended);
+                    return (
+                      <div
+                        key={att.id}
+                        className="p-3 rounded-xl border flex items-center justify-between gap-2.5"
+                        style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <img src={att.photoUrl} alt={att.name} className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold truncate">{att.name}</div>
+                            <div className="text-[11px] truncate font-mono" style={{ color: 'var(--text-muted)' }}>
+                              {att.ticketCode} · {att.organization}
+                            </div>
+                          </div>
+                        </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        {isCheckedIn ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            Checked In
-                          </span>
-                        ) : (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isChecked ? (
+                            <span className="fp-tag-sage text-[10px]">Verified</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleExecuteCheckIn(att.ticketCode)}
+                              className="btn-fp-olive px-2.5 py-1.5 text-xs"
+                            >
+                              Check In
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleExecuteCheckIn(attendee.ticketCode)}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-colors cursor-pointer"
+                            type="button"
+                            onClick={() => setBadgeModalAttendee(att)}
+                            className="btn-fp-outline p-1.5"
+                            title="Print 3.1in Badge"
                           >
-                            Check In
+                            <Printer className="w-3.5 h-3.5" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => setBadgeModalAttendee(attendee)}
-                          className="p-1.5 rounded-lg bg-[#243033] hover:bg-[#2f3e42] text-white/80 hover:text-white transition-colors cursor-pointer"
-                          title="Print Badge"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             )}
           </div>
 
-          {/* Recently Checked-In Live Stream */}
-          <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+          {/* Recently Checked-In Queue */}
+          <div className="fp-card p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-heading font-extrabold text-xs uppercase tracking-wider text-white/60">
-                Recently Checked-In Queue
-              </h2>
-              <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Live Sync
-              </span>
+              <h3 className="text-sm font-bold m-0">Checked-In Today ({checkedInTodayList.length})</h3>
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--fp-green)' }}>● Live Sync</span>
             </div>
-
-            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              {eventRegistrations
-                .filter(r => (r.dailyAttendance?.[activeDayId]?.checkedIn || r.dailyAttendance?.[activeDayId]?.attended))
-                .slice(-6)
-                .reverse()
-                .map(attendee => (
-                  <div key={attendee.id} className="p-3 bg-[#121819] rounded-xl border border-white/5 flex items-center justify-between text-xs">
-                    <div className="min-w-0">
-                      <p className="font-bold text-white truncate">{attendee.name}</p>
-                      <p className="text-[10px] text-white/40 truncate">
-                        {attendee.ticketCode} • {attendee.dailyAttendance?.[activeDayId]?.checkedInBy || staffName}
-                      </p>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {checkedInTodayList.slice().reverse().map((att) => (
+                <div
+                  key={att.id}
+                  className="p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs"
+                  style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}
+                >
+                  <div className="min-w-0">
+                    <div className="font-bold truncate">{att.name}</div>
+                    <div className="text-[11px] font-mono truncate" style={{ color: 'var(--text-muted)' }}>
+                      {att.ticketCode} · {att.dailyAttendance?.[activeDayId]?.checkedInBy || staffName}
                     </div>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
-                      Verified
-                    </span>
                   </div>
-                ))}
-              {eventRegistrations.filter(r => (r.dailyAttendance?.[activeDayId]?.checkedIn || r.dailyAttendance?.[activeDayId]?.attended)).length === 0 && (
-                <div className="py-8 text-center text-xs text-white/40">
-                  No attendees checked in yet for {currentDayObj.label}. Scan or search above to begin!
+                  <button
+                    type="button"
+                    onClick={() => setBadgeModalAttendee(att)}
+                    className="btn-fp-sage px-2.5 py-1 text-[11px] inline-flex items-center gap-1 shrink-0"
+                  >
+                    <Printer className="w-3 h-3" />
+                    <span>Tag</span>
+                  </button>
+                </div>
+              ))}
+              {checkedInTodayList.length === 0 && (
+                <div className="py-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+                  No attendees checked in yet for {currentDayObj.label}.
                 </div>
               )}
             </div>
           </div>
-
         </div>
-
       </div>
 
-      {/* =========================================================================
-          COMPREHENSIVE MULTI-STAFF MANAGEMENT & SCANNER ACCESS MODAL
-          Tabs: 1. Team Roster & Add Staff | 2. Mobile QR & Fast Access
-          ========================================================================= */}
+      {/* Live Station Audit Trail */}
+      <AuditTrailPanel
+        logs={tenantAuditLogs}
+        title="Live Check-In & Station Audit Trail"
+        compact
+        tenantName={tenant?.name || 'Event'}
+      />
+
+      {/* Multi-Staff Provisioning Modal */}
       {isMultiStaffModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-          
-          {/* Iridescent Gradient Border Container */}
-          <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] p-[1.5px] rounded-3xl shadow-[0_0_60px_rgba(251,147,120,0.25)] my-6">
-            
-            <div className="relative w-full bg-[#182224] rounded-[22.5px] p-6 sm:p-8 text-white flex flex-col max-h-[92vh]">
-              
-              {/* Close Button */}
-              <button
-                onClick={() => setIsMultiStaffModalOpen(false)}
-                className="absolute top-5 right-5 text-white/40 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                title="Close dialog"
-              >
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          style={{ background: 'rgba(15, 20, 14, 0.65)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setIsMultiStaffModalOpen(false)}
+        >
+          <div
+            className="fp-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+            style={{ background: 'var(--bg-main)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ background: 'var(--bg-header)', borderColor: 'var(--border-header)', color: 'var(--header-text)' }}>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold m-0" style={{ color: 'var(--header-text)' }}>Check-In Staff &amp; Scanner PINs</h3>
+                <p className="text-xs m-0 opacity-80" style={{ color: 'var(--header-text)' }}>Provision entrance desks and mobile QR logins</p>
+              </div>
+              <button type="button" onClick={() => setIsMultiStaffModalOpen(false)} className="p-1.5 rounded-lg hover:bg-black/10">
                 <X className="w-5 h-5" />
               </button>
+            </div>
 
-              {/* Header */}
-              <div className="flex items-center gap-3.5 mb-5 shrink-0">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] flex items-center justify-center shadow-lg shrink-0">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-heading font-extrabold text-xl text-white">
-                    Check-In Staff &amp; Scanner Team
-                  </h3>
-                  <p className="text-xs text-white/60 mt-0.5">
-                    Provision station ushers, assign entry desks, and manage mobile scanning passes
-                  </p>
-                </div>
-              </div>
+            <div className="px-5 pt-4 flex gap-2 border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
+              <button type="button" onClick={() => setStaffModalTab('roster')} className={`fp-subnav-pill text-xs ${staffModalTab === 'roster' ? 'active' : ''}`}>
+                <Users className="w-3.5 h-3.5" /> Team Roster ({staffList.length})
+              </button>
+              <button type="button" onClick={() => setStaffModalTab('qr')} className={`fp-subnav-pill text-xs ${staffModalTab === 'qr' ? 'active' : ''}`}>
+                <Smartphone className="w-3.5 h-3.5" /> Mobile QR Connect
+              </button>
+            </div>
 
-              {/* Navigation Tabs */}
-              <div className="flex border-b border-white/10 gap-4 text-xs font-semibold mb-5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setStaffModalTab('roster')}
-                  className={`pb-2.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                    staffModalTab === 'roster'
-                      ? 'border-[#6C7A89] text-[#E0E7E9] font-extrabold'
-                      : 'border-transparent text-white/50 hover:text-white'
-                  }`}
-                >
-                  <Users className="w-4 h-4 text-[#6C7A89]" />
-                  <span>Team Roster &amp; Add Staff ({staffList.length})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStaffModalTab('qr')}
-                  className={`pb-2.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                    staffModalTab === 'qr'
-                      ? 'border-[#6C7A89] text-[#E0E7E9] font-extrabold'
-                      : 'border-transparent text-white/50 hover:text-white'
-                  }`}
-                >
-                  <Smartphone className="w-4 h-4 text-[#A3C6C4]" />
-                  <span>Mobile QR Fast Connect</span>
-                </button>
-              </div>
-
-              {/* Success Notification Alert */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
               {staffSuccessNotice && (
-                <div className="mb-4 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>{staffSuccessNotice}</span>
+                <div className="p-3 rounded-lg text-xs font-semibold border" style={{ background: 'var(--fp-sage)', borderColor: 'var(--fp-olive)', color: 'var(--fp-sage-text)' }}>
+                  {staffSuccessNotice}
                 </div>
               )}
 
-              {/* CONTENT AREA */}
-              <div className="overflow-y-auto flex-1 pr-1 space-y-5">
-                
-                {/* =========================================================================
-                    TAB 1: STAFF ROSTER & ADD NEW STAFF MEMBER
-                    ========================================================================= */}
-                {staffModalTab === 'roster' && (
-                  <div className="space-y-5">
-                    
-                    {/* Add New Staff Form Card */}
-                    <div className="bg-[#121819] border border-white/10 rounded-2xl p-4 sm:p-5">
-                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E0E7E9] flex items-center gap-1.5 mb-3">
-                        <UserPlus className="w-4 h-4 text-[#6C7A89]" />
-                        <span>Provision New Staff Scanner</span>
-                      </h4>
+              {staffModalTab === 'roster' ? (
+                <>
+                  <form onSubmit={handleAddStaffSubmit} className="fp-card p-4 space-y-3">
+                    <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--fp-olive)' }}>
+                      <UserPlus className="w-4 h-4" /> Add Check-In Staff Member
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} placeholder="Staff Full Name *" className="fp-input px-3 py-2 text-xs" />
+                      <input value={newStaffStation} onChange={(e) => setNewStaffStation(e.target.value)} placeholder="Assigned Station / Desk *" required className="fp-input px-3 py-2 text-xs" />
+                      <input type="email" value={newStaffEmail} onChange={(e) => setNewStaffEmail(e.target.value)} placeholder="Staff Email (optional)" className="fp-input px-3 py-2 text-xs" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <select value={newStaffRole} onChange={(e) => setNewStaffRole(e.target.value)} className="fp-input px-2.5 py-2 text-xs">
+                          <option value="Check-In Scanner">Scanner</option>
+                          <option value="Lead Supervisor">Supervisor</option>
+                          <option value="Badge Operator">Badge Printer</option>
+                        </select>
+                        <input value={newStaffPin} onChange={(e) => setNewStaffPin(e.target.value)} maxLength={6} placeholder="PIN" className="fp-input px-2.5 py-2 text-xs font-mono text-center font-bold" />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button type="submit" className="btn-fp-olive px-4 py-2 text-xs">Provision Staff</button>
+                    </div>
+                  </form>
 
-                      <form onSubmit={handleAddStaffSubmit} className="space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          
-                          {/* Name Input */}
-                          <div>
-                            <label className="block text-[11px] font-bold text-white/70 mb-1">
-                              Staff Full Name *
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={newStaffName}
-                              onChange={(e) => setNewStaffName(e.target.value)}
-                              placeholder="e.g. Kwame Mensah"
-                              className="w-full px-3 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none"
-                            />
+                  <div className="space-y-2">
+                    {staffList.map((st) => (
+                      <div key={st.id} className="p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+                        <div>
+                          <div className="text-xs font-bold">{st.name} <span className="fp-tag-sage text-[10px] ml-1">{st.role}</span></div>
+                          <div className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                            {st.station} · PIN: <strong>{st.pin}</strong>
                           </div>
-
-                          {/* Email Input */}
-                          <div>
-                            <label className="block text-[11px] font-bold text-white/70 mb-1">
-                              Staff Email (Optional)
-                            </label>
-                            <input
-                              type="email"
-                              value={newStaffEmail}
-                              onChange={(e) => setNewStaffEmail(e.target.value)}
-                              placeholder="e.g. kwame@eventplan.cloud"
-                              className="w-full px-3 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none"
-                            />
-                          </div>
-
-                          {/* Station Desk Selector */}
-                          <div>
-                            <label className="block text-[11px] font-bold text-white/70 mb-1">
-                              Assigned Station / Desk
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={newStaffStation}
-                              onChange={(e) => setNewStaffStation(e.target.value)}
-                              placeholder="e.g. Desk 4 - Fast Track Gate"
-                              className="w-full px-3 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none"
-                            />
-                          </div>
-
-                          {/* Station Role & PIN */}
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="block text-[11px] font-bold text-white/70 mb-1">
-                                Role
-                              </label>
-                              <select
-                                value={newStaffRole}
-                                onChange={(e) => setNewStaffRole(e.target.value)}
-                                className="w-full px-2.5 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-white focus:outline-none cursor-pointer"
-                              >
-                                <option value="Check-In Scanner">Scanner</option>
-                                <option value="Lead Supervisor">Supervisor</option>
-                                <option value="Badge Operator">Badge Operator</option>
-                                <option value="Gate Usher">Gate Usher</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-[11px] font-bold text-white/70 mb-1">
-                                Station PIN
-                              </label>
-                              <input
-                                type="text"
-                                maxLength={6}
-                                value={newStaffPin}
-                                onChange={(e) => setNewStaffPin(e.target.value)}
-                                placeholder="PIN"
-                                className="w-full px-2.5 py-2 bg-[#1a2325] border border-white/15 focus:border-[#6C7A89] rounded-xl text-xs text-center font-mono font-bold text-[#E0E7E9] focus:outline-none"
-                              />
-                            </div>
-                          </div>
-
                         </div>
-
-                        <div className="pt-2 flex justify-end">
-                          <button
-                            type="submit"
-                            className="px-5 py-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] hover:opacity-90 text-black font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <UserPlus className="w-3.5 h-3.5" />
-                            <span>Add Staff Member</span>
+                        <div className="flex items-center gap-2 self-end sm:self-auto">
+                          <button type="button" onClick={() => { setSelectedStaffForQr(st); setStaffModalTab('qr'); }} className="btn-fp-sage px-2.5 py-1.5 text-xs">QR Pass</button>
+                          <button type="button" onClick={() => handleRemoveStaff(st.id)} className="btn-fp-outline p-1.5" style={{ color: 'var(--fp-red)' }}>
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                      </form>
-                    </div>
-
-                    {/* Active Staff Roster List */}
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-white/50 px-1">
-                        <span>Provisioned Staff Team ({staffList.length})</span>
-                        <span>Multi-Desk Security</span>
                       </div>
-
-                      {staffList.map((staff) => (
-                        <div
-                          key={staff.id}
-                          className="p-3.5 bg-[#121819] border border-white/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/20 transition-all group"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            {/* Staff Initial Monogram */}
-                            <div 
-                              className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-xs text-black shrink-0 shadow-inner"
-                              style={{ 
-                                background: 'linear-gradient(135deg, #354649 0%, #6C7A89 50%, #A3C6C4 100%)'
-                              }}
-                            >
-                              {staff.name.charAt(0)}
-                            </div>
-                            <div className="truncate">
-                              <div className="flex items-center gap-2">
-                                <p className="font-heading font-extrabold text-xs text-white truncate">
-                                  {staff.name}
-                                </p>
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30 uppercase">
-                                  {staff.role}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-white/50 truncate font-mono mt-0.5">
-                                {staff.station} • PIN: <strong className="text-white">{staff.pin}</strong>
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                            {/* Fast QR Access Button */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedStaffForQr(staff);
-                                setStaffModalTab('qr');
-                              }}
-                              className="px-3 py-1.5 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-xs font-semibold text-white/90 border border-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
-                              title="Show personalized mobile scanner QR code"
-                            >
-                              <QrCode className="w-3.5 h-3.5 text-[#6C7A89]" />
-                              <span>Mobile QR Pass</span>
-                            </button>
-
-                            {/* Remove Staff */}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveStaff(staff.id)}
-                              className="p-1.5 rounded-xl text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                              title="Remove staff scanner"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-
-                      {staffList.length === 0 && (
-                        <div className="py-8 text-center text-xs text-white/40 bg-[#121819] rounded-2xl border border-white/5">
-                          No staff members added yet. Fill out the form above to add your event check-in team!
-                        </div>
-                      )}
-                    </div>
-
+                    ))}
                   </div>
-                )}
-
-                {/* =========================================================================
-                    TAB 2: MOBILE SCANNER QR CODE & DIRECT LOGIN PASS
-                    ========================================================================= */}
-                {staffModalTab === 'qr' && (
-                  <div className="space-y-4">
-                    
-                    {/* Staff Member Selector for QR */}
-                    <div className="bg-[#121819] p-3 rounded-2xl border border-white/10 flex items-center justify-between gap-3">
-                      <span className="text-xs font-bold text-white/70">
-                        Station Pass For:
-                      </span>
-                      <select
-                        value={selectedStaffForQr ? selectedStaffForQr.id : 'all'}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === 'all') {
-                            setSelectedStaffForQr(null);
-                          } else {
-                            const found = staffList.find(s => s.id === val);
-                            setSelectedStaffForQr(found || null);
-                          }
-                        }}
-                        className="bg-[#1a2325] border border-white/15 rounded-xl px-3 py-1.5 text-xs font-bold text-[#E0E7E9] focus:outline-none cursor-pointer"
-                      >
-                        <option value="all">★ All Staff (General Scanner Link)</option>
-                        {staffList.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name} ({s.station})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* QR Code Card */}
-                    <div className="bg-[#121819] p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center">
-                      <div className="p-3 bg-white rounded-2xl shadow-xl mb-3 border-2 border-[#A3C6C4]/30">
-                        {staffQrDataUrl ? (
-                          <img src={staffQrDataUrl} alt="Staff Portal QR" className="w-44 h-44 object-contain" />
-                        ) : (
-                          <div className="w-44 h-44 bg-stone-200 animate-pulse rounded-xl" />
-                        )}
-                      </div>
-                      
-                      <span className="text-sm font-heading font-extrabold text-white mb-0.5">
-                        {selectedStaffForQr ? `${selectedStaffForQr.name}'s Station Pass` : "Scan with Staff Mobile Camera"}
-                      </span>
-                      <p className="text-xs text-white/60 max-w-sm mb-4 leading-relaxed">
-                        Point any smartphone camera at this QR code to immediately launch the scanner desk pre-configured for{" "}
-                        <strong className="text-[#E0E7E9]">{selectedStaffForQr ? selectedStaffForQr.station : "this event"}</strong>.
-                      </p>
-
-                      {/* Direct URL Share */}
-                      <div className="w-full max-w-md bg-black/60 border border-white/10 p-2.5 rounded-xl flex items-center justify-between gap-2">
-                        <span className="font-mono text-[11px] text-[#E0E7E9] truncate flex-1 text-left">
-                          {activeStaffPortalLink}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleCopyStaffLink}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#243033] hover:bg-[#2f3e42] text-white font-bold text-xs shrink-0 transition-colors border border-white/15 cursor-pointer"
-                        >
-                          {copiedStaffLink ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              <span className="text-emerald-400">Copied!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5 text-[#6C7A89]" />
-                              <span>Copy Link</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
+                </>
+              ) : (
+                <div className="fp-card p-5 flex flex-col items-center text-center space-y-3">
+                  {staffQrDataUrl && <img src={staffQrDataUrl} alt="Staff QR" className="w-44 h-44 bg-white p-2 rounded-xl border" />}
+                  <div className="font-bold text-sm">{selectedStaffForQr ? `${selectedStaffForQr.name} — ${selectedStaffForQr.station}` : 'General Staff Login QR'}</div>
+                  <div className="w-full max-w-md flex items-center gap-2">
+                    <code className="flex-1 text-[11px] p-2 rounded-lg border truncate" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>{activeStaffPortalLink}</code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(activeStaffPortalLink);
+                        setCopiedStaffLink(true);
+                        setTimeout(() => setCopiedStaffLink(false), 2000);
+                      }}
+                      className="btn-fp-olive px-3 py-2 text-xs inline-flex items-center gap-1"
+                    >
+                      {copiedStaffLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedStaffLink ? 'Copied' : 'Copy'}</span>
+                    </button>
                   </div>
-                )}
-
-              </div>
-
-              {/* Modal Footer */}
-              <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/50 shrink-0">
-                <span>Multi-station check-in is active for <strong>{tenant?.name}</strong></span>
-                <button
-                  type="button"
-                  onClick={() => setIsMultiStaffModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#243033] hover:bg-[#2f3e42] text-white font-semibold border border-white/10 transition-colors cursor-pointer"
-                >
-                  Close Coordinator
-                </button>
-              </div>
-
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Badge Print Modal */}
+      {/* Centered 3.1-Inch Badge Modal */}
       <BadgeModal
         isOpen={!!badgeModalAttendee}
         onClose={() => setBadgeModalAttendee(null)}
@@ -904,7 +821,6 @@ export default function CheckInStation({
         onReprint={onReprintBadge}
         staffUser={staffName}
       />
-
     </div>
   );
 }

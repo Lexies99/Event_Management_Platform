@@ -2,94 +2,340 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-slate-deep: #354649;
-  --color-slate-cool: #6C7A89;
-  --color-sage-aqua: #A3C6C4;
-  --color-mist-frost: #E0E7E9;
-  --color-body-bg: #121819;
-  --color-surface-bg: #1a2325;
+/* =====================================================
+   EVENTPLAN CLOUD — FINPLANNER UI/UX DESIGN SYSTEM
+   Mirrors Multi-School Thesis Repository Aesthetic
+   Supports Light Mode & Dark Mode + Per-Event Branding
+   ===================================================== */
+
+:root,
+[data-theme="light"] {
+  --bg-main:        #ffffff;
+  --bg-sidebar:     #f7f8f3;
+  --bg-header:      #d8e5c7;
+  --border-header:  #c9d8b6;
+  --header-text:    #1a1d1a;
+  --bg-card:        #fafbf8;
+  --bg-input:       #ffffff;
+  --bg-subtle:      #f4f6f0;
+  --border-color:   #eaece4;
+  --text-main:      #1a1d1a;
+  --text-sub:       #3c443a;
+  --text-muted:     #6e766b;
+  --fp-sage:        #dce7d0;
+  --fp-sage-hover:  #cfe0bf;
+  --fp-sage-text:   #1a1d1a;
+  --fp-olive:       #5a6552;
+  --fp-olive-dark:  #46503f;
+  --fp-olive-text:  #ffffff;
+  --fp-green:       #3b7a57;
+  --fp-red:         #c93b2b;
+  --fp-amber:       #b45309;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg-main:        #111510;
+  --bg-sidebar:     #151a13;
+  --bg-header:      #1c2419;
+  --border-header:  #2c3628;
+  --header-text:    #edf2ea;
+  --bg-card:        #181e16;
+  --bg-input:       #141912;
+  --bg-subtle:      #1d241a;
+  --border-color:   #2a3327;
+  --text-main:      #edf2ea;
+  --text-sub:       #c6d1c0;
+  --text-muted:     #9ba896;
+  --fp-sage:        #2a3725;
+  --fp-sage-hover:  #34442e;
+  --fp-sage-text:   #e4f0da;
+  --fp-olive:       #4a5c40;
+  --fp-olive-dark:  #596e4d;
+  --fp-olive-text:  #ffffff;
+  --fp-green:       #6cc08b;
+  --fp-red:         #f27466;
+  --fp-amber:       #fbbf24;
+  color-scheme: dark;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
-body {
+html, body {
   margin: 0;
-  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
-  background-color: #121819;
-  color: #E0E7E9;
+  padding: 0;
+  font-family: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom scrollbars */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Outfit", "Inter", sans-serif;
+  color: var(--text-main);
+  letter-spacing: -0.015em;
+}
+
+/* ── FinPlanner Spacious Cards ─────────────────────────── */
+.fp-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-main);
+  transition: border-color 0.15s ease, background-color 0.2s ease;
+}
+
+.fp-olive-card {
+  background-color: var(--fp-olive);
+  border: 1px solid var(--fp-olive);
+  border-radius: 12px;
+  color: var(--fp-olive-text, #ffffff);
+}
+
+/* ── FinPlanner Buttons ────────────────────────────────── */
+.btn-fp-sage {
+  background-color: var(--fp-sage);
+  color: var(--fp-sage-text);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.btn-fp-sage:hover {
+  background-color: var(--fp-sage-hover);
+}
+
+.btn-fp-olive {
+  background-color: var(--fp-olive);
+  color: var(--fp-olive-text, #ffffff);
+  border: 1px solid var(--fp-olive);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+}
+.btn-fp-olive:hover {
+  background-color: var(--fp-olive-dark);
+}
+.btn-fp-olive:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-fp-outline {
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.btn-fp-outline:hover {
+  background-color: var(--bg-subtle);
+}
+
+/* ── Badges & Pill Tags ────────────────────────────────── */
+.fp-tag-sage {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  background-color: var(--fp-sage);
+  color: var(--fp-sage-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fp-tag-olive {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  background-color: var(--fp-olive);
+  color: var(--fp-olive-text, #ffffff);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── Sub-navigation Pills ──────────────────────────────── */
+.fp-subnav {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.fp-subnav::-webkit-scrollbar {
+  display: none;
+}
+
+.fp-subnav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  background-color: var(--fp-sage);
+  color: var(--fp-sage-text);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.fp-subnav-pill:hover {
+  background-color: var(--fp-sage-hover);
+}
+.fp-subnav-pill.active {
+  background-color: var(--fp-olive);
+  color: var(--fp-olive-text, #ffffff);
+  border-color: var(--fp-olive);
+}
+
+/* ── Form Inputs ───────────────────────────────────────── */
+.fp-input {
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: "Outfit", "Inter", sans-serif;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.fp-input::placeholder {
+  color: var(--text-muted);
+}
+.fp-input:focus {
+  outline: none;
+  border-color: var(--fp-olive);
+  box-shadow: 0 0 0 3px rgba(90, 101, 82, 0.18);
+}
+
+/* ── Minimalist Tables ─────────────────────────────────── */
+.fp-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-main);
+}
+.fp-table thead th {
+  background-color: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.fp-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.12s ease;
+}
+.fp-table tbody tr:hover {
+  background-color: var(--bg-card);
+}
+.fp-table tbody td {
+  padding: 13px 14px;
+  font-size: 13.5px;
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+/* ── Responsive App Shell Layout (Matches Thesis Repo) ─── */
+.ep-sidebar {
+  width: 256px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+
+.ep-mobile-menu-btn {
+  display: none;
+}
+
+.ep-mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .ep-sidebar {
+    position: fixed;
+    top: 64px;
+    bottom: 0;
+    left: 0;
+    z-index: 90;
+    width: 272px !important;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.22);
+    overflow-y: auto;
+  }
+  .ep-sidebar.open {
+    transform: translateX(0) !important;
+  }
+  .ep-mobile-menu-btn {
+    display: inline-flex !important;
+  }
+  .ep-mobile-backdrop.open {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    top: 64px;
+    background: rgba(15, 20, 14, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 85;
+  }
+}
+
+/* ── Custom Scrollbars ─────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #121819;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #243033;
-  border-radius: 9999px;
+  background: var(--border-color);
+  border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #354649;
-}
-
-/* Nordic Palette Gradient Text: Cool Slate -> Sage Aqua -> Frost Mist */
-.text-palette-gradient {
-  background: linear-gradient(to right, #6C7A89 0%, #A3C6C4 50%, #E0E7E9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Reverse Palette Gradient */
-.text-palette-gradient-rev {
-  background: linear-gradient(to right, #E0E7E9 0%, #A3C6C4 50%, #6C7A89 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Iridescent Button from Unifato Reference - Nordic Slate Palette */
-.btn-unifato {
-  display: inline-flex;
-  background: linear-gradient(160deg, #354649, #6C7A89 33%, #A3C6C4 67%, #E0E7E9);
-  padding: 1.5px;
-  border-radius: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-.btn-unifato-inner {
-  background-color: #121819;
-  border-radius: calc(0.75rem - 1.5px);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.btn-unifato:hover .btn-unifato-inner {
-  background-color: transparent;
-}
-
-.btn-unifato:hover span {
-  color: #121819 !important;
+  background: var(--fp-olive);
 }
 
 /* =========================================================
-   CLEAN BADGE & CERTIFICATE PRINT STYLESHEET
-   Eliminates dark background, prevents blank pages
+   PRINT STYLESHEET — EXACT 3.1 INCH WIDE CENTERED BADGE TAG
    ========================================================= */
 @media print {
   @page {
-    margin: 10mm;
+    margin: 0;
     size: auto;
   }
 
   html, body {
     background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
@@ -97,8 +343,7 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* Hide app navigation and headers */
-  header, footer, nav, button {
+  header, footer, nav, aside, .print\:hidden {
     display: none !important;
   }
 
@@ -106,48 +351,42 @@ body {
     visibility: hidden;
   }
 
-  /* Make badge visible, cleanly centered, exactly 1 page */
   #printable-badge,
   #printable-badge * {
     visibility: visible !important;
   }
 
   #printable-badge {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: 20px !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     margin: 0 auto !important;
-    width: 3.5in !important;
-    height: 5.2in !important;
-    max-width: 3.5in !important;
-    max-height: 5.2in !important;
+    width: 3.1in !important;
+    min-width: 3.1in !important;
+    max-width: 3.1in !important;
     background: #ffffff !important;
     color: #0f172a !important;
-    border: 2px solid #cbd5e1 !important;
-    border-radius: 20px !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
     page-break-after: avoid !important;
     page-break-before: avoid !important;
   }
 
-  /* Make certificate visible, centered, exactly 1 page */
   #printable-certificate,
   #printable-certificate * {
     visibility: visible !important;
   }
 
   #printable-certificate {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: 20px !important;
+    position: fixed !important;
+    top: 12mm !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     margin: 0 auto !important;
-    width: 90% !important;
-    max-width: 10.5in !important;
-    background: #fffbeb !important;
+    width: 92% !important;
+    max-width: 10in !important;
+    background: #ffffff !important;
     color: #0f172a !important;
-    border: 8px double #354649 !important;
   }
 }

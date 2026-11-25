@@ -1,22 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Send, 
-  Pin, 
-  Trash2, 
-  MessageSquare, 
-  Lock, 
-  CheckCircle2, 
-  AlertCircle,
-  Users,
-  Sparkles,
-  UserCheck
-} from 'lucide-react';
+import { Send, Pin, Trash2, MessageSquare, Lock, UserCheck } from 'lucide-react';
 
 export default function EventChat({
   tenant,
   event,
-  registrations,
-  chatMessages,
+  registrations = [],
+  chatMessages = [],
   onSendMessage,
   onDeleteMessage,
   onTogglePinMessage,
@@ -27,19 +16,15 @@ export default function EventChat({
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
 
-  const eventRegistrations = registrations.filter(r => r.eventId === event?.id);
-  const currentAttendee = eventRegistrations.find(r => r.id === currentAttendeeId) || eventRegistrations[0];
-  const isOrganizer = activeRole === 'organizer';
+  const eventRegistrations = registrations.filter((r) => r.eventId === event?.id);
+  const currentAttendee = eventRegistrations.find((r) => r.id === currentAttendeeId) || eventRegistrations[0];
+  const isOrganizer = activeRole === 'organizer' || activeRole === 'super-admin';
 
-  // FR-5.1: Attendee must be "attended" (checked in) OR be an organizer to participate
   const isUnlocked = isOrganizer || currentAttendee?.status === 'attended';
+  const eventChatList = chatMessages.filter((m) => m.eventId === event?.id);
+  const pinnedMessages = eventChatList.filter((m) => m.isPinned);
+  const regularMessages = eventChatList.filter((m) => !m.isPinned);
 
-  // Event specific chat stream
-  const eventChatList = chatMessages.filter(m => m.eventId === event?.id);
-  const pinnedMessages = eventChatList.filter(m => m.isPinned);
-  const regularMessages = eventChatList.filter(m => !m.isPinned);
-
-  // Auto scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
@@ -47,120 +32,77 @@ export default function EventChat({
   const handleSend = (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
-
     onSendMessage({
       tenantId: tenant.id,
       eventId: event.id,
-      authorName: isOrganizer ? `${tenant?.organizer?.name || 'Sarah Jenkins'} (Organizer)` : currentAttendee.name,
+      authorName: isOrganizer ? `${tenant?.organizer?.name || 'Organizer'} (Organizer)` : currentAttendee.name,
       authorRole: isOrganizer ? 'Organizer' : currentAttendee.category,
       authorPhoto: isOrganizer ? tenant?.logoUrl : currentAttendee.photoUrl,
-      text: inputText,
+      text: inputText.trim(),
       isOrganizer
     });
-
     setInputText('');
-  };
-
-  const handleSimulateCheckIn = () => {
-    if (currentAttendee) {
-      onCheckInByCode(currentAttendee.ticketCode, "Self-Service Station");
-    }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      
-      {/* Top Banner */}
-      <div className="flex items-center justify-between bg-[#1a2325] border border-white/10 rounded-2xl p-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#354649]/20 text-[#6C7A89] border border-[#354649]/30 rounded-xl">
+      <div className="fp-card p-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)' }}>
             <MessageSquare className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="font-heading font-extrabold text-white text-base leading-tight">
-              {event?.title} • Live Delegate Chat
-            </h2>
-            <p className="text-xs text-white/50">
-              {isOrganizer ? "Organizer Moderation Active" : `Posting as ${currentAttendee?.name || 'Guest'} (${currentAttendee?.category || 'Attendee'})`}
+          <div className="min-w-0">
+            <h2 className="text-base font-extrabold m-0 truncate">{event?.title} · Delegate Chat</h2>
+            <p className="text-xs m-0 truncate" style={{ color: 'var(--text-muted)' }}>
+              {isOrganizer ? 'Organizer Moderation Active' : `Posting as ${currentAttendee?.name || 'Delegate'}`}
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Real-time WebSocket (FR-5.1)</span>
-          </span>
-        </div>
+        <span className="fp-tag-sage text-[11px]">● Live Event Room</span>
       </div>
 
-      {/* LOCKED STATE IF ATTENDEE HAS NOT CHECKED IN (FR-5.1 STRICT RULE) */}
       {!isUnlocked ? (
-        <div className="bg-[#1a2325] p-8 sm:p-12 rounded-3xl border border-white/10 text-center max-w-lg mx-auto space-y-5 my-8 shadow-2xl">
-          <div className="w-16 h-16 bg-[#A3C6C4]/15 border border-[#A3C6C4]/30 text-[#A3C6C4] rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-            <Lock className="w-8 h-8" />
+        <div className="fp-card p-6 sm:p-10 text-center max-w-lg mx-auto space-y-4">
+          <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)' }}>
+            <Lock className="w-7 h-7" />
           </div>
-
-          <div>
-            <span className="text-[10px] font-mono font-extrabold text-[#E0E7E9] uppercase tracking-wider px-2.5 py-0.5 bg-[#A3C6C4]/15 rounded-full border border-[#A3C6C4]/30">
-              Gated Feature (FR-5.1)
-            </span>
-            <h3 className="font-heading font-extrabold text-xl text-white mt-2">
-              Chat Lounge Restricted to Attended Members
-            </h3>
-            <p className="text-xs text-white/60 mt-2 leading-relaxed">
-              To keep discussions high quality and spam-free, real-time event chat is strictly limited to registrants who have been scanned in on-site.
-            </p>
-          </div>
-
-          <div className="bg-[#121819] rounded-2xl p-4 border border-white/10 text-xs text-left space-y-2">
-            <div className="flex justify-between text-white/50">
-              <span>Your Name:</span>
-              <span className="text-white font-semibold">{currentAttendee?.name}</span>
+          <h3 className="text-lg font-extrabold m-0">Chat Unlocks Upon On-Site Check-In</h3>
+          <p className="text-xs sm:text-sm m-0 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            To keep event discussions authentic and spam-free, community chat is restricted to checked-in attendees.
+          </p>
+          {currentAttendee && (
+            <div className="p-3.5 rounded-xl border text-xs text-left space-y-1.5" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+              <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Attendee:</span><strong>{currentAttendee.name}</strong></div>
+              <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Ticket:</span><code className="font-bold">{currentAttendee.ticketCode}</code></div>
+              <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Status:</span><span className="capitalize font-bold">{currentAttendee.status}</span></div>
             </div>
-            <div className="flex justify-between text-white/50">
-              <span>Ticket Code:</span>
-              <span className="text-[#E0E7E9] font-mono font-semibold">{currentAttendee?.ticketCode}</span>
-            </div>
-            <div className="flex justify-between text-white/50">
-              <span>Current Status:</span>
-              <span className="text-[#6C7A89] font-bold uppercase">{currentAttendee?.status} (Not Checked In)</span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleSimulateCheckIn}
-            className="w-full py-3 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold rounded-2xl text-xs shadow-xl shadow-[#6C7A89]/25 flex items-center justify-center gap-2 transition-all hover:opacity-95 active:scale-95"
-          >
-            <UserCheck className="w-4 h-4 text-black" />
-            <span>Simulate On-Site Check-In Now & Unlock Chat</span>
-          </button>
+          )}
+          {currentAttendee && (
+            <button
+              type="button"
+              onClick={() => onCheckInByCode(currentAttendee.ticketCode, 'Self-Service Check-In', false, 'day-1', 'Day 1', { eventId: event?.id, tenantId: tenant?.id })}
+              className="btn-fp-olive w-full py-2.5 text-xs sm:text-sm inline-flex items-center justify-center gap-2"
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Simulate Check-In &amp; Unlock Chat</span>
+            </button>
+          )}
         </div>
       ) : (
-        /* CHAT INTERFACE (WHEN UNLOCKED) */
-        <div className="bg-[#1a2325] rounded-3xl border border-white/10 flex flex-col h-[580px] overflow-hidden shadow-2xl">
-          
-          {/* PINNED ANNOUNCEMENTS SECTION (FR-5.2) */}
+        <div className="fp-card flex flex-col h-[540px] overflow-hidden">
           {pinnedMessages.length > 0 && (
-            <div className="bg-[#121819] border-b border-white/10 p-3.5 space-y-2 shrink-0">
+            <div className="p-3.5 border-b space-y-2 shrink-0" style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}>
               {pinnedMessages.map((msg) => (
-                <div key={msg.id} className="flex items-start justify-between gap-3 text-xs">
-                  <div className="flex items-start gap-2">
-                    <Pin className="w-3.5 h-3.5 text-[#A3C6C4] shrink-0 mt-0.5 rotate-45" />
+                <div key={msg.id} className="flex items-start justify-between gap-2 text-xs">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Pin className="w-3.5 h-3.5 shrink-0 mt-0.5 rotate-45" style={{ color: 'var(--fp-olive)' }} />
                     <div>
-                      <span className="font-bold text-[#E0E7E9] text-[11px] uppercase tracking-wider font-mono">
-                        Pinned by {msg.authorName}
-                      </span>
-                      <p className="text-white/90 mt-0.5 leading-relaxed font-medium">
-                        {msg.text}
-                      </p>
+                      <span className="font-bold text-[11px] uppercase">{msg.authorName}</span>
+                      <p className="m-0 mt-0.5 leading-relaxed">{msg.text}</p>
                     </div>
                   </div>
                   {isOrganizer && (
-                    <button
-                      onClick={() => onTogglePinMessage(msg.id)}
-                      className="text-[10px] text-white/40 hover:text-white underline shrink-0"
-                    >
+                    <button type="button" onClick={() => onTogglePinMessage(msg.id)} className="text-[11px] underline shrink-0" style={{ color: 'var(--text-muted)' }}>
                       Unpin
                     </button>
                   )}
@@ -169,77 +111,51 @@ export default function EventChat({
             </div>
           )}
 
-          {/* CHAT MESSAGES STREAM */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4" style={{ background: 'var(--bg-main)' }}>
             {regularMessages.length === 0 ? (
-              <div className="text-center py-12 text-white/40 text-xs">
-                No chat messages yet. Start the conversation!
+              <div className="text-center py-12 text-xs" style={{ color: 'var(--text-muted)' }}>
+                No messages yet. Start the event conversation!
               </div>
             ) : (
               regularMessages.map((msg) => {
-                const isMyMessage = msg.authorName === currentAttendee?.name;
+                const isMine = msg.authorName === currentAttendee?.name;
                 return (
-                  <div 
-                    key={msg.id} 
-                    className={`flex items-start gap-3 group ${isMyMessage ? 'flex-row-reverse' : ''}`}
-                  >
-                    {/* Author Avatar */}
+                  <div key={msg.id} className={`flex items-start gap-2.5 group ${isMine ? 'flex-row-reverse' : ''}`}>
                     {msg.authorPhoto ? (
-                      <img
-                        src={msg.authorPhoto}
-                        alt={msg.authorName}
-                        className="w-8 h-8 rounded-xl object-cover border border-white/15 shrink-0 mt-0.5 bg-[#121819]"
-                      />
+                      <img src={msg.authorPhoto} alt={msg.authorName} className="w-8 h-8 rounded-full object-cover border shrink-0" style={{ borderColor: 'var(--border-color)' }} />
                     ) : (
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] flex items-center justify-center font-bold text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ background: 'var(--fp-sage)', color: 'var(--fp-sage-text)' }}>
                         {msg.authorName.charAt(0)}
                       </div>
                     )}
-
-                    {/* Message Bubble */}
-                    <div className={`max-w-[75%] space-y-1 ${isMyMessage ? 'text-right' : 'text-left'}`}>
-                      <div className="flex items-center gap-1.5 text-[11px]">
-                        <span className="font-bold text-white">{msg.authorName}</span>
-                        {msg.authorRole && (
-                          <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${
-                            msg.isOrganizer 
-                              ? 'bg-[#A3C6C4]/20 text-[#E0E7E9] border border-[#A3C6C4]/30' 
-                              : 'bg-white/10 text-white/80 border border-white/15'
-                          }`}>
-                            {msg.authorRole}
-                          </span>
-                        )}
-                        <span className="text-[10px] text-white/40">
+                    <div className={`max-w-[80%] space-y-1 ${isMine ? 'text-right' : 'text-left'}`}>
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                        <span className="font-bold">{msg.authorName}</span>
+                        {msg.authorRole && <span className="fp-tag-sage text-[9px] py-0 px-1.5">{msg.authorRole}</span>}
+                        <span style={{ color: 'var(--text-muted)' }}>
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-
-                      <div className={`p-3 rounded-2xl text-xs leading-relaxed inline-block ${
-                        isMyMessage
-                          ? 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-medium rounded-tr-none shadow-md'
-                          : 'bg-[#121819] text-white/90 border border-white/10 rounded-tl-none'
-                      }`}>
+                      <div
+                        className="p-3 rounded-xl text-xs sm:text-sm leading-relaxed inline-block border"
+                        style={{
+                          background: isMine ? 'var(--fp-olive)' : 'var(--bg-card)',
+                          color: isMine ? 'var(--fp-olive-text, #ffffff)' : 'var(--text-main)',
+                          borderColor: isMine ? 'var(--fp-olive)' : 'var(--border-color)',
+                        }}
+                      >
                         {msg.text}
                       </div>
-
-                      {/* Organizer Moderation Controls (FR-5.4) */}
                       {isOrganizer && (
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-white/40">
-                          <button
-                            onClick={() => onTogglePinMessage(msg.id)}
-                            className="hover:text-[#E0E7E9] flex items-center gap-1"
-                          >
+                        <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          <button type="button" onClick={() => onTogglePinMessage(msg.id)} className="inline-flex items-center gap-1 hover:underline">
                             <Pin className="w-3 h-3" /> Pin
                           </button>
-                          <button
-                            onClick={() => onDeleteMessage(msg.id)}
-                            className="hover:text-rose-400 flex items-center gap-1"
-                          >
+                          <button type="button" onClick={() => onDeleteMessage(msg.id)} className="inline-flex items-center gap-1 hover:underline" style={{ color: 'var(--fp-red)' }}>
                             <Trash2 className="w-3 h-3" /> Delete
                           </button>
                         </div>
                       )}
-
                     </div>
                   </div>
                 );
@@ -248,27 +164,20 @@ export default function EventChat({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* CHAT INPUT FORM */}
-          <form onSubmit={handleSend} className="p-3 sm:p-4 bg-[#121819] border-t border-white/10 flex items-center gap-2">
+          <form onSubmit={handleSend} className="p-3 border-t flex items-center gap-2" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
             <input
               type="text"
-              placeholder="Type message to attendees... (Enter to send)"
+              placeholder="Write a message to event attendees..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 bg-[#1a2325] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
+              className="fp-input flex-1 px-3.5 py-2.5 text-sm"
             />
-            <button
-              type="submit"
-              className="p-2.5 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] rounded-2xl shadow-lg shadow-[#6C7A89]/20 transition-all hover:opacity-95 shrink-0"
-              title="Send Message"
-            >
-              <Send className="w-4 h-4 text-black" />
+            <button type="submit" className="btn-fp-olive p-2.5 shrink-0" title="Send">
+              <Send className="w-4 h-4" />
             </button>
           </form>
-
         </div>
       )}
-
     </div>
   );
 }

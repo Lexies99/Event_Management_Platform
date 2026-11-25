@@ -1,421 +1,188 @@
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Plus, 
-  ShieldCheck, 
-  Users, 
-  CreditCard, 
-  Calendar, 
-  CheckCircle, 
-  AlertTriangle, 
-  Copy, 
-  ExternalLink, 
-  FileText, 
-  Activity, 
-  Lock, 
+import {
+  Building2,
+  Plus,
+  ShieldCheck,
+  Users,
+  CreditCard,
+  CheckCircle,
+  Copy,
+  Activity,
+  Lock,
   Search,
-  Sparkles,
   ArrowRight,
-  TrendingUp,
   PieChart as PieIcon,
-  BarChart3,
-  Check
+  Check,
+  ExternalLink,
 } from 'lucide-react';
-import NewTenantModal from './NewTenantModal';
 import TenantLogo from '../Common/TenantLogo';
-import { DonutChart, BarGraph, AreaTrendGraph } from '../Common/Charts';
+import { DonutChart, BarGraph } from '../Common/Charts';
+import AuditTrailPanel from '../Organizer/AuditTrailPanel';
 
 export default function SuperAdminDashboard({
-  tenants,
-  activeTenant,
-  onSelectTenant,
-  onAddTenant,
+  tenants = [],
+  onOpenEventSite,
+  onNavigateToOnboard,
   onToggleTenantStatus,
-  plans,
-  auditLogs,
-  allRegistrations,
-  allEvents
+  plans = [],
+  auditLogs = [],
+  allRegistrations = [],
 }) {
-  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('tenants'); // 'tenants' | 'analytics' | 'plans' | 'audit'
+  const [activeTab, setActiveTab] = useState('tenants');
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
-  // Platform calculations
   const totalTenants = tenants.length;
-  const activeTenants = tenants.filter(t => t.status === 'active').length;
+  const activeTenants = tenants.filter((t) => t.status === 'active').length;
   const totalRegistrations = allRegistrations.length;
-  const totalAttended = allRegistrations.filter(r => r.status === 'attended').length;
+  const totalAttended = allRegistrations.filter((r) => r.status === 'attended').length;
   const estimatedRevenue = tenants.reduce((acc, t) => {
-    const plan = plans.find(p => p.id === t.planId);
+    const plan = plans.find((p) => p.id === t.planId);
     return acc + (plan?.price || 199);
   }, 0);
 
-  const filteredTenants = tenants.filter(t => 
+  const filteredTenants = tenants.filter((t) =>
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.organizer?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    (t.organizer?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const copyTenantLink = (slug, id) => {
-    const link = `${window.location.origin}/?tenant=${slug}`;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(`${window.location.origin}/#/${slug}`);
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Pie Chart Data 1: Subscription Tier Distribution
-  const tierDistributionData = plans.map(p => {
-    const count = tenants.filter(t => t.planId === p.id).length;
-    let color = '#354649';
-    if (p.id === 'growth') color = '#6C7A89';
-    if (p.id === 'enterprise') color = '#A3C6C4';
-    return {
-      label: `${p.name} Tier`,
-      value: count,
-      color
-    };
-  });
+  const tierData = plans.map((p, idx) => ({
+    label: `${p.name}`,
+    value: tenants.filter((t) => t.planId === p.id).length,
+    color: ['#5A6552', '#3B7A57', '#9CAF88'][idx % 3],
+  }));
 
-  // Pie Chart Data 2: Platform-wide Attendee Status
-  const attendeeStatusData = [
-    { label: 'Checked In', value: totalAttended, color: '#6C7A89' },
-    { label: 'Pending / Awaiting', value: Math.max(0, totalRegistrations - totalAttended), color: '#A3C6C4' },
-    { label: 'Rented Quota Left', value: Math.max(10, 2000 - totalRegistrations), color: '#354649' }
-  ];
-
-  // Bar Graph Data: Registrations across workspaces
-  const tenantBarData = tenants.slice(0, 6).map(t => {
-    const count = allRegistrations.filter(r => r.tenantId === t.id).length;
-    return {
-      label: t.name.split(' ')[0],
-      value: count,
-      unit: 'registrants'
-    };
-  });
-
-  // Area Trend Data: Hourly check-in flow mock
-  const hourlyThroughputData = [
-    { label: '08:00', value: 12 },
-    { label: '09:00', value: 68 },
-    { label: '10:00', value: 145 },
-    { label: '11:00', value: 92 },
-    { label: '12:00', value: 44 },
-    { label: '13:00', value: 31 },
-    { label: '14:00', value: 85 },
-    { label: '15:00', value: 50 }
-  ];
+  const tenantBarData = tenants.slice(0, 6).map((t) => ({
+    label: (t.shortName || t.name).split(' ')[0],
+    value: allRegistrations.filter((r) => r.tenantId === t.id).length,
+    unit: 'delegates',
+  }));
 
   return (
     <div className="space-y-6">
-      
-      {/* Top Banner / Operator Heading */}
-      <div className="relative rounded-3xl bg-[#1a2325] border border-white/10 p-6 sm:p-8 text-white overflow-hidden shadow-2xl">
-        {/* Subtle iridescent gradient rim on top edge */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4]" />
-        
-        {/* Background glow orb */}
-        <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#354649]/10 via-[#6C7A89]/10 to-transparent blur-3xl pointer-events-none" />
+      <div className="fp-card p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="fp-tag-sage mb-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" /> Platform Operator Control Plane
+          </span>
+          <h1 className="text-xl sm:text-2xl font-extrabold m-0">Multi-Tenant Event Platform Fleet</h1>
+          <p className="text-xs sm:text-sm mt-1 m-0" style={{ color: 'var(--text-muted)' }}>
+            Manage all dedicated event websites, subscription plans, and platform-wide audit logs.
+          </p>
+        </div>
+        <button type="button" onClick={onNavigateToOnboard} className="btn-fp-olive px-4 py-2.5 text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 shrink-0">
+          <Plus className="w-4 h-4" />
+          <span>New Event Website</span>
+        </button>
+      </div>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#A3C6C4]/15 border border-[#A3C6C4]/30 text-[#E0E7E9] text-xs font-mono font-bold mb-3">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#6C7A89]" />
-              <span>Platform Operator Fleet Plane (Super-Admin)</span>
-            </div>
-            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white tracking-tight">
-              Multi-Tenant Event Platform Fleet
-            </h1>
-            <p className="text-xs sm:text-sm text-white/60 mt-1 max-w-xl leading-relaxed">
-              Rent, onboard and manage corporate tenants with strict row-level security isolation, custom branding, and metered subscription plans.
-            </p>
-          </div>
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="fp-card p-4">
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Event Websites</div>
+          <div className="text-2xl font-extrabold mt-1">{totalTenants} <span className="text-xs font-semibold" style={{ color: 'var(--fp-green)' }}>({activeTenants} live)</span></div>
+        </div>
+        <div className="fp-card p-4">
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Total Registrants</div>
+          <div className="text-2xl font-extrabold mt-1">{totalRegistrations}</div>
+        </div>
+        <div className="fp-card p-4">
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Verified Check-Ins</div>
+          <div className="text-2xl font-extrabold mt-1" style={{ color: 'var(--fp-green)' }}>{totalAttended}</div>
+        </div>
+        <div className="fp-card p-4">
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Estimated MRR</div>
+          <div className="text-2xl font-extrabold mt-1">${estimatedRevenue}</div>
+        </div>
+      </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+      {/* Sub-Nav Tabs */}
+      <div className="fp-subnav">
+        {[
+          { id: 'tenants', label: `Event Workspaces (${tenants.length})`, icon: Building2 },
+          { id: 'analytics', label: 'Fleet Analytics', icon: PieIcon },
+          { id: 'plans', label: 'Plans & Tiers', icon: CreditCard },
+          { id: 'audit', label: `Global Audit Trail (${auditLogs.length})`, icon: Activity },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          return (
             <button
-              onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold text-xs shadow-lg shadow-[#6C7A89]/20 transition-all hover:opacity-95 active:scale-95"
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`fp-subnav-pill ${activeTab === tab.id ? 'active' : ''}`}
             >
-              <Plus className="w-4 h-4 text-black" />
-              <span>New Company Workspace</span>
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
             </button>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      {/* Headline KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* Rented Workspaces */}
-        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#A3C6C4]/40 transition-all shadow-lg group">
-          <div className="flex items-center justify-between text-white/50 mb-2">
-            <span className="text-xs font-semibold">Rented Workspaces</span>
-            <div className="w-8 h-8 rounded-xl bg-[#A3C6C4]/10 flex items-center justify-center text-[#A3C6C4]">
-              <Building2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-white">{totalTenants}</span>
-            <span className="text-xs text-emerald-400 font-mono font-bold">({activeTenants} active)</span>
-          </div>
-          <div className="w-full bg-[#121819] h-1.5 rounded-full mt-3 overflow-hidden border border-white/5">
-            <div 
-              className="bg-gradient-to-r from-[#354649] to-[#A3C6C4] h-full rounded-full transition-all duration-500" 
-              style={{ width: `${(activeTenants / (totalTenants || 1)) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Platform Registrants */}
-        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#6C7A89]/40 transition-all shadow-lg group">
-          <div className="flex items-center justify-between text-white/50 mb-2">
-            <span className="text-xs font-semibold">Platform Registrants</span>
-            <div className="w-8 h-8 rounded-xl bg-[#6C7A89]/10 flex items-center justify-center text-[#6C7A89]">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#6C7A89]">{totalRegistrations}</span>
-            <span className="text-xs text-white/40 font-medium">total fleet</span>
-          </div>
-          <p className="text-[11px] text-white/50 mt-2">
-            Capacity: <span className="text-[#E0E7E9] font-semibold">{totalRegistrations} / 5,000 allocated</span>
-          </p>
-        </div>
-
-        {/* Verified Check-ins */}
-        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#E0E7E9]/40 transition-all shadow-lg group">
-          <div className="flex items-center justify-between text-white/50 mb-2">
-            <span className="text-xs font-semibold">Verified Check-ins</span>
-            <div className="w-8 h-8 rounded-xl bg-[#E0E7E9]/10 flex items-center justify-center text-[#E0E7E9]">
-              <CheckCircle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-white">{totalAttended}</span>
-            <span className="text-xs text-[#A3C6C4] font-mono font-bold">
-              {totalRegistrations > 0 ? Math.round((totalAttended / totalRegistrations) * 100) : 0}% rate
-            </span>
-          </div>
-          <p className="text-[11px] text-white/50 mt-2">
-            Badges scanned on-site
-          </p>
-        </div>
-
-        {/* Estimated MRR / Billing */}
-        <div className="bg-[#1a2325] border border-white/10 p-5 rounded-2xl hover:border-[#354649]/40 transition-all shadow-lg group">
-          <div className="flex items-center justify-between text-white/50 mb-2">
-            <span className="text-xs font-semibold">Estimated Monthly MRR</span>
-            <div className="w-8 h-8 rounded-xl bg-[#354649]/10 flex items-center justify-center text-[#354649]">
-              <CreditCard className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#E0E7E9]">${estimatedRevenue}</span>
-            <span className="text-xs text-[#354649] font-mono font-bold">USD/mo</span>
-          </div>
-          <p className="text-[11px] text-white/50 mt-2">
-            Tiered subscription revenue
-          </p>
-        </div>
-
-      </div>
-
-      {/* Tabs Switcher: Tenants | Analytics & Graphs | Subscription Plans | Audit Trail */}
-      <div className="flex border-b border-white/10 gap-6 text-sm font-semibold">
-        <button
-          onClick={() => setActiveTab('tenants')}
-          className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === 'tenants'
-              ? 'border-[#6C7A89] text-white'
-              : 'border-transparent text-white/40 hover:text-white'
-          }`}
-        >
-          <Building2 className={`w-4 h-4 ${activeTab === 'tenants' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
-          <span>Tenant Companies ({tenants.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === 'analytics'
-              ? 'border-[#6C7A89] text-white'
-              : 'border-transparent text-white/40 hover:text-white'
-          }`}
-        >
-          <PieIcon className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
-          <span>Fleet Analytics & Graphs</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('plans')}
-          className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === 'plans'
-              ? 'border-[#6C7A89] text-white'
-              : 'border-transparent text-white/40 hover:text-white'
-          }`}
-        >
-          <CreditCard className={`w-4 h-4 ${activeTab === 'plans' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
-          <span>Subscription Plans & Tiers</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('audit')}
-          className={`pb-3.5 flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === 'audit'
-              ? 'border-[#6C7A89] text-white'
-              : 'border-transparent text-white/40 hover:text-white'
-          }`}
-        >
-          <Activity className={`w-4 h-4 ${activeTab === 'audit' ? 'text-[#6C7A89]' : 'text-white/40'}`} />
-          <span>Security & Audit Trail</span>
-        </button>
-      </div>
-
-      {/* TAB 1: TENANT LIST */}
+      {/* Tenants Grid */}
       {activeTab === 'tenants' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 absolute left-3.5 top-3 text-white/40" />
-              <input
-                type="text"
-                placeholder="Search company, slug, organizer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#1a2325] border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#6C7A89]"
-              />
-            </div>
-            <span className="text-xs text-white/40 font-mono self-end sm:self-auto">
-              Showing {filteredTenants.length} of {tenants.length} workspaces
-            </span>
+          <div className="relative max-w-sm">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              placeholder="Search organizations or slugs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="fp-input w-full pl-9 pr-3 py-2 text-sm"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTenants.map((t) => {
-              const plan = plans.find(p => p.id === t.planId) || plans[0];
-              const tenantRegs = allRegistrations.filter(r => r.tenantId === t.id);
-              const tenantAttended = tenantRegs.filter(r => r.status === 'attended').length;
-              const isCurrent = activeTenant?.id === t.id;
-
+              const plan = plans.find((p) => p.id === t.planId) || plans[0];
+              const tRegs = allRegistrations.filter((r) => r.tenantId === t.id);
+              const tAtt = tRegs.filter((r) => r.status === 'attended').length;
               return (
-                <div
-                  key={t.id}
-                  className={`bg-[#1a2325] rounded-3xl p-6 flex flex-col justify-between transition-all border shadow-xl ${
-                    isCurrent ? 'ring-2 ring-[#6C7A89] border-[#6C7A89]/50' : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div>
-                    {/* Header: Logo, Name, Status Badge */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
+                <div key={t.id} className="fp-card p-5 flex flex-col justify-between gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-3 min-w-0">
-                        <TenantLogo tenant={t} size={48} className="rounded-2xl shrink-0" />
-                        <div className="truncate">
-                          <h3 className="font-heading font-bold text-white text-base leading-snug truncate">{t.name}</h3>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span 
-                              className="w-2 h-2 rounded-full inline-block shrink-0" 
-                              style={{ backgroundColor: t.brandColor || '#354649' }} 
-                              title={`Brand: ${t.brandColor}`}
-                            />
-                            <span className="text-xs font-mono text-white/40 truncate">/{t.slug}</span>
-                          </div>
+                        <TenantLogo tenant={t} size={44} className="rounded-xl" />
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm truncate">{t.name}</div>
+                          <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>/{t.slug}</div>
                         </div>
                       </div>
-
-                      <span className={`px-2.5 py-0.5 text-[10px] font-mono font-bold rounded-full uppercase tracking-wider shrink-0 ${
-                        t.status === 'active' 
-                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' 
-                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
-                      }`}>
+                      <span className={t.status === 'active' ? 'fp-tag-sage text-[10px]' : 'fp-tag-olive text-[10px]'}>
                         {t.status}
                       </span>
                     </div>
 
-                    {/* Organizer details */}
-                    <div className="bg-[#121819] rounded-2xl p-3.5 text-xs space-y-1.5 mb-4 border border-white/10">
-                      <div className="flex justify-between text-white/50">
-                        <span>Event Organizer:</span>
-                        <span className="font-semibold text-white/90">{t.organizer?.name || 'Admin'}</span>
-                      </div>
-                      <div className="flex justify-between text-white/50">
-                        <span>Contact:</span>
-                        <span className="text-white/80 truncate max-w-[150px]">{t.organizer?.email}</span>
-                      </div>
-                      <div className="flex justify-between text-white/50 pt-1 border-t border-white/5">
-                        <span>Plan Tier:</span>
-                        <span className="font-bold text-[#E0E7E9] capitalize">{plan.name} (${plan.price}/{plan.billingPeriod})</span>
-                      </div>
-                    </div>
-
-                    {/* Usage Bars */}
-                    <div className="space-y-1.5 mb-4 text-xs">
-                      <div className="flex justify-between text-white/50">
-                        <span>Registrations & Check-ins:</span>
-                        <span className="text-white font-semibold">{tenantAttended} / {tenantRegs.length} attended</span>
-                      </div>
-                      <div className="w-full bg-[#121819] h-2 rounded-full overflow-hidden flex border border-white/5">
-                        <div 
-                          className="bg-gradient-to-r from-[#354649] to-[#6C7A89] h-full" 
-                          style={{ width: `${tenantRegs.length > 0 ? (tenantAttended / tenantRegs.length) * 100 : 0}%` }}
-                          title="Attended"
-                        />
-                        <div 
-                          className="bg-[#A3C6C4] h-full opacity-60" 
-                          style={{ width: `${tenantRegs.length > 0 ? ((tenantRegs.length - tenantAttended) / tenantRegs.length) * 100 : 0}%` }}
-                          title="Pending"
-                        />
-                      </div>
+                    <div className="p-3 rounded-lg border text-xs space-y-1" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+                      <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Organizer:</span><strong>{t.organizer?.name}</strong></div>
+                      <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Plan:</span><span className="font-semibold">{plan?.name} (${plan?.price})</span></div>
+                      <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Turnout:</span><strong>{tAtt} / {tRegs.length}</strong></div>
                     </div>
                   </div>
 
-                  {/* Actions: Copy Link, Switch workspace, Suspend */}
-                  <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => copyTenantLink(t.slug, t.id)}
-                      className="px-2.5 py-1.5 bg-[#243033] hover:bg-[#2e2e2b] text-white rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors border border-white/15"
-                      title="Copy Private Event Link for Organizer"
-                    >
-                      {copiedId === t.id ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 text-[#A3C6C4]" />
-                          <span>Private Link</span>
-                        </>
-                      )}
+                  <div className="flex items-center justify-between gap-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                    <button type="button" onClick={() => copyTenantLink(t.slug, t.id)} className="btn-fp-outline px-2.5 py-1.5 text-xs inline-flex items-center gap-1">
+                      {copiedId === t.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedId === t.id ? 'Copied' : 'URL'}</span>
                     </button>
-
                     <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => onToggleTenantStatus(t.id)}
-                        className={`p-2 rounded-xl text-xs transition-colors border ${
-                          t.status === 'active' 
-                            ? 'text-white/40 hover:text-rose-400 hover:bg-rose-500/10 border-white/10' 
-                            : 'text-emerald-400 hover:bg-emerald-500/10 border-emerald-500/30'
-                        }`}
-                        title={t.status === 'active' ? "Suspend Tenant" : "Reactivate Tenant"}
-                      >
+                      <button type="button" onClick={() => onToggleTenantStatus(t.id)} className="btn-fp-outline p-1.5" title="Toggle Active/Suspended">
                         <Lock className="w-3.5 h-3.5" />
                       </button>
-
-                      <button
-                        onClick={() => onSelectTenant(t)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
-                          isCurrent 
-                            ? 'bg-[#6C7A89]/20 text-[#6C7A89] border border-[#6C7A89]/40' 
-                            : 'bg-gradient-to-r from-[#354649] via-[#6C7A89] to-[#A3C6C4] text-[#E0E7E9] font-extrabold shadow-md shadow-[#6C7A89]/20 hover:opacity-95'
-                        }`}
-                      >
-                        <span>{isCurrent ? "Active" : "Switch"}</span>
-                        {!isCurrent && <ArrowRight className="w-3 h-3 text-black" />}
+                      <button type="button" onClick={() => onOpenEventSite(t.slug, 'organizer')} className="btn-fp-olive px-3 py-1.5 text-xs inline-flex items-center gap-1">
+                        <span>Manage</span>
+                        <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
-
                 </div>
               );
             })}
@@ -423,257 +190,51 @@ export default function SuperAdminDashboard({
         </div>
       )}
 
-      {/* TAB 2: PLATFORM ANALYTICS, PIE CHART & GRAPHS */}
       {activeTab === 'analytics' && (
-        <div className="space-y-6">
-          
-          {/* Top Row: Two Pie / Donut Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            {/* Pie Chart 1: Subscription Tier Distribution */}
-            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                    <PieIcon className="w-4 h-4 text-[#6C7A89]" />
-                    <span>Tenant Subscription Tier Breakdown</span>
-                  </h3>
-                  <p className="text-xs text-white/50">Distribution across Starter, Growth, and Enterprise plans</p>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-[#E0E7E9] border border-white/15">
-                  {tenants.length} Workspaces
-                </span>
-              </div>
-
-              <div className="pt-2">
-                <DonutChart
-                  data={tierDistributionData}
-                  title="Plan Tiers"
-                  centerLabel="Workspaces"
-                  size={200}
-                />
-              </div>
-            </div>
-
-            {/* Pie Chart 2: Platform-wide Attendee Status Ratio */}
-            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                    <PieIcon className="w-4 h-4 text-[#A3C6C4]" />
-                    <span>Fleet Attendance & Utilization Ratio</span>
-                  </h3>
-                  <p className="text-xs text-white/50">Checked-in delegates vs pending check-ins vs remaining capacity</p>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-emerald-400 border border-white/15">
-                  Live Sync
-                </span>
-              </div>
-
-              <div className="pt-2">
-                <DonutChart
-                  data={attendeeStatusData}
-                  title="Attendance Ratio"
-                  centerLabel="Capacity"
-                  size={200}
-                />
-              </div>
-            </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="fp-card p-5 space-y-4">
+            <h3 className="text-base font-bold m-0">Subscription Plan Mix</h3>
+            <DonutChart data={tierData} title="Plans" centerLabel="Tenants" />
           </div>
-
-          {/* Bottom Row: Bar Graph & Area Trend Graph */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            {/* Bar Graph: Registrations by Company */}
-            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
-              <div>
-                <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-[#6C7A89]" />
-                  <span>Registrations Velocity by Company</span>
-                </h3>
-                <p className="text-xs text-white/50">Comparative delegate counts registered across active companies</p>
-              </div>
-
-              <BarGraph data={tenantBarData} height={170} />
-            </div>
-
-            {/* Area Trend Graph: Platform Check-in Activity */}
-            <div className="bg-[#1a2325] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-heading font-extrabold text-base text-white flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-[#A3C6C4]" />
-                    <span>Peak Check-In Arrival Distribution</span>
-                  </h3>
-                  <p className="text-xs text-white/50">Optical scanner throughput and arrival frequency curve</p>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                  Sub-second
-                </span>
-              </div>
-
-              <AreaTrendGraph data={hourlyThroughputData} height={160} />
-            </div>
-
+          <div className="fp-card p-5 space-y-4">
+            <h3 className="text-base font-bold m-0">Registrations by Event Website</h3>
+            <BarGraph data={tenantBarData} height={160} />
           </div>
-
         </div>
       )}
 
-      {/* TAB 3: SUBSCRIPTION PLANS & TIERS */}
       {activeTab === 'plans' && (
-        <div className="space-y-6">
-          <div className="text-center max-w-xl mx-auto mb-6">
-            <h2 className="font-heading font-extrabold text-xl text-white">Multi-Tenant Rental Tiers</h2>
-            <p className="text-xs text-white/50 mt-1">
-              Operators can assign subscription limits per tenant. Metered resources enforce attendee thresholds, badge printing storage, and real-time chat servers.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((p) => {
-              const activeWithPlan = tenants.filter(t => t.planId === p.id).length;
-              return (
-                <div
-                  key={p.id}
-                  className={`bg-[#1a2325] rounded-3xl p-6 relative flex flex-col justify-between border shadow-xl ${
-                    p.popular ? 'border-[#6C7A89] ring-2 ring-[#6C7A89]/30' : 'border-white/10'
-                  }`}
-                >
-                  {p.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-gradient-to-r from-[#354649] to-[#6C7A89] text-white text-[10px] font-extrabold uppercase tracking-wider rounded-full shadow-lg">
-                      Most Popular Tier
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="flex justify-between items-baseline mb-2">
-                      <h3 className="font-heading font-bold text-lg text-white">{p.name}</h3>
-                      <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[#121819] text-[#E0E7E9] border border-white/10">
-                        {activeWithPlan} active
-                      </span>
-                    </div>
-
-                    <div className="flex items-baseline gap-1 my-4">
-                      <span className="font-heading font-extrabold text-4xl text-white">${p.price}</span>
-                      <span className="text-xs text-white/40">/{p.billingPeriod}</span>
-                    </div>
-
-                    <p className="text-xs text-white/60 mb-5 leading-relaxed">{p.description}</p>
-
-                    <div className="bg-[#121819] rounded-2xl p-3.5 text-xs space-y-2 mb-5 border border-white/10">
-                      <div className="flex justify-between text-white/50">
-                        <span>Max Events:</span>
-                        <span className="text-white font-semibold">{p.limits.events === 999 ? 'Unlimited' : p.limits.events}</span>
-                      </div>
-                      <div className="flex justify-between text-white/50">
-                        <span>Max Attendees:</span>
-                        <span className="text-[#E0E7E9] font-semibold">{p.limits.attendees.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-white/50">
-                        <span>S3 Cloud Storage:</span>
-                        <span className="text-white font-semibold">{p.limits.storage}</span>
-                      </div>
-                      <div className="flex justify-between text-white/50">
-                        <span>Real-Time Chat:</span>
-                        <span className={p.limits.chatEnabled ? "text-emerald-400 font-semibold" : "text-white/30"}>
-                          {p.limits.chatEnabled ? "Included" : "Disabled"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <ul className="space-y-2.5 text-xs text-white/70">
-                      {p.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-center gap-2">
-                          <CheckCircle className="w-3.5 h-3.5 text-[#A3C6C4] shrink-0" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="pt-6 mt-6 border-t border-white/10">
-                    <button
-                      onClick={() => setIsNewModalOpen(true)}
-                      className="w-full py-2.5 rounded-xl font-extrabold text-xs bg-[#243033] hover:bg-[#2e2e2b] text-white transition-colors border border-white/15"
-                    >
-                      Provision Workspace on {p.name}
-                    </button>
-                  </div>
-
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: AUDIT TRAIL */}
-      {activeTab === 'audit' && (
-        <div className="bg-[#1a2325] rounded-3xl p-6 border border-white/10 space-y-4 shadow-xl">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-heading font-extrabold text-white text-base flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                Security & Row-Level Audit Log
-              </h3>
-              <p className="text-xs text-white/50">
-                Ghana Data Protection Act (Act 843) compliance log: sensitive events, check-ins, badge reprints, and tenant modifications.
-              </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {plans.map((p) => (
+            <div key={p.id} className="fp-card p-5 flex flex-col justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-extrabold m-0">{p.name}</h3>
+                <div className="text-3xl font-extrabold mt-2">${p.price}<span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>/{p.billingPeriod}</span></div>
+                <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>{p.description}</p>
+                <ul className="space-y-2 mt-4 p-0 list-none text-xs">
+                  {p.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <CheckCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: 'var(--fp-green)' }} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button type="button" onClick={onNavigateToOnboard} className="btn-fp-sage w-full py-2 text-xs">
+                Provision on {p.name}
+              </button>
             </div>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <table className="w-full text-left text-xs text-white/80">
-              <thead className="bg-[#121819] text-white/50 font-semibold uppercase text-[10px] tracking-wider border-b border-white/10">
-                <tr>
-                  <th className="py-3 px-3">Timestamp</th>
-                  <th className="py-3 px-3">User / Actor</th>
-                  <th className="py-3 px-3">Action</th>
-                  <th className="py-3 px-3">Target / Detail</th>
-                  <th className="py-3 px-3">IP Address</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="py-3 px-3 font-mono text-white/50 text-[11px]">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </td>
-                    <td className="py-3 px-3 font-medium text-white">
-                      {log.user}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-[#A3C6C4]/15 text-[#E0E7E9] border border-[#A3C6C4]/30">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-white/80">
-                      {log.target}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-white/40 text-[11px]">
-                      {log.ip || '127.0.0.1'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* New Tenant Modal */}
-      <NewTenantModal
-        isOpen={isNewModalOpen}
-        onClose={() => setIsNewModalOpen(false)}
-        onCreated={(data) => {
-          const tenant = onAddTenant(data);
-          return tenant;
-        }}
-        plans={plans}
-      />
-
+      {activeTab === 'audit' && (
+        <AuditTrailPanel
+          logs={auditLogs}
+          title="Platform-Wide Security Audit Trail"
+          tenantName="EventPlan_Platform"
+        />
+      )}
     </div>
   );
 }
