@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BarChart3,
   Calendar,
+  ClipboardList,
   FileText,
   Globe,
   KeyRound,
@@ -37,6 +38,8 @@ import AuditTrailPanel from './components/Organizer/AuditTrailPanel';
 import WorkspaceBrandingSettings from './components/Organizer/WorkspaceBrandingSettings';
 import TermsModal from './components/Common/TermsModal';
 import TenantLogo from './components/Common/TenantLogo';
+import MeetingsPanel from './components/Meetings/MeetingsPanel';
+import MeetingSignInPage from './components/Meetings/MeetingSignInPage';
 
 /**
  * Parses current route cleanly from Hash (`#/acme/login`), Pathname (`/acme`),
@@ -62,6 +65,7 @@ function parseRouteFromWindow() {
         page: 'tenant',
         slug: segs[0].toLowerCase(),
         sub: segs[1] ? segs[1].toLowerCase() : null,
+        subId: segs[2] || null,
         query: searchParams,
       };
     }
@@ -70,12 +74,13 @@ function parseRouteFromWindow() {
   // Support clean pathname if server supports SPA fallback
   const pathSegs = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
   if (pathSegs.length >= 1 && pathSegs[0] !== 'index.html') {
-    if (pathSegs[0] === 'onboard') return { page: 'onboard', slug: null, sub: null, query: searchParams };
-    if (pathSegs[0] === 'platform') return { page: 'platform', slug: null, sub: null, query: searchParams };
+    if (pathSegs[0] === 'onboard') return { page: 'onboard', slug: null, sub: null, subId: null, query: searchParams };
+    if (pathSegs[0] === 'platform') return { page: 'platform', slug: null, sub: null, subId: null, query: searchParams };
     return {
       page: 'tenant',
       slug: pathSegs[0].toLowerCase(),
       sub: pathSegs[1] ? pathSegs[1].toLowerCase() : null,
+      subId: pathSegs[2] || null,
       query: searchParams,
     };
   }
@@ -106,6 +111,7 @@ export default function App() {
   const [reminders, setReminders] = useState(() => Storage.getReminders());
   const [broadcasts, setBroadcasts] = useState(() => Storage.getBroadcasts());
   const [feedbackList, setFeedbackList] = useState(() => Storage.getFeedback());
+  const [meetings, setMeetings] = useState(() => Storage.getMeetings());
   const [plans] = useState(() => Storage.getPlans());
   const [offlineQueue, setOfflineQueue] = useState(() => Storage.getOfflineQueue());
   const [isOffline, setIsOffline] = useState(false);
@@ -142,6 +148,7 @@ export default function App() {
     setReminders(Storage.getReminders());
     setBroadcasts(Storage.getBroadcasts());
     setFeedbackList(Storage.getFeedback());
+    setMeetings(Storage.getMeetings());
     setOfflineQueue(Storage.getOfflineQueue());
   }, []);
 
@@ -502,6 +509,21 @@ export default function App() {
   }
 
   // =========================================================================
+  // ROUTE 5B: PUBLIC / KIOSK MEETING SIGN-IN PAGE (#/:slug/meeting/:meetingId)
+  // =========================================================================
+  if (route.sub === 'meeting' && route.subId) {
+    const activeMeeting = meetings.find((m) => m.id === route.subId && m.tenantId === activeTenant.id) || null;
+    return (
+      <MeetingSignInPage
+        tenant={activeTenant}
+        meeting={activeMeeting}
+        onBackToPortal={() => navigateHash(`/${activeTenant.slug}`)}
+        onSignedIn={refreshState}
+      />
+    );
+  }
+
+  // =========================================================================
   // ROUTE 6: DEDICATED BRANDED EVENT WEBSITE SHELL (#/:slug)
   // Mirrors Multi-School Thesis Repository's home.tsx FinPlanner Shell!
   // =========================================================================
@@ -521,6 +543,7 @@ export default function App() {
     { id: 'overview', label: 'Event Overview', icon: Calendar, show: true },
     { id: 'organizer', label: 'Organizer Dashboard', icon: BarChart3, show: isOrganizer },
     { id: 'staff', label: 'Check-In Station', icon: QrCode, show: isStaff },
+    { id: 'meetings', label: 'Meetings & Sign-In', icon: ClipboardList, show: isStaff },
     { id: 'ticket', label: isAttendeeUser ? 'My Ticket & Badge' : 'Digital Tickets', icon: Ticket, show: isAuthedForTenant },
     { id: 'register', label: 'Register for Event', icon: UserCheck, show: true },
     { id: 'chat', label: 'Event Chat', icon: MessageSquare, show: isAuthedForTenant },
@@ -757,6 +780,16 @@ export default function App() {
                 offlineQueue={offlineQueue}
                 onSyncOffline={handleSyncOffline}
                 initialStation={authSession?.station}
+              />
+            )}
+
+            {activeTab === 'meetings' && isStaff && (
+              <MeetingsPanel
+                tenant={activeTenant}
+                meetings={meetings}
+                onOpenMeetingSignIn={(mtgId) => navigateHash(`/${activeTenant.slug}/meeting/${mtgId}`)}
+                onRefresh={refreshState}
+                isOrganizer={isOrganizer}
               />
             )}
 

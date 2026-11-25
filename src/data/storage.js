@@ -26,6 +26,7 @@ const STORAGE_KEYS = {
   REMINDERS: 'emp_reminders_v1',
   BROADCASTS: 'emp_broadcasts_v1',
   FEEDBACK: 'emp_feedback_v1',
+  MEETINGS: 'emp_meetings_v1',
 };
 
 const CURRENT_SCHEMA_VERSION = '2.0';
@@ -954,6 +955,56 @@ export const Storage = {
     if (Array.isArray(state.reminders)) safeSet(STORAGE_KEYS.REMINDERS, state.reminders);
     if (Array.isArray(state.broadcasts)) safeSet(STORAGE_KEYS.BROADCASTS, state.broadcasts);
     if (Array.isArray(state.feedback)) safeSet(STORAGE_KEYS.FEEDBACK, state.feedback);
+    if (Array.isArray(state.meetings)) safeSet(STORAGE_KEYS.MEETINGS, state.meetings);
+  },
+
+  getMeetings(tenantId) {
+    const all = safeGet(STORAGE_KEYS.MEETINGS, []);
+    return tenantId ? all.filter((m) => m.tenantId === tenantId) : all;
+  },
+
+  async createMeetingAsync(payload) {
+    const res = await fetch('/api/meetings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to create meeting');
+    if (data.state) this.applyServerState(data.state);
+    return data.meeting;
+  },
+
+  async uploadMeetingRosterAsync(meetingId, roster, actorName = 'Organizer') {
+    const res = await fetch(`/api/meetings/${encodeURIComponent(meetingId)}/roster`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roster, actorName }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to upload roster');
+    if (data.state) this.applyServerState(data.state);
+    return data;
+  },
+
+  async signInMeetingAsync(meetingId, payload) {
+    const res = await fetch(`/api/meetings/${encodeURIComponent(meetingId)}/signin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to sign in to meeting');
+    if (data.state) this.applyServerState(data.state);
+    return data;
+  },
+
+  async deleteMeetingAsync(meetingId) {
+    const res = await fetch(`/api/meetings/${encodeURIComponent(meetingId)}`, { method: 'DELETE' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to delete meeting');
+    if (data.state) this.applyServerState(data.state);
+    return true;
   },
 
   getReminders(eventId) {

@@ -106,6 +106,72 @@ function ensureRemindersForEvents(events, tenants, existingReminders = []) {
   return list;
 }
 
+function buildInitialMeetings() {
+  return [
+    {
+      id: 'mtg-acme-board-1',
+      tenantId: 'tenant-acme',
+      title: 'Q4 Executive Strategy & Operations Board Meeting',
+      date: '2026-11-26',
+      time: '10:00',
+      venue: 'Executive Boardroom A, Accra HQ',
+      host: 'Dr. Nana Assyne',
+      mode: 'hybrid', // 'roster' | 'open' | 'hybrid'
+      createdAt: new Date().toISOString(),
+      attendees: [
+        {
+          id: 'ma-1',
+          name: 'Dr. Nana Assyne',
+          department: 'Executive Office',
+          role: 'Chairperson',
+          email: 'nana.assyne@acmetech.io',
+          phone: '+233 24 555 0192',
+          signedIn: true,
+          signedInAt: '2026-11-25T09:52:00Z',
+          signatureDataUrl: '',
+          isWalkIn: false,
+        },
+        {
+          id: 'ma-2',
+          name: 'Alexander Dela Tetteh',
+          department: 'Systems Architecture',
+          role: 'Lead Architect',
+          email: 'alexander.dela@innovation.gh',
+          phone: '+233 24 412 8901',
+          signedIn: false,
+          signedInAt: null,
+          signatureDataUrl: '',
+          isWalkIn: false,
+        },
+        {
+          id: 'ma-3',
+          name: 'Efua Mensah-Bonsu',
+          department: 'Data & Analytics',
+          role: 'Head of Analytics',
+          email: 'efua.bonsu@strata-analytics.gh',
+          phone: '+233 55 900 1123',
+          signedIn: false,
+          signedInAt: null,
+          signatureDataUrl: '',
+          isWalkIn: false,
+        },
+        {
+          id: 'ma-4',
+          name: 'Kojo Asare-Darko',
+          department: 'Corporate Communications',
+          role: 'Media Lead',
+          email: 'kojo.darko@dailygraphic.com.gh',
+          phone: '+233 27 555 4321',
+          signedIn: false,
+          signedInAt: null,
+          signatureDataUrl: '',
+          isWalkIn: false,
+        },
+      ],
+    },
+  ];
+}
+
 function ensureDb() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(DB_FILE)) {
@@ -121,6 +187,7 @@ function ensureDb() {
       reminders: ensureRemindersForEvents(events, tenants, []),
       broadcasts: [],
       feedback: [],
+      meetings: buildInitialMeetings(),
       updatedAt: new Date().toISOString(),
     };
     saveDb(initial);
@@ -140,6 +207,7 @@ function ensureDb() {
       reminders: ensureRemindersForEvents(events, tenants, Array.isArray(parsed.reminders) ? parsed.reminders : []),
       broadcasts: Array.isArray(parsed.broadcasts) ? parsed.broadcasts : [],
       feedback: Array.isArray(parsed.feedback) ? parsed.feedback : [],
+      meetings: Array.isArray(parsed.meetings) ? parsed.meetings : buildInitialMeetings(),
       updatedAt: parsed.updatedAt || new Date().toISOString(),
     };
     return hydrated;
@@ -157,6 +225,7 @@ function ensureDb() {
       reminders: ensureRemindersForEvents(events, tenants, []),
       broadcasts: [],
       feedback: [],
+      meetings: buildInitialMeetings(),
       updatedAt: new Date().toISOString(),
     };
     saveDb(fallback);
@@ -1133,6 +1202,182 @@ const server = http.createServer(async (req, res) => {
       const log = appendAudit(entry, ip);
       saveDb();
       return sendJson(res, 201, { log, state: publicState() });
+    }
+
+    // ── MEETINGS & ATTENDANCE SIGN-IN MODULE ─────────────────────────────────
+    if (req.method === 'POST' && p === '/api/meetings') {
+      const body = await readJsonBody(req);
+      if (!body.tenantId || !body.title) {
+        return sendJson(res, 400, { error: 'tenantId and meeting title are required.' });
+      }
+      const rosterInput = Array.isArray(body.roster) ? body.roster : [];
+      const attendees = rosterInput
+        .filter((r) => String(r?.name || '').trim())
+        .map((r, i) => ({
+          id: `ma-${Date.now()}-${i}-${Math.floor(Math.random() * 1000)}`,
+          name: String(r.name).trim(),
+          department: String(r.department || '').trim(),
+          role: String(r.role || '').trim(),
+          email: String(r.email || '').trim(),
+          phone: String(r.phone || '').trim(),
+          signedIn: false,
+          signedInAt: null,
+          signatureDataUrl: '',
+          isWalkIn: false,
+        }));
+
+      const newMeeting = {
+        id: `mtg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        tenantId: body.tenantId,
+        title: String(body.title).trim(),
+        date: body.date || new Date().toISOString().slice(0, 10),
+        time: body.time || '09:00',
+        venue: String(body.venue || 'Main Conference Room').trim(),
+        host: String(body.host || 'Meeting Chair').trim(),
+        mode: ['roster', 'open', 'hybrid'].includes(body.mode)
+          ? body.mode
+          : attendees.length > 0
+          ? 'hybrid'
+          : 'open',
+        createdAt: new Date().toISOString(),
+        attendees,
+      };
+
+      db.meetings = [newMeeting, ...(db.meetings || [])];
+      appendAudit({
+        tenantId: body.tenantId,
+        user: newMeeting.host,
+        role: 'organizer',
+        action: 'MEETING_CREATED',
+        severity: 'info',
+        target: `Created meeting "${newMeeting.title}" (${newMeeting.mode}, ${attendees.length} pre-loaded attendees)`,
+      }, ip);
+      saveDb();
+      return sendJson(res, 201, { meeting: newMeeting, state: publicState() });
+    }
+
+    // Bulk add/upload attendees to an existing meeting roster
+    if (req.method === 'POST' && p.startsWith('/api/meetings/') && p.endsWith('/roster')) {
+      const mtgId = decodeURIComponent(p.slice('/api/meetings/'.length, -'/roster'.length));
+      const { roster = [], actorName = 'Organizer' } = await readJsonBody(req);
+      const idx = (db.meetings || []).findIndex((m) => m.id === mtgId);
+      if (idx === -1) return sendJson(res, 404, { error: 'Meeting not found' });
+
+      const existing = db.meetings[idx].attendees || [];
+      const added = (Array.isArray(roster) ? roster : [])
+        .filter((r) => String(r?.name || '').trim())
+        .map((r, i) => ({
+          id: `ma-${Date.now()}-${i}-${Math.floor(Math.random() * 1000)}`,
+          name: String(r.name).trim(),
+          department: String(r.department || '').trim(),
+          role: String(r.role || '').trim(),
+          email: String(r.email || '').trim(),
+          phone: String(r.phone || '').trim(),
+          signedIn: false,
+          signedInAt: null,
+          signatureDataUrl: '',
+          isWalkIn: false,
+        }));
+
+      db.meetings[idx] = {
+        ...db.meetings[idx],
+        attendees: [...existing, ...added],
+      };
+      appendAudit({
+        tenantId: db.meetings[idx].tenantId,
+        user: actorName,
+        role: 'organizer',
+        action: 'MEETING_ROSTER_UPLOADED',
+        severity: 'info',
+        target: `Added ${added.length} attendee(s) to "${db.meetings[idx].title}"`,
+      }, ip);
+      saveDb();
+      return sendJson(res, 200, { meeting: db.meetings[idx], addedCount: added.length, state: publicState() });
+    }
+
+    // Sign in to a meeting (either next to an existing roster name OR as a QR walk-in!)
+    if (req.method === 'POST' && p.startsWith('/api/meetings/') && p.endsWith('/signin')) {
+      const mtgId = decodeURIComponent(p.slice('/api/meetings/'.length, -'/signin'.length));
+      const body = await readJsonBody(req);
+      const idx = (db.meetings || []).findIndex((m) => m.id === mtgId);
+      if (idx === -1) return sendJson(res, 404, { error: 'Meeting not found' });
+
+      const mtg = db.meetings[idx];
+      const now = new Date().toISOString();
+      const sig = String(body.signatureDataUrl || '');
+
+      if (body.attendeeId) {
+        const aIdx = (mtg.attendees || []).findIndex((a) => a.id === body.attendeeId);
+        if (aIdx === -1) return sendJson(res, 404, { error: 'Attendee not found on meeting list' });
+        const updatedAttendee = {
+          ...mtg.attendees[aIdx],
+          email: body.email ? String(body.email).trim() : mtg.attendees[aIdx].email,
+          phone: body.phone ? String(body.phone).trim() : mtg.attendees[aIdx].phone,
+          signedIn: true,
+          signedInAt: now,
+          signatureDataUrl: sig,
+        };
+        mtg.attendees[aIdx] = updatedAttendee;
+        appendAudit({
+          tenantId: mtg.tenantId,
+          user: updatedAttendee.name,
+          role: 'attendee',
+          action: 'MEETING_SIGNED_IN',
+          severity: 'success',
+          target: `${updatedAttendee.name} signed attendance for "${mtg.title}"`,
+        }, ip);
+        saveDb();
+        return sendJson(res, 200, { attendee: updatedAttendee, meeting: mtg, state: publicState() });
+      }
+
+      // Open / Walk-in QR sign-in
+      const name = String(body.name || '').trim();
+      if (!name) return sendJson(res, 400, { error: 'Full name is required to sign in.' });
+      if (mtg.mode === 'roster') {
+        return sendJson(res, 403, { error: 'This meeting only allows sign-in from the pre-uploaded attendance list.' });
+      }
+
+      const walkIn = {
+        id: `ma-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name,
+        department: String(body.department || '').trim(),
+        role: String(body.role || '').trim(),
+        email: String(body.email || '').trim(),
+        phone: String(body.phone || '').trim(),
+        signedIn: true,
+        signedInAt: now,
+        signatureDataUrl: sig,
+        isWalkIn: true,
+      };
+      mtg.attendees = [...(mtg.attendees || []), walkIn];
+      appendAudit({
+        tenantId: mtg.tenantId,
+        user: walkIn.name,
+        role: 'attendee',
+        action: 'MEETING_QR_SIGNIN',
+        severity: 'success',
+        target: `${walkIn.name} (${walkIn.department || 'Guest'}) signed in via QR for "${mtg.title}"`,
+      }, ip);
+      saveDb();
+      return sendJson(res, 201, { attendee: walkIn, meeting: mtg, state: publicState() });
+    }
+
+    if (req.method === 'DELETE' && p.startsWith('/api/meetings/')) {
+      const mtgId = decodeURIComponent(p.slice('/api/meetings/'.length));
+      const target = (db.meetings || []).find((m) => m.id === mtgId);
+      db.meetings = (db.meetings || []).filter((m) => m.id !== mtgId);
+      if (target) {
+        appendAudit({
+          tenantId: target.tenantId,
+          user: 'Event Organizer',
+          role: 'organizer',
+          action: 'MEETING_DELETED',
+          severity: 'warning',
+          target: `Deleted meeting "${target.title}"`,
+        }, ip);
+      }
+      saveDb();
+      return sendJson(res, 200, { ok: true, state: publicState() });
     }
 
     return sendJson(res, 404, { error: 'Not found' });
