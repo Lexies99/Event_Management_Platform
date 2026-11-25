@@ -1,27 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ArrowRight,
-  Building2,
-  Calendar,
   Check,
   CheckCircle2,
   Database,
   FileCheck2,
   FileText,
+  Globe,
   Lock,
-  MapPin,
   Menu,
   Moon,
-  PlusCircle,
   Printer,
-  Search,
+  Shield,
   Smartphone,
   Sun,
   WifiOff,
   X,
 } from 'lucide-react';
-import { getAccessibleTextColor } from '../../utils/branding';
-import TenantLogo from '../Common/TenantLogo';
 
 /* Reusable Geometric Asterisk Icon */
 function EditorialAsterisk({ className = 'w-5 h-5' }) {
@@ -62,22 +57,22 @@ const NAV_ITEMS = [
   { id: 'process', label: 'Process' },
   { id: 'about', label: 'About' },
   { id: 'highlights', label: 'Highlights' },
-  { id: 'directory', label: 'Event Portals' },
+  { id: 'book', label: 'Book Now' },
 ];
 
 export default function PublicLandingPage({
   tenants = [],
-  events = [],
   theme = 'light',
   onToggleTheme,
-  onNavigateToEvent,
   onNavigateToEventLogin,
   onNavigateToOnboard,
   onNavigateToPlatformAdmin,
   onOpenTerms,
 }) {
-  const [search, setSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [portalCode, setPortalCode] = useState('');
+  const [portalError, setPortalError] = useState('');
 
   // Conversational booking form state (from the original official website)
   const [formState, setFormState] = useState({
@@ -105,53 +100,57 @@ export default function PublicLandingPage({
     }
   };
 
-  const filteredTenants = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return tenants;
-    return tenants.filter((t) => {
-      const ev = events.find((e) => e.tenantId === t.id);
-      return (
-        t.name.toLowerCase().includes(q) ||
-        (t.shortName || '').toLowerCase().includes(q) ||
-        t.slug.toLowerCase().includes(q) ||
-        (ev?.title || '').toLowerCase().includes(q) ||
-        (ev?.venue || '').toLowerCase().includes(q)
-      );
-    });
-  }, [tenants, events, search]);
+  const handlePortalLookup = (e) => {
+    e.preventDefault();
+    setPortalError('');
+    const raw = portalCode.trim().toLowerCase().replace(/^https?:\/\/[^/]+/, '').replace(/^\/?#?\/?/, '').split('/')[0];
+    if (!raw) {
+      setPortalError('Enter your organization portal code (e.g. acme) or email.');
+      return;
+    }
+    const match = tenants.find(
+      (t) =>
+        t.slug.toLowerCase() === raw ||
+        (t.organizer?.email || '').toLowerCase() === portalCode.trim().toLowerCase()
+    );
+    if (!match) {
+      setPortalError(`No event portal found for "${portalCode.trim()}". Check the portal code provided by your event organizer.`);
+      return;
+    }
+    setSignInModalOpen(false);
+    setPortalCode('');
+    onNavigateToEventLogin(match.slug);
+  };
 
-  const highlightCards = useMemo(() => {
-    const defaults = [
-      {
-        slug: tenants[0]?.slug || 'acme',
-        org: tenants[0]?.name || 'Acme Global Tech Africa',
-        date: '20–24 Nov 2026',
-        title: events[0]?.title || 'Annual global leadership summit',
-        img: '/images/hero-keynote.jpg',
-        stripBg: '#DCE7D0',
-        stripText: '#1F291E',
-      },
-      {
-        slug: tenants[1]?.slug || 'apex-health',
-        org: tenants[1]?.name || 'Apex Health & Biotech Symposium',
-        date: '12–16 Nov 2026',
-        title: events[1]?.title || 'Pan-African healthcare & executive symposium',
-        img: '/images/service-workshop.jpg',
-        stripBg: '#A3C6C4',
-        stripText: '#142022',
-      },
-      {
-        slug: tenants[2]?.slug || 'fintech-wa',
-        org: tenants[2]?.name || 'FinTech West Africa Expo',
-        date: '5–9 Dec 2026',
-        title: events[2]?.title || 'West Africa digital banking & gala expo',
-        img: '/images/service-gala.jpg',
-        stripBg: '#5A6552',
-        stripText: '#FFFFFF',
-      },
-    ];
-    return defaults;
-  }, [tenants, events]);
+  const highlightCards = [
+    {
+      id: 'hl-1',
+      org: 'GlobalTech Africa',
+      date: '20–24 Nov 2026',
+      title: 'Annual global leadership summit',
+      img: '/images/hero-keynote.jpg',
+      stripBg: '#DCE7D0',
+      stripText: '#1F291E',
+    },
+    {
+      id: 'hl-2',
+      org: 'Pan-African Healthcare Council',
+      date: '12–16 Nov 2026',
+      title: 'Executive healthcare & biotech symposium',
+      img: '/images/service-workshop.jpg',
+      stripBg: '#A3C6C4',
+      stripText: '#142022',
+    },
+    {
+      id: 'hl-3',
+      org: 'West Africa FinTech Alliance',
+      date: '5–9 Dec 2026',
+      title: 'Digital banking & executive gala expo',
+      img: '/images/service-gala.jpg',
+      stripBg: '#5A6552',
+      stripText: '#FFFFFF',
+    },
+  ];
 
   const handleBookingSubmit = (e) => {
     e.preventDefault();
@@ -224,7 +223,10 @@ export default function PublicLandingPage({
 
               <button
                 type="button"
-                onClick={() => scrollToSection('directory')}
+                onClick={() => {
+                  setPortalError('');
+                  setSignInModalOpen(true);
+                }}
                 className="px-3 py-2 text-xs sm:text-sm font-medium text-white/85 hover:text-white transition-colors inline-flex items-center gap-1.5 bg-transparent border-0 cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5 text-[#DCE7D0]" />
@@ -338,10 +340,10 @@ export default function PublicLandingPage({
                 </button>
                 <button
                   type="button"
-                  onClick={() => scrollToSection('directory')}
+                  onClick={onNavigateToOnboard}
                   className="w-full sm:w-auto px-6 sm:px-7 py-3.5 rounded-2xl bg-[#DCE7D0] hover:bg-[#e7f0dd] text-[#182224] font-bold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-xl transition-colors cursor-pointer border-0"
                 >
-                  <span>Open Event Portals</span>
+                  <span>Create Your Event Website</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -653,8 +655,8 @@ export default function PublicLandingPage({
             <div className="flex flex-col gap-10 lg:gap-12">
               {highlightCards.map((card, index) => (
                 <div
-                  key={card.slug}
-                  onClick={() => onNavigateToEvent(card.slug)}
+                  key={card.id}
+                  onClick={() => scrollToSection('book')}
                   className="group block rounded-2xl overflow-hidden shadow-2xl cursor-pointer border border-white/10 lg:sticky"
                   style={{ top: `${88 + index * 18}px` }}
                 >
@@ -671,7 +673,7 @@ export default function PublicLandingPage({
                       {card.title}
                     </h3>
                     <div className="text-xs sm:text-sm font-bold md:text-right underline underline-offset-4">
-                      Open Event Website &rarr;
+                      Plan a similar event &rarr;
                     </div>
                   </div>
                   <div className="relative w-full h-56 sm:h-80 lg:h-[420px] overflow-hidden bg-black">
@@ -689,135 +691,7 @@ export default function PublicLandingPage({
         </section>
 
         {/* =========================================================================
-            7. ACTIVE DEDICATED EVENT WEBSITES DIRECTORY (Multi-Tenant Portals)
-            ========================================================================= */}
-        <section id="directory" className="py-16 sm:py-24 bg-[#141D1F] border-t border-white/10 scroll-mt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#DCE7D0] block mb-2">
-                  Dedicated Tenant Websites
-                </span>
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight m-0">
-                  Active Event Websites &amp; Portals
-                </h2>
-                <p className="text-xs sm:text-sm text-white/70 mt-2 mb-0 max-w-2xl">
-                  Every registered organization gets its own branded website. Select an event below to register as an attendee or sign in as organizer, check-in staff, or delegate.
-                </p>
-              </div>
-              <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search events or organizations..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/15 text-sm text-white placeholder-white/45 focus:outline-none focus:border-[#DCE7D0]"
-                />
-              </div>
-            </div>
-
-            {filteredTenants.length === 0 ? (
-              <div className="rounded-2xl p-10 text-center bg-[#0D1315] border border-white/10">
-                <Building2 className="w-8 h-8 mx-auto mb-2 text-white/50" />
-                <div className="font-bold text-base text-white">No matching event portals found</div>
-                <p className="text-xs sm:text-sm text-white/60 mt-1 mb-4">
-                  Ready to host your event on EventPlan? Launch your dedicated website in under 2 minutes.
-                </p>
-                <button
-                  type="button"
-                  onClick={onNavigateToOnboard}
-                  className="px-5 py-2.5 rounded-xl bg-[#DCE7D0] text-[#182224] font-bold text-sm inline-flex items-center gap-2 border-0 cursor-pointer"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Create Event Website</span>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTenants.map((tenant) => {
-                  const ev = events.find((e) => e.tenantId === tenant.id);
-                  const primary = tenant.primaryColor || tenant.brandColor || '#5A6552';
-                  const secondary = tenant.secondaryColor || '#DCE7D0';
-                  const primaryText = getAccessibleTextColor(primary);
-                  const secondaryText = getAccessibleTextColor(secondary);
-
-                  return (
-                    <div
-                      key={tenant.id}
-                      className="rounded-2xl overflow-hidden bg-[#0D1315] border border-white/10 flex flex-col justify-between shadow-xl"
-                    >
-                      <div
-                        className="p-4 flex items-center gap-3.5"
-                        style={{ background: secondary }}
-                      >
-                        <TenantLogo tenant={tenant} size={42} className="rounded-xl" />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-extrabold text-base truncate" style={{ color: secondaryText }}>
-                            {tenant.shortName || tenant.name}
-                          </div>
-                          <div className="text-xs font-mono truncate opacity-80" style={{ color: secondaryText }}>
-                            /#/{tenant.slug}
-                          </div>
-                        </div>
-                        <span
-                          className="text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0"
-                          style={{ background: primary, color: primaryText }}
-                        >
-                          {tenant.status === 'active' ? 'Live' : 'Paused'}
-                        </span>
-                      </div>
-
-                      <div className="p-5 flex-1 flex flex-col gap-3">
-                        <div>
-                          <div className="font-bold text-base text-white leading-snug">
-                            {ev?.title || tenant.name}
-                          </div>
-                          <div className="text-xs text-white/65 mt-2 space-y-1.5">
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 shrink-0 text-[#DCE7D0]" />
-                              <span className="truncate">{ev?.venue || tenant.address || 'Conference Centre'}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 shrink-0 text-[#DCE7D0]" />
-                              <span>
-                                {ev?.startsAt
-                                  ? new Date(ev.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                                  : 'Upcoming 2026'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 mt-auto pt-3">
-                          <button
-                            type="button"
-                            onClick={() => onNavigateToEvent(tenant.slug)}
-                            className="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 border-0 cursor-pointer"
-                            style={{ background: primary, color: primaryText }}
-                          >
-                            <span>Open Event Site</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onNavigateToEventLogin(tenant.slug)}
-                            className="py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-semibold border border-white/20 text-white hover:bg-white/10 bg-transparent shrink-0 cursor-pointer"
-                          >
-                            Sign In
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* =========================================================================
-            8. CONVERSATIONAL BOOKING FORM (Original Official Website Feature)
+            7. CONVERSATIONAL BOOKING FORM (Original Official Website Feature)
             ========================================================================= */}
         <section id="book" className="relative py-16 sm:py-28 overflow-hidden bg-[#141D1F] border-t border-white/10 scroll-mt-16">
           <div className="absolute inset-0 z-0">
@@ -1107,8 +981,15 @@ export default function PublicLandingPage({
               <p className="font-bold text-white text-sm mb-3">Portals &amp; Sign In</p>
               <ul className="space-y-2 list-none p-0 m-0">
                 <li>
-                  <button type="button" onClick={() => scrollToSection('directory')} className="hover:text-[#DCE7D0] text-left bg-transparent border-0 p-0 text-inherit cursor-pointer">
-                    Browse Active Event Websites
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPortalError('');
+                      setSignInModalOpen(true);
+                    }}
+                    className="hover:text-[#DCE7D0] text-left bg-transparent border-0 p-0 text-inherit cursor-pointer"
+                  >
+                    Sign In to Your Event Portal
                   </button>
                 </li>
                 <li>
@@ -1150,6 +1031,92 @@ export default function PublicLandingPage({
           </div>
         </div>
       </footer>
+      {/* Private Portal Sign-In Modal (No public list of client portals exposed) */}
+      {signInModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setSignInModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-[#141D1F] border border-white/15 p-6 sm:p-7 shadow-2xl space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-extrabold text-white m-0">Access Your Event Portal</h3>
+                <p className="text-xs text-white/65 mt-1 mb-0">
+                  Enter your organization&apos;s private portal code or organizer email to sign in.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSignInModalOpen(false)}
+                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 bg-transparent border-0 cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePortalLookup} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-white/80 mb-1.5">
+                  Event Portal Code or Organizer Email
+                </label>
+                <div className="relative">
+                  <Globe className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/45" />
+                  <input
+                    type="text"
+                    value={portalCode}
+                    onChange={(e) => setPortalCode(e.target.value)}
+                    placeholder="e.g. acme or nana.assyne@acmetech.io"
+                    autoFocus
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/50 border border-white/20 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#DCE7D0]"
+                  />
+                </div>
+              </div>
+
+              {portalError && (
+                <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-xs text-red-200">
+                  {portalError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-[#DCE7D0] text-[#182224] font-bold text-sm hover:bg-[#e7f0dd] transition-colors inline-flex items-center justify-center gap-2 border-0 cursor-pointer"
+              >
+                <span>Continue to Portal Login</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setSignInModalOpen(false);
+                  onNavigateToOnboard();
+                }}
+                className="text-[#DCE7D0] hover:underline font-semibold bg-transparent border-0 p-0 cursor-pointer"
+              >
+                Create New Event Website
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSignInModalOpen(false);
+                  onNavigateToPlatformAdmin();
+                }}
+                className="text-white/70 hover:text-white inline-flex items-center gap-1 bg-transparent border-0 p-0 cursor-pointer"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Platform Admin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
