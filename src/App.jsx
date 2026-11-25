@@ -196,6 +196,7 @@ export default function App() {
 
   // Apply dynamic per-tenant branding (or default EventPlan Sage/Olive on root/onboard/platform)
   useEffect(() => {
+    document.documentElement.dataset.page = route.page;
     if (route.page === 'tenant' && activeTenant) {
       applyTenantBrandingCss(activeTenant, theme);
       document.title = `${activeTenant.shortName || activeTenant.name} | EventPlan Cloud`;
