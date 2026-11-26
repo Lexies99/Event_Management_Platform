@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 import { generateQrDataUrl } from '../../utils/qr';
+import { getPlanEntitlements } from '../../utils/plans';
 import TenantLogo from '../Common/TenantLogo';
 
 /**
@@ -32,6 +33,7 @@ export default function EventOverviewPanel({
   isAuthenticated,
 }) {
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
+  const plan = getPlanEntitlements(tenant?.planId);
   const registrationUrl = `${window.location.origin}/#/${tenant?.slug}/register`;
   const [regQrUrl, setRegQrUrl] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -107,14 +109,16 @@ export default function EventOverviewPanel({
               </button>
 
               {isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={onGoToTicket}
-                  className="btn-fp-sage px-5 py-3 text-sm inline-flex items-center justify-center gap-2"
-                >
-                  <QrCode className="w-4 h-4" />
-                  <span>Open My Digital Ticket</span>
-                </button>
+                plan.canIssueDigitalTickets && (
+                  <button
+                    type="button"
+                    onClick={onGoToTicket}
+                    className="btn-fp-sage px-5 py-3 text-sm inline-flex items-center justify-center gap-2"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    <span>Open My Digital Ticket</span>
+                  </button>
+                )
               ) : (
                 <button
                   type="button"
