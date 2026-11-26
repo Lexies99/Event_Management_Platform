@@ -46,6 +46,7 @@ export default function AttendeePortal({
   defaultView = 'ticket',
   isOrganizerOrAdmin = false,
   isAuthenticated = false,
+  digitalTicketsEnabled = true,
 }) {
   const effectiveDefaultView = isAuthenticated ? defaultView : 'register';
   const [activeView, setActiveView] = useState(effectiveDefaultView);
@@ -179,7 +180,7 @@ export default function AttendeePortal({
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
       setJustRegisteredAttendee(newReg);
       setCurrentAttendeeId(newReg.id);
-      setActiveView('ticket');
+      setActiveView(digitalTicketsEnabled ? 'ticket' : 'confirmed');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setFormError(err.message || 'Failed to complete registration.');
@@ -280,8 +281,8 @@ export default function AttendeePortal({
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
-      {/* Top Switcher Bar (Only show Ticket switcher for authenticated users) */}
-      {isAuthenticated && (
+      {/* Top Switcher Bar (Only show Ticket switcher when Digital Tickets are enabled on Starter+ plans) */}
+      {isAuthenticated && digitalTicketsEnabled && (
         <div className="fp-card p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -319,8 +320,40 @@ export default function AttendeePortal({
         </div>
       )}
 
+      {/* FREE PACKAGE CONFIRMATION VIEW (No Digital QR Ticket or Badge) */}
+      {!digitalTicketsEnabled && activeView === 'confirmed' && justRegisteredAttendee && (
+        <div className="fp-card p-6 sm:p-10 text-center max-w-lg mx-auto space-y-5">
+          <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'var(--fp-sage)', color: 'var(--fp-green)' }}>
+            <UserCheck className="w-7 h-7" />
+          </div>
+          <div className="space-y-1.5">
+            <span className="fp-tag-sage text-xs font-bold">Registration Confirmed</span>
+            <h3 className="text-xl font-extrabold m-0">Thank You, {justRegisteredAttendee.name}!</h3>
+            <p className="text-xs sm:text-sm m-0" style={{ color: 'var(--text-muted)' }}>
+              Your registration for <strong>{event?.title || tenant?.name}</strong> has been recorded successfully.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl border text-left text-xs sm:text-sm space-y-1.5" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+            <div className="flex justify-between gap-2"><span style={{ color: 'var(--text-muted)' }}>Name:</span><strong>{justRegisteredAttendee.name}</strong></div>
+            <div className="flex justify-between gap-2"><span style={{ color: 'var(--text-muted)' }}>Email:</span><span>{justRegisteredAttendee.email}</span></div>
+            <div className="flex justify-between gap-2"><span style={{ color: 'var(--text-muted)' }}>Organization:</span><span>{justRegisteredAttendee.organization}</span></div>
+            <div className="flex justify-between gap-2"><span style={{ color: 'var(--text-muted)' }}>Venue:</span><span>{event?.venue}</span></div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setJustRegisteredAttendee(null);
+              setActiveView('register');
+            }}
+            className="btn-fp-outline px-5 py-2.5 text-xs sm:text-sm"
+          >
+            Register Another Attendee
+          </button>
+        </div>
+      )}
+
       {/* EMPTY STATE */}
-      {activeView === 'ticket' && !currentAttendee && (
+      {digitalTicketsEnabled && activeView === 'ticket' && !currentAttendee && (
         <div className="fp-card p-8 sm:p-10 text-center max-w-lg mx-auto space-y-4">
           <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: 'var(--fp-sage)', color: 'var(--fp-olive)' }}>
             <UserCheck className="w-7 h-7" />
@@ -336,7 +369,7 @@ export default function AttendeePortal({
       )}
 
       {/* VIEW 1: DIGITAL TICKET PASS */}
-      {activeView === 'ticket' && currentAttendee && (
+      {digitalTicketsEnabled && activeView === 'ticket' && currentAttendee && (
         <div className="space-y-5">
           <div id="printable-ticket-card" className="fp-card max-w-md mx-auto overflow-hidden shadow-md">
             {/* Branded Top Strip */}

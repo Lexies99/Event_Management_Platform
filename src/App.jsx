@@ -553,7 +553,7 @@ export default function App() {
     { id: 'organizer', label: 'Organizer Dashboard', icon: BarChart3, show: isOrganizer, locked: false },
     { id: 'staff', label: 'Check-In Station', icon: QrCode, show: isStaff, locked: !plan.canCheckIn },
     { id: 'meetings', label: 'Meetings & Sign-In', icon: ClipboardList, show: isStaff, locked: !plan.canUseMeetings },
-    { id: 'ticket', label: isAttendeeUser ? 'My Ticket & Badge' : 'Digital Tickets', icon: Ticket, show: isAuthedForTenant, locked: false },
+    { id: 'ticket', label: isAttendeeUser ? 'My Ticket & Badge' : 'Digital Tickets', icon: Ticket, show: isAuthedForTenant, locked: !plan.canIssueDigitalTickets },
     { id: 'register', label: 'Register for Event', icon: UserCheck, show: true, locked: false },
     { id: 'chat', label: 'Event Chat', icon: MessageSquare, show: isAuthedForTenant, locked: !plan.canUseEventChat },
     { id: 'audit', label: 'Audit Trail', icon: ShieldCheck, show: isOrganizer, locked: !plan.canViewAuditTrail },
@@ -828,18 +828,30 @@ export default function App() {
               )
             )}
 
-            {(activeTab === 'ticket' || activeTab === 'register') && (
+            {activeTab === 'ticket' && !plan.canIssueDigitalTickets && (
+              <PlanUpgradeGate
+                tenant={activeTenant}
+                featureTitle="Digital QR Tickets & Printable Badges"
+                featureDescription="Your Free package includes online registration and CSV attendee list downloads only. Upgrade to Starter or higher to issue scannable Digital QR Tickets and custom event badges."
+                requiredPlanId="starter"
+                isOrganizer={isOrganizer}
+                onUpgraded={refreshState}
+              />
+            )}
+
+            {((activeTab === 'ticket' && plan.canIssueDigitalTickets) || activeTab === 'register') && (
               <AttendeePortal
                 tenant={activeTenant}
                 event={activeEvent}
                 registrations={registrations}
+                digitalTicketsEnabled={plan.canIssueDigitalTickets}
                 onAddRegistration={async (data) => {
                   const reg = await Storage.addRegistrationAsync(data);
                   refreshState();
                   setCurrentAttendeeId(reg.id);
                   Storage.setCurrentAttendeeId(reg.id);
-                  // Automatically sign in newly registered attendee to their personal ticket!
-                  if (!isAuthedForTenant) {
+                  // Automatically sign in newly registered attendee on Starter+ plans
+                  if (!isAuthedForTenant && plan.canIssueDigitalTickets) {
                     saveSession({
                       role: 'attendee',
                       tenantId: activeTenant.id,
@@ -849,10 +861,12 @@ export default function App() {
                       attendeeId: reg.id,
                     });
                   }
-                  if (route.sub === 'register') {
+                  if (route.sub === 'register' && plan.canIssueDigitalTickets) {
                     navigateHash(`/${activeTenant.slug}`);
                   }
-                  setActiveTab('ticket');
+                  if (plan.canIssueDigitalTickets) {
+                    setActiveTab('ticket');
+                  }
                   return reg;
                 }}
                 currentAttendeeId={isAuthedForTenant ? currentAttendeeId : null}
