@@ -11,6 +11,7 @@ import {
   INITIAL_STAFF_MEMBERS,
   DEFAULT_EVENT_DAYS,
 } from '../src/data/mockData.js';
+import { getPlanEntitlements } from '../src/utils/plans.js';
 
 const PORT = Number(process.env.PORT || 4100);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -712,10 +713,17 @@ const server = http.createServer(async (req, res) => {
 
       const tenant = db.tenants.find((t) => t.id === regData.tenantId);
       const event = db.events.find((e) => e.id === regData.eventId);
+      const plan = getPlanEntitlements(tenant?.planId);
+      const totalForEvent = db.registrations.filter((r) => r.eventId === regData.eventId).length;
+      if (plan.id === 'free' && totalForEvent >= plan.maxAttendees) {
+        return sendJson(res, 403, {
+          error: `This event has reached the Free package limit of ${plan.maxAttendees} registrants. Please ask the organizer to upgrade to Starter or Growth.`,
+        });
+      }
       const activeSeatsCount = db.registrations.filter(
         (r) => r.eventId === regData.eventId && r.status !== 'waitlisted'
       ).length;
-      const capacity = Number(event?.capacity || 500);
+      const capacity = Math.min(Number(event?.capacity || 500), plan.maxAttendees);
       const isWaitlisted = activeSeatsCount >= capacity;
       const waitlistPosition = isWaitlisted
         ? db.registrations.filter((r) => r.eventId === regData.eventId && r.status === 'waitlisted').length + 1
@@ -813,6 +821,15 @@ const server = http.createServer(async (req, res) => {
         tenantId = null,
         forceOverride = false,
       } = body;
+
+      const checkinTenant = db.tenants.find((t) => t.id === tenantId);
+      if (checkinTenant && !getPlanEntitlements(checkinTenant.planId).canCheckIn) {
+        return sendJson(res, 403, {
+          success: false,
+          reason: 'PLAN_LOCKED',
+          message: 'Check-In Station is not included in the Free package. Upgrade to Starter or higher to enable check-in.',
+        });
+      }
 
       const cleaned = normalizeTicketInput(rawTicketInput);
       const compactInput = compactCode(cleaned);
@@ -1018,6 +1035,10 @@ const server = http.createServer(async (req, res) => {
       const { senderName = 'Event Organizer' } = await readJsonBody(req);
       const rem = db.reminders.find((r) => r.id === remId);
       if (!rem) return sendJson(res, 404, { error: 'Reminder not found' });
+      const remTenant = db.tenants.find((t) => t.id === rem.tenantId);
+      if (remTenant && !getPlanEntitlements(remTenant.planId).canUseBulkMessaging) {
+        return sendJson(res, 403, { error: 'Bulk reminders require the Growth or Enterprise package.' });
+      }
       const record = await dispatchBulkMessage({
         tenantId: rem.tenantId,
         eventId: rem.eventId,
@@ -1042,6 +1063,10 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req);
       if (!body.tenantId || !body.eventId || !body.subject || !body.message) {
         return sendJson(res, 400, { error: 'tenantId, eventId, subject, and message are required.' });
+      }
+      const bTenant = db.tenants.find((t) => t.id === body.tenantId);
+      if (bTenant && !getPlanEntitlements(bTenant.planId).canUseBulkMessaging) {
+        return sendJson(res, 403, { error: 'Bulk messaging requires the Growth or Enterprise package.' });
       }
       const record = await dispatchBulkMessage({
         tenantId: body.tenantId,
@@ -1261,6 +1286,14 @@ const server = http.createServer(async (req, res) => {
     // Staff management
     if (req.method === 'POST' && p === '/api/staff') {
       const staffData = await readJsonBody(req);
+      const sTenant = db.tenants.find((t) => t.id === staffData.tenantId);
+      const sPlan = getPlanEntitlements(sTenant?.planId);
+      const currentStaffCount = db.staffMembers.filter((s) => s.tenantId === staffData.tenantId).length;
+      if (!sPlan.canCheckIn || currentStaffCount >= sPlan.maxStaffDesks) {
+        return sendJson(res, 403, {
+          error: `Your ${sPlan.name} package allows up to ${sPlan.maxStaffDesks} staff desk(s). Upgrade your package to add more check-in staff.`,
+        });
+      }
       const newMember = {
         id: `staff-${Date.now()}`,
         tenantId: staffData.tenantId,
@@ -1308,6 +1341,10 @@ const server = http.createServer(async (req, res) => {
     // Chat messages
     if (req.method === 'POST' && p === '/api/chat') {
       const msgData = await readJsonBody(req);
+      const cTenant = db.tenants.find((t) => t.id === msgData.tenantId);
+      if (cTenant && !getPlanEntitlements(cTenant.planId).canUseEventChat) {
+        return sendJson(res, 403, { error: 'Live Event Chat requires the Growth or Enterprise package.' });
+      }
       const cleanAttachments = sanitizeAttachments(msgData.attachments);
       const cleanText = String(msgData.text || '').trim();
       if (!cleanText && cleanAttachments.length === 0) {
@@ -1353,6 +1390,10 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req);
       if (!body.tenantId || !body.title) {
         return sendJson(res, 400, { error: 'tenantId and meeting title are required.' });
+      }
+      const mTenant = db.tenants.find((t) => t.id === body.tenantId);
+      if (mTenant && !getPlanEntitlements(mTenant.planId).canUseMeetings) {
+        return sendJson(res, 403, { error: 'Meetings & Digital Sign-In requires the Starter package or higher.' });
       }
       const rosterInput = Array.isArray(body.roster) ? body.roster : [];
       const attendees = rosterInput

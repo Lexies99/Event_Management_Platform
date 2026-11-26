@@ -7,69 +7,96 @@ export const LOCAL_AVATARS = [
 
 export const INITIAL_PLANS = [
   {
-    id: "starter",
-    name: "Starter",
-    price: 199,
+    id: "free",
+    name: "Free",
+    price: 0,
+    priceLabel: "$0",
     billingPeriod: "per event",
-    description: "Ideal for single conferences, workshops, and company retreats.",
+    description: "Registration & attendee list export only — ideal for free meetups and simple RSVPs.",
     limits: {
       events: 1,
-      attendees: 250,
+      attendees: 100,
+      staffDesks: 0,
+      storage: "1 GB",
+      chatEnabled: false,
+      customDomain: false
+    },
+    features: [
+      "Dedicated event registration page & QR link",
+      "Attendee self-registration form (up to 100 registrants)",
+      "Organizer Terms & Conditions upload (PDF/TXT)",
+      "Real-time registrant directory",
+      "CSV / Excel download of all registered attendees"
+    ]
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    price: 149,
+    priceLabel: "$149",
+    billingPeriod: "per event",
+    description: "Self-service QR check-in, custom badge printing, and digital meeting sign-in.",
+    limits: {
+      events: 1,
+      attendees: 300,
+      staffDesks: 2,
       storage: "5 GB",
       chatEnabled: false,
       customDomain: false
     },
     features: [
-      "Dedicated branded event website (/your-event)",
-      "QR code ticketing & instant registration pass",
-      "Camera & manual ticket code check-in station",
-      "Centered 3.1-inch thermal & lanyard badge printing",
-      "Full event audit trail & CSV export"
+      "Everything in Free (up to 300 attendees)",
+      "QR Check-In Station (up to 2 staff desks) & duplicate alerts",
+      "4 Badge designs (Lanyard & Executive, Photo/No-Photo) + custom W×L",
+      "Meetings & Digital Sign-In (CSV roster + QR signature pad)",
+      "Certificates of Attendance & full security Audit Trail"
     ]
   },
   {
     id: "growth",
     name: "Growth",
-    price: 499,
+    price: 399,
+    priceLabel: "$399",
     billingPeriod: "monthly",
-    description: "For active organizers, enterprises, and regional event producers.",
+    description: "Full engagement, automated bulk messaging, live chat, and multi-desk check-in.",
     limits: {
       events: 5,
-      attendees: 1500,
+      attendees: 2000,
+      staffDesks: 10,
       storage: "25 GB",
       chatEnabled: true,
       customDomain: false
     },
     popular: true,
     features: [
-      "Everything in Starter",
-      "Live attendance-gated event community chat",
-      "Organizer broadcast announcements & pinned alerts",
-      "Multi-station check-in with offline sync & staff PINs",
-      "Custom colour palette & logo with WCAG contrast checks",
-      "Certificate of Attendance generation"
+      "Everything in Starter (up to 2,000 attendees · 5 events)",
+      "Automated Bulk Reminders & Instant Broadcasts with file uploads",
+      "Live attendance-gated Event Chat with image & document sharing",
+      "Multi-desk check-in (up to 10 desks) with offline sync & PINs",
+      "Live Analytics charts, Post-Event Feedback & Custom Branding"
     ]
   },
   {
     id: "enterprise",
     name: "Enterprise",
     price: 1299,
-    billingPeriod: "monthly",
-    description: "Unlimited scale with dedicated tenant infrastructure and SLA.",
+    priceLabel: "$1,299+",
+    billingPeriod: "per event",
+    description: "Full-service turnkey execution — includes our printers and on-site system operators.",
     limits: {
       events: 999,
       attendees: 15000,
+      staffDesks: 999,
       storage: "250 GB",
       chatEnabled: true,
       customDomain: true
     },
     features: [
-      "Everything in Growth",
-      "Custom tenant subdomains & white-label domain",
-      "Unlimited simultaneous check-in staff desks",
-      "Direct API & Webhook integrations (Paystack/Flutterwave)",
-      "Dedicated account manager & 99.9% uptime SLA",
-      "Full Act 843 compliance & immutable audit trail"
+      "Everything in Growth (unlimited events & 15,000+ attendees)",
+      "On-site thermal & lanyard badge printers supplied by our team",
+      "Dedicated on-site operators to set up & run check-in live",
+      "Unlimited simultaneous check-in desks & white-label domain",
+      "Direct SMS/Email/Payment webhooks & 99.9% uptime SLA"
     ]
   }
 ];

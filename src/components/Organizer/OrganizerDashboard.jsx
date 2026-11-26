@@ -30,12 +30,16 @@ import {
   X,
   FileText,
   Loader2,
+  Lock,
+  CreditCard,
 } from 'lucide-react';
 import { exportAttendeesToCSV } from '../../utils/export';
 import { generateQrDataUrl } from '../../utils/qr';
 import BadgeModal from '../Common/BadgeModal';
 import CertificateModal from '../Common/CertificateModal';
 import AttachmentList, { ATTACHMENT_ACCEPT, formatFileSize } from '../Common/AttachmentList';
+import PlanUpgradeGate from '../Common/PlanUpgradeGate';
+import { getPlanEntitlements, getPlanInfo } from '../../utils/plans';
 import RegistrationQrModal from './RegistrationQrModal';
 import AuditTrailPanel from './AuditTrailPanel';
 import WorkspaceBrandingSettings from './WorkspaceBrandingSettings';
@@ -55,7 +59,11 @@ export default function OrganizerDashboard({
   onRefresh,
   initialTab = 'overview',
 }) {
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const plan = getPlanEntitlements(tenant?.planId);
+  const planInfo = getPlanInfo(tenant?.planId);
+  const [activeTab, setActiveTab] = useState(
+    initialTab === 'overview' && !plan.canViewAnalytics ? 'attendees' : initialTab
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -308,6 +316,10 @@ export default function OrganizerDashboard({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <span className="fp-tag-sage text-[11px]">Organizer Console</span>
+              <span className="fp-tag-olive text-[11px]">{planInfo.name} Package</span>
+              {plan.includesHardwareAndStaff && (
+                <span className="fp-tag-sage text-[11px]">Printers &amp; On-Site Operators Included</span>
+              )}
               <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>/{tenant?.slug}</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-extrabold m-0 leading-tight">{event?.title}</h1>
@@ -394,11 +406,12 @@ export default function OrganizerDashboard({
       {/* FinPlanner Horizontal Sub-Navigation Pills (Scrollable on Phones!) */}
       <div className="fp-subnav">
         {[
-          { id: 'overview', label: 'Analytics & Turnout', icon: BarChart3 },
-          { id: 'attendees', label: `Attendees & Badges (${eventRegistrations.length})`, icon: Users },
-          { id: 'audit', label: `Audit Trail (${tenantAuditLogs.length})`, icon: ShieldCheck },
-          { id: 'communication', label: 'Broadcast & Comms', icon: Mail },
-          { id: 'branding', label: 'Branding & Settings', icon: Palette },
+          { id: 'overview', label: 'Analytics & Turnout', icon: BarChart3, locked: !plan.canViewAnalytics },
+          { id: 'attendees', label: `Attendees & CSV (${eventRegistrations.length})`, icon: Users, locked: false },
+          { id: 'audit', label: `Audit Trail (${tenantAuditLogs.length})`, icon: ShieldCheck, locked: !plan.canViewAuditTrail },
+          { id: 'communication', label: 'Broadcast & Comms', icon: Mail, locked: !plan.canUseBulkMessaging },
+          { id: 'branding', label: 'Branding & Settings', icon: Palette, locked: !plan.canUseCustomBranding },
+          { id: 'plan', label: `Package (${planInfo.name})`, icon: CreditCard, locked: false },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -410,6 +423,7 @@ export default function OrganizerDashboard({
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
+              {tab.locked && <Lock className="w-3 h-3 opacity-60" />}
             </button>
           );
         })}
@@ -417,6 +431,7 @@ export default function OrganizerDashboard({
 
       {/* TAB 1: ANALYTICS */}
       {activeTab === 'overview' && (
+        plan.canViewAnalytics ? (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="fp-card p-5 space-y-4">
@@ -434,6 +449,16 @@ export default function OrganizerDashboard({
             <BarGraph data={dayBarData} height={150} />
           </div>
         </div>
+        ) : (
+          <PlanUpgradeGate
+            tenant={tenant}
+            featureTitle="Live Analytics & Turnout Charts"
+            featureDescription="Unlock category breakdowns, capacity ratios, and multi-day check-in turnout charts by upgrading to the Growth or Enterprise package."
+            requiredPlanId="growth"
+            isOrganizer={true}
+            onUpgraded={onRefresh}
+          />
+        )
       )}
 
       {/* TAB 2: ATTENDEE DIRECTORY */}
@@ -524,6 +549,7 @@ export default function OrganizerDashboard({
                         )}
                       </td>
                       <td className="text-right whitespace-nowrap">
+                        {plan.canCheckIn ? (
                         <div className="inline-flex items-center gap-1.5">
                           {att.status === 'waitlisted' && (
                             <button
@@ -545,16 +571,18 @@ export default function OrganizerDashboard({
                               Check In
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedAttendeeForBadge(att)}
-                            className="btn-fp-sage px-2.5 py-1 text-[11px] inline-flex items-center gap-1"
-                            title="Print 3.1in Badge"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>3.1&quot; Tag</span>
-                          </button>
-                          {att.status === 'attended' && (
+                          {plan.canPrintBadges && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedAttendeeForBadge(att)}
+                              className="btn-fp-sage px-2.5 py-1 text-[11px] inline-flex items-center gap-1"
+                              title="Print Custom Tag"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                              <span>Tag</span>
+                            </button>
+                          )}
+                          {plan.canUseCertificates && att.status === 'attended' && (
                             <button
                               type="button"
                               onClick={() => setSelectedAttendeeForCert(att)}
@@ -565,6 +593,17 @@ export default function OrganizerDashboard({
                             </button>
                           )}
                         </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('plan')}
+                            className="btn-fp-outline px-2.5 py-1 text-[11px] inline-flex items-center gap-1"
+                            title="Upgrade to Starter for Check-In & Badge Printing"
+                          >
+                            <Lock className="w-3 h-3" />
+                            <span>Upgrade</span>
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -577,15 +616,36 @@ export default function OrganizerDashboard({
 
       {/* TAB 3: AUDIT TRAIL */}
       {activeTab === 'audit' && (
-        <AuditTrailPanel
-          logs={tenantAuditLogs}
-          title={`${tenant?.shortName || tenant?.name} Audit Trail`}
-          tenantName={tenant?.name || 'Event'}
-        />
+        plan.canViewAuditTrail ? (
+          <AuditTrailPanel
+            logs={tenantAuditLogs}
+            title={`${tenant?.shortName || tenant?.name} Audit Trail`}
+            tenantName={tenant?.name || 'Event'}
+          />
+        ) : (
+          <PlanUpgradeGate
+            tenant={tenant}
+            featureTitle="Event Audit Trail"
+            featureDescription="Full timestamped security and check-in audit logs with CSV export are included starting with the Starter package."
+            requiredPlanId="starter"
+            isOrganizer={true}
+            onUpgraded={onRefresh}
+          />
+        )
       )}
 
       {/* TAB 4: AUTOMATED REMINDERS & BULK BROADCAST */}
       {activeTab === 'communication' && (
+        !plan.canUseBulkMessaging ? (
+          <PlanUpgradeGate
+            tenant={tenant}
+            featureTitle="Automated Bulk Reminders & Broadcasts"
+            featureDescription="Send automated 7-day, 1-day, and event-day reminders plus instant bulk broadcasts with flyer/PDF attachments on the Growth and Enterprise packages."
+            requiredPlanId="growth"
+            isOrganizer={true}
+            onUpgraded={onRefresh}
+          />
+        ) : (
         <div className="space-y-6">
           {broadcastSentNotice && (
             <div className="p-3.5 rounded-xl border text-xs sm:text-sm font-semibold" style={{ background: 'var(--fp-sage)', borderColor: 'var(--fp-olive)', color: 'var(--fp-sage-text)' }}>
@@ -878,11 +938,45 @@ export default function OrganizerDashboard({
             </div>
           </div>
         </div>
+        )
       )}
 
       {/* TAB 5: BRANDING & SETTINGS */}
       {activeTab === 'branding' && (
-        <WorkspaceBrandingSettings tenant={tenant} event={event} onUpdated={onRefresh} />
+        plan.canUseCustomBranding ? (
+          <WorkspaceBrandingSettings tenant={tenant} event={event} onUpdated={onRefresh} />
+        ) : (
+          <PlanUpgradeGate
+            tenant={tenant}
+            featureTitle="Custom Branding & White-Label Settings"
+            featureDescription="Customize your event colours, upload your organization logo, and configure portal branding on the Growth and Enterprise packages."
+            requiredPlanId="growth"
+            isOrganizer={true}
+            onUpgraded={onRefresh}
+          />
+        )
+      )}
+
+      {/* TAB 6: PACKAGE & UPGRADE */}
+      {activeTab === 'plan' && (
+        plan.id === 'enterprise' ? (
+          <div className="fp-card p-6 sm:p-8 max-w-2xl mx-auto text-center space-y-3">
+            <span className="fp-tag-olive text-xs font-bold">Enterprise Managed Package Active</span>
+            <h3 className="text-xl font-extrabold m-0">All Features + On-Site Printers &amp; Operators Included</h3>
+            <p className="text-xs sm:text-sm m-0" style={{ color: 'var(--text-muted)' }}>
+              Your organization is on the top Enterprise tier — unlimited events, unlimited check-in desks, up to 15,000+ attendees, plus our badge printers and dedicated on-site operations team.
+            </p>
+          </div>
+        ) : (
+          <PlanUpgradeGate
+            tenant={tenant}
+            featureTitle={`Current Package: ${planInfo.name} (${planInfo.priceLabel || `$${planInfo.price}`}/${planInfo.billingPeriod})`}
+            featureDescription={planInfo.description}
+            requiredPlanId={plan.id === 'free' ? 'starter' : plan.id === 'starter' ? 'growth' : 'enterprise'}
+            isOrganizer={true}
+            onUpgraded={onRefresh}
+          />
+        )
       )}
 
       <BadgeModal

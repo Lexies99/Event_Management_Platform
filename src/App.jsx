@@ -7,6 +7,7 @@ import {
   FileText,
   Globe,
   KeyRound,
+  Lock,
   LogIn,
   LogOut,
   Menu,
@@ -40,6 +41,8 @@ import TermsModal from './components/Common/TermsModal';
 import TenantLogo from './components/Common/TenantLogo';
 import MeetingsPanel from './components/Meetings/MeetingsPanel';
 import MeetingSignInPage from './components/Meetings/MeetingSignInPage';
+import PlanUpgradeGate from './components/Common/PlanUpgradeGate';
+import { getPlanEntitlements } from './utils/plans';
 
 /**
  * Parses current route cleanly from Hash (`#/acme/login`), Pathname (`/acme`),
@@ -441,6 +444,10 @@ export default function App() {
                 Storage.toggleTenantStatus(id);
                 refreshState();
               }}
+              onChangeTenantPlan={async (id, newPlanId) => {
+                await Storage.updateTenantAsync(id, { planId: newPlanId, updatedBy: 'Platform Super-Admin' });
+                refreshState();
+              }}
               onOpenEventSite={(slug) => {
                 const t = tenants.find((x) => x.slug === slug);
                 if (t) {
@@ -539,17 +546,18 @@ export default function App() {
 
   const eventRegs = registrations.filter((r) => r.eventId === activeEvent?.id);
   const tenantAuditLogs = auditLogs.filter((l) => l.tenantId === activeTenant.id);
+  const plan = getPlanEntitlements(activeTenant.planId);
 
   const navItems = [
-    { id: 'overview', label: 'Event Overview', icon: Calendar, show: true },
-    { id: 'organizer', label: 'Organizer Dashboard', icon: BarChart3, show: isOrganizer },
-    { id: 'staff', label: 'Check-In Station', icon: QrCode, show: isStaff },
-    { id: 'meetings', label: 'Meetings & Sign-In', icon: ClipboardList, show: isStaff },
-    { id: 'ticket', label: isAttendeeUser ? 'My Ticket & Badge' : 'Digital Tickets', icon: Ticket, show: isAuthedForTenant },
-    { id: 'register', label: 'Register for Event', icon: UserCheck, show: true },
-    { id: 'chat', label: 'Event Chat', icon: MessageSquare, show: isAuthedForTenant },
-    { id: 'audit', label: 'Audit Trail', icon: ShieldCheck, show: isOrganizer },
-    { id: 'branding', label: 'Branding & Settings', icon: Palette, show: isOrganizer },
+    { id: 'overview', label: 'Event Overview', icon: Calendar, show: true, locked: false },
+    { id: 'organizer', label: 'Organizer Dashboard', icon: BarChart3, show: isOrganizer, locked: false },
+    { id: 'staff', label: 'Check-In Station', icon: QrCode, show: isStaff, locked: !plan.canCheckIn },
+    { id: 'meetings', label: 'Meetings & Sign-In', icon: ClipboardList, show: isStaff, locked: !plan.canUseMeetings },
+    { id: 'ticket', label: isAttendeeUser ? 'My Ticket & Badge' : 'Digital Tickets', icon: Ticket, show: isAuthedForTenant, locked: false },
+    { id: 'register', label: 'Register for Event', icon: UserCheck, show: true, locked: false },
+    { id: 'chat', label: 'Event Chat', icon: MessageSquare, show: isAuthedForTenant, locked: !plan.canUseEventChat },
+    { id: 'audit', label: 'Audit Trail', icon: ShieldCheck, show: isOrganizer, locked: !plan.canViewAuditTrail },
+    { id: 'branding', label: 'Branding & Settings', icon: Palette, show: isOrganizer, locked: !plan.canUseCustomBranding },
   ].filter((item) => item.show);
 
   const roleLabel =
@@ -668,7 +676,8 @@ export default function App() {
                   }}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate flex-1">{item.label}</span>
+                  {item.locked && <Lock className="w-3.5 h-3.5 shrink-0 opacity-60" />}
                 </button>
               );
             })}
@@ -706,7 +715,10 @@ export default function App() {
             )}
 
             <div>
-              <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Active Role</div>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Active Role</span>
+                <span className="fp-tag-sage text-[10px] py-0 px-1.5">{plan.name} Plan</span>
+              </div>
               <div className="text-lg font-extrabold leading-tight">{roleLabel}</div>
               {isAuthedForTenant && (
                 <div className="text-xs truncate mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -770,28 +782,50 @@ export default function App() {
             )}
 
             {activeTab === 'staff' && isStaff && (
-              <CheckInStation
-                tenant={activeTenant}
-                event={activeEvent}
-                registrations={registrations}
-                auditLogs={auditLogs}
-                onCheckInByCode={handleCheckInByCode}
-                onReprintBadge={handleReprintBadge}
-                isOffline={isOffline}
-                offlineQueue={offlineQueue}
-                onSyncOffline={handleSyncOffline}
-                initialStation={authSession?.station}
-              />
+              plan.canCheckIn ? (
+                <CheckInStation
+                  tenant={activeTenant}
+                  event={activeEvent}
+                  registrations={registrations}
+                  auditLogs={auditLogs}
+                  onCheckInByCode={handleCheckInByCode}
+                  onReprintBadge={handleReprintBadge}
+                  isOffline={isOffline}
+                  offlineQueue={offlineQueue}
+                  onSyncOffline={handleSyncOffline}
+                  initialStation={authSession?.station}
+                />
+              ) : (
+                <PlanUpgradeGate
+                  tenant={activeTenant}
+                  featureTitle="QR Check-In Station & Badge Printing"
+                  featureDescription="Your Free package includes online registration and CSV attendee downloads only. Upgrade to Starter or higher to unlock the live QR Check-In Station, staff desks, and custom badge printing."
+                  requiredPlanId="starter"
+                  isOrganizer={isOrganizer}
+                  onUpgraded={refreshState}
+                />
+              )
             )}
 
             {activeTab === 'meetings' && isStaff && (
-              <MeetingsPanel
-                tenant={activeTenant}
-                meetings={meetings}
-                onOpenMeetingSignIn={(mtgId) => navigateHash(`/${activeTenant.slug}/meeting/${mtgId}`)}
-                onRefresh={refreshState}
-                isOrganizer={isOrganizer}
-              />
+              plan.canUseMeetings ? (
+                <MeetingsPanel
+                  tenant={activeTenant}
+                  meetings={meetings}
+                  onOpenMeetingSignIn={(mtgId) => navigateHash(`/${activeTenant.slug}/meeting/${mtgId}`)}
+                  onRefresh={refreshState}
+                  isOrganizer={isOrganizer}
+                />
+              ) : (
+                <PlanUpgradeGate
+                  tenant={activeTenant}
+                  featureTitle="Meetings & Digital Attendance Sign-In"
+                  featureDescription="Upload meeting rosters, collect touchscreen signatures, and generate door QR sign-in posters by upgrading to Starter or higher."
+                  requiredPlanId="starter"
+                  isOrganizer={isOrganizer}
+                  onUpgraded={refreshState}
+                />
+              )
             )}
 
             {(activeTab === 'ticket' || activeTab === 'register') && (
@@ -835,44 +869,77 @@ export default function App() {
             )}
 
             {activeTab === 'chat' && isAuthedForTenant && (
-              <EventChat
-                tenant={activeTenant}
-                event={activeEvent}
-                registrations={registrations}
-                chatMessages={chatMessages}
-                onSendMessage={async (data) => {
-                  const msg = await Storage.sendChatMessageAsync(data);
-                  refreshState();
-                  return msg;
-                }}
-                onDeleteMessage={async (id) => {
-                  await Storage.deleteChatMessageAsync(id, authSession?.user || 'Organizer', activeTenant.id);
-                  refreshState();
-                }}
-                onTogglePinMessage={async (id) => {
-                  await Storage.togglePinMessageAsync(id);
-                  refreshState();
-                }}
-                currentAttendeeId={currentAttendeeId}
-                activeRole={currentRole}
-                authUser={authSession?.user}
-              />
+              plan.canUseEventChat ? (
+                <EventChat
+                  tenant={activeTenant}
+                  event={activeEvent}
+                  registrations={registrations}
+                  chatMessages={chatMessages}
+                  onSendMessage={async (data) => {
+                    const msg = await Storage.sendChatMessageAsync(data);
+                    refreshState();
+                    return msg;
+                  }}
+                  onDeleteMessage={async (id) => {
+                    await Storage.deleteChatMessageAsync(id, authSession?.user || 'Organizer', activeTenant.id);
+                    refreshState();
+                  }}
+                  onTogglePinMessage={async (id) => {
+                    await Storage.togglePinMessageAsync(id);
+                    refreshState();
+                  }}
+                  currentAttendeeId={currentAttendeeId}
+                  activeRole={currentRole}
+                  authUser={authSession?.user}
+                />
+              ) : (
+                <PlanUpgradeGate
+                  tenant={activeTenant}
+                  featureTitle="Live Event Chat & File Sharing"
+                  featureDescription="Attendance-gated Event Chat with image/PDF sharing and pinned organizer announcements is available on the Growth and Enterprise packages."
+                  requiredPlanId="growth"
+                  isOrganizer={isOrganizer}
+                  onUpgraded={refreshState}
+                />
+              )
             )}
 
             {activeTab === 'audit' && isOrganizer && (
-              <AuditTrailPanel
-                logs={tenantAuditLogs}
-                title={`${activeTenant.shortName || activeTenant.name} Security & Operations Audit Trail`}
-                tenantName={activeTenant.name}
-              />
+              plan.canViewAuditTrail ? (
+                <AuditTrailPanel
+                  logs={tenantAuditLogs}
+                  title={`${activeTenant.shortName || activeTenant.name} Security & Operations Audit Trail`}
+                  tenantName={activeTenant.name}
+                />
+              ) : (
+                <PlanUpgradeGate
+                  tenant={activeTenant}
+                  featureTitle="Security & Operations Audit Trail"
+                  featureDescription="Track every check-in, duplicate alert, badge print, and organizer action with CSV export on the Starter package and above."
+                  requiredPlanId="starter"
+                  isOrganizer={isOrganizer}
+                  onUpgraded={refreshState}
+                />
+              )
             )}
 
             {activeTab === 'branding' && isOrganizer && (
-              <WorkspaceBrandingSettings
-                tenant={activeTenant}
-                event={activeEvent}
-                onUpdated={refreshState}
-              />
+              plan.canUseCustomBranding ? (
+                <WorkspaceBrandingSettings
+                  tenant={activeTenant}
+                  event={activeEvent}
+                  onUpdated={refreshState}
+                />
+              ) : (
+                <PlanUpgradeGate
+                  tenant={activeTenant}
+                  featureTitle="Custom Branding & White-Label Settings"
+                  featureDescription="Customize your event colour palette, logo, dark/light default theme, and portal branding on the Growth and Enterprise packages."
+                  requiredPlanId="growth"
+                  isOrganizer={isOrganizer}
+                  onUpgraded={refreshState}
+                />
+              )
             )}
           </main>
 

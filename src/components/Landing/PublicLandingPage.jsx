@@ -17,6 +17,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
+import { INITIAL_PLANS } from '../../data/mockData';
 
 /* Reusable Geometric Asterisk Icon */
 function EditorialAsterisk({ className = 'w-5 h-5' }) {
@@ -850,6 +851,94 @@ export default function PublicLandingPage({
                 </div>
               </form>
             )}
+          </div>
+        </section>
+
+        {/* =========================================================================
+            8. PACKAGES & PRICING (4 Tiers: Free, Starter, Growth, Enterprise)
+            ========================================================================= */}
+        <section id="pricing" className="py-16 sm:py-24 bg-[#141D1F] border-t border-white/10 scroll-mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#DCE7D0] block mb-2">
+                Flexible Event Packages
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight m-0">
+                Choose the package that fits your event
+              </h2>
+              <p className="text-sm sm:text-base text-white/70 mt-3 mb-0">
+                Start free for registration &amp; list exports, or scale up to full check-in, custom badging, and turnkey on-site hardware + operators.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+              {INITIAL_PLANS.map((plan) => {
+                const isPopular = Boolean(plan.popular);
+                const isEnterprise = plan.id === 'enterprise';
+                return (
+                  <div
+                    key={plan.id}
+                    className={`rounded-2xl p-6 flex flex-col justify-between gap-6 border transition-all ${
+                      isPopular
+                        ? 'bg-[#1A2628] border-[#DCE7D0] shadow-2xl'
+                        : 'bg-[#0D1315] border-white/10 hover:border-white/25'
+                    }`}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-xl font-extrabold text-white m-0">{plan.name}</h3>
+                        {isPopular && (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DCE7D0] text-[#141D1F] uppercase">
+                            Most Popular
+                          </span>
+                        )}
+                        {isEnterprise && (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DCE7D0]/15 text-[#DCE7D0] border border-[#DCE7D0]/30 uppercase">
+                            Printers + Staff
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <span className="text-3xl sm:text-4xl font-extrabold text-white">
+                          {plan.priceLabel || `$${plan.price}`}
+                        </span>
+                        <span className="text-xs text-white/60 ml-1.5">/{plan.billingPeriod}</span>
+                      </div>
+
+                      <p className="text-xs sm:text-sm text-white/70 m-0 leading-relaxed">
+                        {plan.description}
+                      </p>
+
+                      <ul className="space-y-2.5 pt-3 border-t border-white/10 p-0 m-0 list-none text-xs sm:text-sm text-white/85">
+                        {plan.features.map((feat, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-[#DCE7D0] shrink-0 mt-0.5" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={isEnterprise ? () => scrollToSection('book') : onNavigateToOnboard}
+                      className={`w-full py-3 rounded-xl font-bold text-sm transition-colors border-0 cursor-pointer ${
+                        isPopular
+                          ? 'bg-[#DCE7D0] text-[#182224] hover:bg-[#e7f0dd]'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {plan.id === 'free'
+                        ? 'Start Free'
+                        : isEnterprise
+                        ? 'Book Managed Team'
+                        : `Choose ${plan.name}`}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 

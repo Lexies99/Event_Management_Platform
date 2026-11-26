@@ -24,6 +24,7 @@ export default function SuperAdminDashboard({
   onOpenEventSite,
   onNavigateToOnboard,
   onToggleTenantStatus,
+  onChangeTenantPlan,
   plans = [],
   auditLogs = [],
   allRegistrations = [],
@@ -161,9 +162,26 @@ export default function SuperAdminDashboard({
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-lg border text-xs space-y-1" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
+                    <div className="p-3 rounded-lg border text-xs space-y-1.5" style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}>
                       <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Organizer:</span><strong>{t.organizer?.name}</strong></div>
-                      <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Plan:</span><span className="font-semibold">{plan?.name} (${plan?.price})</span></div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span style={{ color: 'var(--text-muted)' }}>Package:</span>
+                        {onChangeTenantPlan ? (
+                          <select
+                            value={t.planId || 'free'}
+                            onChange={(e) => onChangeTenantPlan(t.id, e.target.value)}
+                            className="fp-input px-2 py-0.5 text-xs font-bold"
+                          >
+                            {plans.map((pl) => (
+                              <option key={pl.id} value={pl.id}>
+                                {pl.name} ({pl.priceLabel || `$${pl.price}`})
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="font-semibold">{plan?.name} ({plan?.priceLabel || `$${plan?.price}`})</span>
+                        )}
+                      </div>
                       <div className="flex justify-between"><span style={{ color: 'var(--text-muted)' }}>Turnout:</span><strong>{tAtt} / {tRegs.length}</strong></div>
                     </div>
                   </div>
@@ -204,12 +222,12 @@ export default function SuperAdminDashboard({
       )}
 
       {activeTab === 'plans' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {plans.map((p) => (
             <div key={p.id} className="fp-card p-5 flex flex-col justify-between gap-4">
               <div>
                 <h3 className="text-lg font-extrabold m-0">{p.name}</h3>
-                <div className="text-3xl font-extrabold mt-2">${p.price}<span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>/{p.billingPeriod}</span></div>
+                <div className="text-3xl font-extrabold mt-2">{p.priceLabel || `$${p.price}`}<span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>/{p.billingPeriod}</span></div>
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>{p.description}</p>
                 <ul className="space-y-2 mt-4 p-0 list-none text-xs">
                   {p.features.map((f, i) => (

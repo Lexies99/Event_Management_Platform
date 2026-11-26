@@ -521,27 +521,57 @@ export default function OnboardOrganizationPage({
                   />
                 </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                {plans.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setPlanId(p.id)}
-                    className="p-3.5 rounded-xl border text-left transition-all"
-                    style={{
-                      background: planId === p.id ? 'var(--fp-sage)' : 'var(--bg-main)',
-                      borderColor: planId === p.id ? 'var(--fp-olive)' : 'var(--border-color)',
-                      color: planId === p.id ? 'var(--fp-sage-text)' : 'var(--text-main)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm">{p.name}</span>
-                      {planId === p.id && <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--fp-olive)' }} />}
-                    </div>
-                    <div className="text-lg font-extrabold mt-1">${p.price}<span className="text-xs font-normal opacity-75">/{p.billingPeriod}</span></div>
-                    <div className="text-xs mt-1 opacity-80">Up to {p.limits.attendees.toLocaleString()} attendees</div>
-                  </button>
-                ))}
+              <div className="space-y-3 pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-xs font-bold">Choose Your Package *</label>
+                  <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                    You only get features included in your chosen package (upgrade anytime).
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {plans.map((p) => {
+                    const selected = planId === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setPlanId(p.id);
+                          if (Number(capacity) > p.limits.attendees) {
+                            setCapacity(p.limits.attendees);
+                          }
+                        }}
+                        className="p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-2"
+                        style={{
+                          background: selected ? 'var(--fp-sage)' : 'var(--bg-main)',
+                          borderColor: selected ? 'var(--fp-olive)' : 'var(--border-color)',
+                          color: selected ? 'var(--fp-sage-text)' : 'var(--text-main)',
+                        }}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-extrabold text-sm">{p.name}</span>
+                            <div className="flex items-center gap-1.5">
+                              {p.popular && <span className="fp-tag-olive text-[9px] py-0 px-1.5">Popular</span>}
+                              {p.id === 'enterprise' && <span className="fp-tag-sage text-[9px] py-0 px-1.5">Printers + Staff</span>}
+                              {selected && <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: 'var(--fp-olive)' }} />}
+                            </div>
+                          </div>
+                          <div className="text-lg font-extrabold mt-1">
+                            {p.priceLabel || `$${p.price}`}
+                            <span className="text-xs font-normal opacity-75">/{p.billingPeriod}</span>
+                          </div>
+                          <div className="text-[11px] mt-0.5 opacity-80">{p.description}</div>
+                        </div>
+                        <ul className="space-y-1 p-0 m-0 pt-2 border-t list-none text-[11px] opacity-90" style={{ borderColor: 'rgba(90,101,82,0.2)' }}>
+                          {p.features.slice(0, 3).map((f, i) => (
+                            <li key={i}>• {f}</li>
+                          ))}
+                        </ul>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </section>
 
