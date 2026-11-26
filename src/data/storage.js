@@ -838,7 +838,7 @@ export const Storage = {
   },
 
   // Chat APIs
-  sendChatMessage({ tenantId, eventId, authorName, authorRole, authorPhoto, text, isOrganizer = false }) {
+  sendChatMessage({ tenantId, eventId, authorName, authorRole, authorPhoto, text, isOrganizer = false, attachments = [] }) {
     const msgs = safeGet(STORAGE_KEYS.CHAT, INITIAL_CHAT_MESSAGES);
     const newMsg = {
       id: `msg-${Date.now()}`,
@@ -849,7 +849,8 @@ export const Storage = {
       authorPhoto: authorPhoto || null,
       isOrganizer,
       isPinned: false,
-      text,
+      text: text || "",
+      attachments: Array.isArray(attachments) ? attachments : [],
       timestamp: new Date().toISOString()
     };
     safeSet(STORAGE_KEYS.CHAT, [...msgs, newMsg]);
@@ -1041,6 +1042,34 @@ export const Storage = {
       }
       return { ok: false, error: 'Unable to reach auth server. Check your email and password.' };
     }
+  },
+
+  async uploadFileAsync(file) {
+    if (!file) throw new Error('No file selected.');
+    const maxBytes = 7 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      throw new Error(`"${file.name}" is too large (max 7 MB).`);
+    }
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error(`Could not read "${file.name}".`));
+      reader.readAsDataURL(file);
+    });
+    const res = await fetch('/api/uploads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: file.name,
+        type: file.type,
+        dataUrl,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.attachment) {
+      throw new Error(data.error || `Upload failed for "${file.name}".`);
+    }
+    return data.attachment;
   },
 
   async sendChatMessageAsync(msgData) {

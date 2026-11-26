@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Pin, Trash2, MessageSquare, Lock, ShieldCheck } from 'lucide-react';
+import { Send, Pin, Trash2, MessageSquare, Lock, ShieldCheck, Paperclip, X, FileText, Loader2 } from 'lucide-react';
+import { Storage } from '../../data/storage';
+import AttachmentList, { ATTACHMENT_ACCEPT, formatFileSize } from '../Common/AttachmentList';
 
 export default function EventChat({
   tenant,
@@ -15,6 +17,10 @@ export default function EventChat({
 }) {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const prevCountRef = useRef(0);
 
@@ -57,10 +63,33 @@ export default function EventChat({
     prevCountRef.current = eventChatList.length;
   }, [eventChatList.length]);
 
+  const handleFilePick = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
+    setUploadError('');
+    setUploadingFiles(true);
+    try {
+      const remainingSlots = Math.max(0, 6 - pendingAttachments.length);
+      const toUpload = files.slice(0, remainingSlots);
+      const uploaded = [];
+      for (const file of toUpload) {
+        const att = await Storage.uploadFileAsync(file);
+        uploaded.push(att);
+      }
+      setPendingAttachments((prev) => [...prev, ...uploaded]);
+    } catch (err) {
+      setUploadError(err.message || 'Failed to upload file.');
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!inputText.trim() || isSending) return;
+    if ((!inputText.trim() && pendingAttachments.length === 0) || isSending || uploadingFiles) return;
     setIsSending(true);
+    setUploadError('');
     try {
       await onSendMessage({
         tenantId: tenant.id,
@@ -69,9 +98,11 @@ export default function EventChat({
         authorRole: myRoleLabel,
         authorPhoto: myPhoto,
         text: inputText.trim(),
+        attachments: pendingAttachments,
         isOrganizer,
       });
       setInputText('');
+      setPendingAttachments([]);
     } finally {
       setIsSending(false);
     }
@@ -125,7 +156,8 @@ export default function EventChat({
                     <Pin className="w-3.5 h-3.5 shrink-0 mt-0.5 rotate-45" style={{ color: 'var(--fp-olive)' }} />
                     <div className="min-w-0">
                       <span className="font-bold text-[11px] uppercase">{msg.authorName}</span>
-                      <p className="m-0 mt-0.5 leading-relaxed break-words">{msg.text}</p>
+                      {msg.text && <p className="m-0 mt-0.5 leading-relaxed break-words">{msg.text}</p>}
+                      <AttachmentList attachments={msg.attachments} compact />
                     </div>
                   </div>
                   {isOrganizer && (
@@ -169,14 +201,15 @@ export default function EventChat({
                         </span>
                       </div>
                       <div
-                        className="p-3 rounded-xl text-xs sm:text-sm leading-relaxed inline-block border text-left break-words"
+                        className="p-3 rounded-xl text-xs sm:text-sm leading-relaxed inline-block border text-left break-words max-w-full"
                         style={{
                           background: isMine ? 'var(--fp-olive)' : 'var(--bg-card)',
                           color: isMine ? 'var(--fp-olive-text, #ffffff)' : 'var(--text-main)',
                           borderColor: isMine ? 'var(--fp-olive)' : 'var(--border-color)',
                         }}
                       >
-                        {msg.text}
+                        {msg.text && <div>{msg.text}</div>}
+                        <AttachmentList attachments={msg.attachments} onDark={isMine} />
                       </div>
                       {isOrganizer && (
                         <div className={`flex items-center gap-2 text-[10px] ${isMine ? 'justify-end' : ''}`} style={{ color: 'var(--text-muted)' }}>
@@ -196,16 +229,78 @@ export default function EventChat({
             <div ref={messagesEndRef} />
           </div>
 
+          {(pendingAttachments.length > 0 || uploadError) && (
+            <div className="px-3 pt-2.5 pb-1 border-t space-y-2" style={{ background: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}>
+              {uploadError && (
+                <div className="text-xs font-semibold" style={{ color: 'var(--fp-red)' }}>
+                  {uploadError}
+                </div>
+              )}
+              {pendingAttachments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {pendingAttachments.map((att) => (
+                    <div
+                      key={att.id}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs max-w-[240px]"
+                      style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+                    >
+                      {att.isImage ? (
+                        <img src={att.url} alt={att.name} className="w-5 h-5 rounded object-cover shrink-0" />
+                      ) : (
+                        <FileText className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+                      )}
+                      <span className="truncate font-medium">{att.name}</span>
+                      <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>
+                        {formatFileSize(att.size)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPendingAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                        className="p-0.5 bg-transparent border-0 cursor-pointer shrink-0"
+                        style={{ color: 'var(--text-muted)' }}
+                        title="Remove attachment"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <form onSubmit={handleSend} className="p-3 border-t flex items-center gap-2" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
             <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ATTACHMENT_ACCEPT}
+              onChange={handleFilePick}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFiles || isSending || pendingAttachments.length >= 6}
+              className="btn-fp-outline p-2.5 shrink-0 disabled:opacity-50"
+              title="Attach image, PDF, slides, or document (max 7 MB)"
+            >
+              {uploadingFiles ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
+            </button>
+            <input
               type="text"
-              placeholder="Write a message to event attendees..."
+              placeholder={uploadingFiles ? 'Uploading file...' : 'Write a message or attach a file...'}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={isSending}
               className="fp-input flex-1 px-3.5 py-2.5 text-sm"
             />
-            <button type="submit" disabled={isSending || !inputText.trim()} className="btn-fp-olive p-2.5 shrink-0 disabled:opacity-50" title="Send">
+            <button
+              type="submit"
+              disabled={isSending || uploadingFiles || (!inputText.trim() && pendingAttachments.length === 0)}
+              className="btn-fp-olive p-2.5 shrink-0 disabled:opacity-50"
+              title="Send"
+            >
               <Send className="w-4 h-4" />
             </button>
           </form>

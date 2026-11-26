@@ -16,6 +16,42 @@ const PORT = Number(process.env.PORT || 4100);
 const HOST = process.env.HOST || '127.0.0.1';
 const DATA_DIR = process.env.EVENTFLOW_DATA_DIR || '/opt/eventflow/data';
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+const MAX_UPLOAD_BYTES = 7 * 1024 * 1024; // 7 MB raw (~9.3 MB base64, safely under 10 MB Nginx limit)
+
+const ALLOWED_UPLOAD_EXTS = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.pdf': 'application/pdf',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.ppt': 'application/vnd.ms-powerpoint',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.xls': 'application/vnd.ms-excel',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.csv': 'text/csv; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+};
+
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+
+function sanitizeAttachments(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((a) => a && typeof a === 'object' && typeof a.url === 'string' && a.url.startsWith('/api/uploads/'))
+    .slice(0, 6)
+    .map((a) => ({
+      id: String(a.id || `att-${Date.now()}`),
+      name: String(a.name || 'Attachment').slice(0, 140),
+      type: String(a.type || 'application/octet-stream').slice(0, 120),
+      size: Number(a.size) || 0,
+      isImage: Boolean(a.isImage),
+      url: String(a.url),
+    }));
+}
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const derived = crypto.scryptSync(String(password || ''), salt, 64).toString('hex');
@@ -174,6 +210,7 @@ function buildInitialMeetings() {
 
 function ensureDb() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   if (!fs.existsSync(DB_FILE)) {
     const tenants = seedOrganizerPasswords(structuredClone(INITIAL_TENANTS));
     const events = structuredClone(INITIAL_EVENTS);
@@ -291,8 +328,10 @@ async function dispatchBulkMessage({
   senderName = 'Event Organizer',
   kind = 'manual',
   pinToChat = true,
+  attachments = [],
   ip = 'scheduler',
 }) {
+  const cleanAttachments = sanitizeAttachments(attachments);
   const recipients = selectBroadcastRecipients(eventId, target);
   const tenant = db.tenants.find((t) => t.id === tenantId);
 
@@ -314,6 +353,7 @@ async function dispatchBulkMessage({
         body: JSON.stringify({
           subject,
           message,
+          attachments: cleanAttachments,
           recipients: recipients.map((r) => ({ name: r.name, email: r.email, ticketCode: r.ticketCode })),
         }),
       });
@@ -354,6 +394,7 @@ async function dispatchBulkMessage({
       isOrganizer: true,
       isPinned: true,
       text: `${subject} — ${message}`,
+      attachments: cleanAttachments,
       timestamp: new Date().toISOString(),
     };
     db.chat = [...db.chat, chatAnnouncement];
@@ -367,6 +408,7 @@ async function dispatchBulkMessage({
     target,
     subject,
     message,
+    attachments: cleanAttachments,
     channels,
     channelResults,
     recipientCount: recipients.length,
@@ -382,7 +424,7 @@ async function dispatchBulkMessage({
     role: kind === 'auto_reminder' ? 'system' : 'organizer',
     action: kind === 'auto_reminder' ? 'AUTO_REMINDER_SENT' : 'BULK_BROADCAST_SENT',
     severity: 'success',
-    target: `"${subject}" delivered to ${recipients.length} delegate(s) (${target}) via ${channels.join(', ')}`,
+    target: `"${subject}" delivered to ${recipients.length} delegate(s) (${target})${cleanAttachments.length ? ` with ${cleanAttachments.length} attachment(s)` : ''} via ${channels.join(', ')}`,
   }, ip);
 
   saveDb();
@@ -415,6 +457,7 @@ async function runReminderScheduler() {
         senderName: tenant?.organizer?.name || 'EventPlan Scheduler',
         kind: 'auto_reminder',
         pinToChat: true,
+        attachments: rem.attachments || [],
         ip: 'scheduler',
       });
       rem.sentAt = record.sentAt;
@@ -460,8 +503,8 @@ function readJsonBody(req) {
     let raw = '';
     req.on('data', (chunk) => {
       raw += chunk;
-      if (raw.length > 10 * 1024 * 1024) {
-        reject(new Error('Payload too large'));
+      if (raw.length > 12 * 1024 * 1024) {
+        reject(new Error('Payload too large (max 7 MB file)'));
         req.destroy();
       }
     });
@@ -521,6 +564,79 @@ const server = http.createServer(async (req, res) => {
     // Full state snapshot (sanitized — no password hashes)
     if (req.method === 'GET' && p === '/api/state') {
       return sendJson(res, 200, publicState());
+    }
+
+    // Upload file attachment (disk-backed so db.json & /api/state stay fast)
+    if (req.method === 'POST' && p === '/api/uploads') {
+      const body = await readJsonBody(req);
+      const originalName = String(body.name || 'attachment').trim().slice(0, 140);
+      const ext = path.extname(originalName).toLowerCase();
+      if (!ext || !ALLOWED_UPLOAD_EXTS[ext]) {
+        return sendJson(res, 400, {
+          error: 'Unsupported file type. Allowed: JPG, PNG, WebP, GIF, PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, CSV, TXT.',
+        });
+      }
+
+      let rawBase64 = String(body.dataUrl || body.base64 || '');
+      const commaIdx = rawBase64.indexOf(',');
+      if (rawBase64.startsWith('data:') && commaIdx !== -1) {
+        rawBase64 = rawBase64.slice(commaIdx + 1);
+      }
+      if (!rawBase64) {
+        return sendJson(res, 400, { error: 'File content is empty.' });
+      }
+
+      const buf = Buffer.from(rawBase64, 'base64');
+      if (buf.length === 0) {
+        return sendJson(res, 400, { error: 'Invalid file data.' });
+      }
+      if (buf.length > MAX_UPLOAD_BYTES) {
+        return sendJson(res, 413, { error: 'File is too large. Maximum size is 7 MB.' });
+      }
+
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      const fileId = `upl-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+      const storedName = `${fileId}${ext}`;
+      fs.writeFileSync(path.join(UPLOADS_DIR, storedName), buf);
+
+      const attachment = {
+        id: fileId,
+        name: originalName,
+        type: ALLOWED_UPLOAD_EXTS[ext],
+        size: buf.length,
+        isImage: IMAGE_EXTS.has(ext),
+        url: `/api/uploads/${storedName}`,
+      };
+      return sendJson(res, 201, { attachment });
+    }
+
+    // Serve uploaded attachment from disk
+    if (req.method === 'GET' && p.startsWith('/api/uploads/')) {
+      const storedName = decodeURIComponent(p.slice('/api/uploads/'.length));
+      if (!/^[a-zA-Z0-9._-]+$/.test(storedName) || storedName.includes('..')) {
+        return sendJson(res, 400, { error: 'Invalid filename' });
+      }
+      const ext = path.extname(storedName).toLowerCase();
+      const contentType = ALLOWED_UPLOAD_EXTS[ext];
+      if (!contentType) {
+        return sendJson(res, 404, { error: 'File not found' });
+      }
+      const fullPath = path.join(UPLOADS_DIR, storedName);
+      if (!fs.existsSync(fullPath)) {
+        return sendJson(res, 404, { error: 'File not found' });
+      }
+      const data = fs.readFileSync(fullPath);
+      const isInline = IMAGE_EXTS.has(ext) || ext === '.pdf' || ext === '.txt';
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Length': data.length,
+        'Content-Disposition': `${isInline ? 'inline' : 'attachment'}; filename="${storedName}"`,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        'X-Content-Type-Options': 'nosniff',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(data);
+      return;
     }
 
     // Real Organizer Authentication
@@ -889,6 +1005,7 @@ const server = http.createServer(async (req, res) => {
         message: patch.message !== undefined ? String(patch.message) : db.reminders[idx].message,
         target: patch.target !== undefined ? String(patch.target) : db.reminders[idx].target,
         channels: Array.isArray(patch.channels) ? patch.channels : db.reminders[idx].channels,
+        attachments: patch.attachments !== undefined ? sanitizeAttachments(patch.attachments) : (db.reminders[idx].attachments || []),
         sentAt: patch.resetSent ? null : db.reminders[idx].sentAt,
       };
       saveDb();
@@ -911,6 +1028,7 @@ const server = http.createServer(async (req, res) => {
         senderName,
         kind: 'auto_reminder',
         pinToChat: true,
+        attachments: rem.attachments || [],
         ip,
       });
       rem.sentAt = record.sentAt;
@@ -935,6 +1053,7 @@ const server = http.createServer(async (req, res) => {
         senderName: body.senderName || 'Event Organizer',
         kind: 'manual',
         pinToChat: body.pinToChat !== false,
+        attachments: sanitizeAttachments(body.attachments),
         ip,
       });
       return sendJson(res, 201, { broadcast: record, state: publicState() });
@@ -1189,11 +1308,18 @@ const server = http.createServer(async (req, res) => {
     // Chat messages
     if (req.method === 'POST' && p === '/api/chat') {
       const msgData = await readJsonBody(req);
+      const cleanAttachments = sanitizeAttachments(msgData.attachments);
+      const cleanText = String(msgData.text || '').trim();
+      if (!cleanText && cleanAttachments.length === 0) {
+        return sendJson(res, 400, { error: 'Message text or at least one attachment is required.' });
+      }
       const newMsg = {
         id: `msg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         timestamp: new Date().toISOString(),
         isPinned: false,
         ...msgData,
+        text: cleanText,
+        attachments: cleanAttachments,
       };
       db.chat = [...db.chat, newMsg];
       saveDb();

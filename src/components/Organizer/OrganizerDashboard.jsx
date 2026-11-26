@@ -26,11 +26,16 @@ import {
   Clock,
   Star,
   ArrowUpCircle,
+  Paperclip,
+  X,
+  FileText,
+  Loader2,
 } from 'lucide-react';
 import { exportAttendeesToCSV } from '../../utils/export';
 import { generateQrDataUrl } from '../../utils/qr';
 import BadgeModal from '../Common/BadgeModal';
 import CertificateModal from '../Common/CertificateModal';
+import AttachmentList, { ATTACHMENT_ACCEPT, formatFileSize } from '../Common/AttachmentList';
 import RegistrationQrModal from './RegistrationQrModal';
 import AuditTrailPanel from './AuditTrailPanel';
 import WorkspaceBrandingSettings from './WorkspaceBrandingSettings';
@@ -60,11 +65,14 @@ export default function OrganizerDashboard({
   const [broadcastTarget, setBroadcastTarget] = useState('ALL');
   const [broadcastSubject, setBroadcastSubject] = useState('');
   const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastAttachments, setBroadcastAttachments] = useState([]);
+  const [broadcastUploading, setBroadcastUploading] = useState(false);
   const [broadcastPinToChat, setBroadcastPinToChat] = useState(true);
   const [broadcastBusy, setBroadcastBusy] = useState(false);
   const [broadcastSentNotice, setBroadcastSentNotice] = useState(null);
   const [editingReminderId, setEditingReminderId] = useState(null);
-  const [reminderDraft, setReminderDraft] = useState({ subject: '', message: '' });
+  const [reminderDraft, setReminderDraft] = useState({ subject: '', message: '', attachments: [] });
+  const [reminderUploading, setReminderUploading] = useState(false);
   const [reminderBusyId, setReminderBusyId] = useState(null);
 
   const [exportNotice, setExportNotice] = useState(null);
@@ -162,9 +170,50 @@ export default function OrganizerDashboard({
     setTimeout(() => setExportNotice(null), 4000);
   };
 
+  const handleBroadcastFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    setBroadcastUploading(true);
+    try {
+      const remaining = Math.max(0, 6 - broadcastAttachments.length);
+      const uploaded = [];
+      for (const file of files.slice(0, remaining)) {
+        const att = await Storage.uploadFileAsync(file);
+        uploaded.push(att);
+      }
+      setBroadcastAttachments((prev) => [...prev, ...uploaded]);
+    } catch (err) {
+      setBroadcastSentNotice(err.message || 'Failed to upload attachment.');
+    } finally {
+      setBroadcastUploading(false);
+    }
+  };
+
+  const handleReminderFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    setReminderUploading(true);
+    try {
+      const current = reminderDraft.attachments || [];
+      const remaining = Math.max(0, 6 - current.length);
+      const uploaded = [];
+      for (const file of files.slice(0, remaining)) {
+        const att = await Storage.uploadFileAsync(file);
+        uploaded.push(att);
+      }
+      setReminderDraft((d) => ({ ...d, attachments: [...(d.attachments || []), ...uploaded] }));
+    } catch (err) {
+      setBroadcastSentNotice(err.message || 'Failed to upload reminder attachment.');
+    } finally {
+      setReminderUploading(false);
+    }
+  };
+
   const handleSendBroadcast = async (e) => {
     e.preventDefault();
-    if (!broadcastSubject.trim() || !broadcastMessage.trim() || broadcastBusy) return;
+    if (!broadcastSubject.trim() || !broadcastMessage.trim() || broadcastBusy || broadcastUploading) return;
     setBroadcastBusy(true);
     try {
       const record = await Storage.sendBroadcastAsync({
@@ -173,14 +222,20 @@ export default function OrganizerDashboard({
         target: broadcastTarget,
         subject: broadcastSubject.trim(),
         message: broadcastMessage.trim(),
+        attachments: broadcastAttachments,
         channels: ['in_app', 'email', 'sms'],
         senderName: tenant?.organizer?.name || 'Organizer',
         pinToChat: broadcastPinToChat,
       });
       onRefresh?.();
-      setBroadcastSentNotice(`Broadcast "${record.subject}" dispatched to ${record.recipientCount} delegate(s) and pinned to live Event Chat.`);
+      setBroadcastSentNotice(
+        `Broadcast "${record.subject}" dispatched to ${record.recipientCount} delegate(s)${
+          broadcastAttachments.length ? ` with ${broadcastAttachments.length} attachment(s)` : ''
+        } and pinned to live Event Chat.`
+      );
       setBroadcastSubject('');
       setBroadcastMessage('');
+      setBroadcastAttachments([]);
       setTimeout(() => setBroadcastSentNotice(null), 6000);
     } catch (err) {
       setBroadcastSentNotice(err.message || 'Failed to send broadcast.');
@@ -205,6 +260,7 @@ export default function OrganizerDashboard({
       await Storage.updateReminderAsync(remId, {
         subject: reminderDraft.subject,
         message: reminderDraft.message,
+        attachments: reminderDraft.attachments || [],
       });
       setEditingReminderId(null);
       onRefresh?.();
@@ -594,8 +650,49 @@ export default function OrganizerDashboard({
                             onChange={(e) => setReminderDraft((d) => ({ ...d, message: e.target.value }))}
                             className="fp-input w-full px-2.5 py-1.5 text-xs"
                           />
+                          <div className="space-y-1.5">
+                            <label className="btn-fp-outline px-2.5 py-1.5 text-[11px] inline-flex items-center gap-1.5 cursor-pointer">
+                              {reminderUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Paperclip className="w-3.5 h-3.5" />}
+                              <span>{reminderUploading ? 'Uploading...' : 'Attach Flyer / PDF'}</span>
+                              <input
+                                type="file"
+                                multiple
+                                accept={ATTACHMENT_ACCEPT}
+                                onChange={handleReminderFileUpload}
+                                disabled={reminderUploading}
+                                className="hidden"
+                              />
+                            </label>
+                            {(reminderDraft.attachments || []).length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {reminderDraft.attachments.map((att) => (
+                                  <span
+                                    key={att.id}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] max-w-full"
+                                    style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+                                  >
+                                    <FileText className="w-3 h-3 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+                                    <span className="truncate max-w-[140px]">{att.name}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setReminderDraft((d) => ({
+                                          ...d,
+                                          attachments: (d.attachments || []).filter((a) => a.id !== att.id),
+                                        }))
+                                      }
+                                      className="p-0 bg-transparent border-0 cursor-pointer"
+                                      style={{ color: 'var(--text-muted)' }}
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           <div className="flex gap-2">
-                            <button type="button" onClick={() => handleSaveReminderEdit(rem.id)} className="btn-fp-olive px-3 py-1.5 text-xs">Save</button>
+                            <button type="button" disabled={reminderUploading} onClick={() => handleSaveReminderEdit(rem.id)} className="btn-fp-olive px-3 py-1.5 text-xs">Save</button>
                             <button type="button" onClick={() => setEditingReminderId(null)} className="btn-fp-outline px-3 py-1.5 text-xs">Cancel</button>
                           </div>
                         </div>
@@ -603,6 +700,7 @@ export default function OrganizerDashboard({
                         <>
                           <div className="font-bold text-xs sm:text-sm leading-snug">{rem.subject}</div>
                           <p className="text-xs m-0 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{rem.message}</p>
+                          <AttachmentList attachments={rem.attachments} compact />
                         </>
                       )}
                     </div>
@@ -613,7 +711,11 @@ export default function OrganizerDashboard({
                           type="button"
                           onClick={() => {
                             setEditingReminderId(rem.id);
-                            setReminderDraft({ subject: rem.subject, message: rem.message });
+                            setReminderDraft({
+                              subject: rem.subject,
+                              message: rem.message,
+                              attachments: Array.isArray(rem.attachments) ? rem.attachments : [],
+                            });
                           }}
                           className="btn-fp-outline flex-1 py-1.5 text-xs"
                         >
@@ -663,11 +765,58 @@ export default function OrganizerDashboard({
                   <label className="block text-xs font-semibold mb-1.5">Message *</label>
                   <textarea required rows={4} value={broadcastMessage} onChange={(e) => setBroadcastMessage(e.target.value)} placeholder="Write announcement..." className="fp-input w-full px-3.5 py-2.5 text-sm" />
                 </div>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="block text-xs font-semibold m-0">Attachments (Flyers, PDF Agendas, Slides, Images)</label>
+                    <label className="btn-fp-outline px-3 py-1.5 text-xs inline-flex items-center gap-1.5 cursor-pointer">
+                      {broadcastUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Paperclip className="w-3.5 h-3.5" />}
+                      <span>{broadcastUploading ? 'Uploading...' : 'Attach Files'}</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept={ATTACHMENT_ACCEPT}
+                        onChange={handleBroadcastFileUpload}
+                        disabled={broadcastUploading || broadcastAttachments.length >= 6}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  {broadcastAttachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {broadcastAttachments.map((att) => (
+                        <div
+                          key={att.id}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs max-w-[260px]"
+                          style={{ background: 'var(--bg-main)', borderColor: 'var(--border-color)' }}
+                        >
+                          {att.isImage ? (
+                            <img src={att.url} alt={att.name} className="w-5 h-5 rounded object-cover shrink-0" />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--fp-olive)' }} />
+                          )}
+                          <span className="truncate font-medium">{att.name}</span>
+                          <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>
+                            {formatFileSize(att.size)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setBroadcastAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                            className="p-0.5 bg-transparent border-0 cursor-pointer shrink-0"
+                            style={{ color: 'var(--text-muted)' }}
+                            title="Remove file"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input type="checkbox" checked={broadcastPinToChat} onChange={(e) => setBroadcastPinToChat(e.target.checked)} className="accent-[#5A6552]" />
                   <span>Also pin announcement inside live Event Chat</span>
                 </label>
-                <button type="submit" disabled={broadcastBusy} className="btn-fp-olive px-5 py-2.5 text-sm inline-flex items-center gap-2">
+                <button type="submit" disabled={broadcastBusy || broadcastUploading} className="btn-fp-olive px-5 py-2.5 text-sm inline-flex items-center gap-2 disabled:opacity-50">
                   <Send className="w-4 h-4" /> {broadcastBusy ? 'Sending...' : 'Send Bulk Broadcast'}
                 </button>
               </form>
@@ -690,6 +839,7 @@ export default function OrganizerDashboard({
                           <span className="fp-tag-sage text-[10px] shrink-0">{b.recipientCount} sent</span>
                         </div>
                         <p className="m-0 text-[11px]" style={{ color: 'var(--text-muted)' }}>{b.message}</p>
+                        <AttachmentList attachments={b.attachments} compact />
                         <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
                           {new Date(b.sentAt).toLocaleString()} · {b.target}
                         </div>
