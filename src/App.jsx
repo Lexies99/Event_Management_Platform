@@ -366,7 +366,10 @@ export default function App() {
               <span>Directory</span>
             </button>
             <span className="opacity-40">|</span>
-            <span className="font-bold text-sm sm:text-base">Platform Admin</span>
+            <span className="inline-flex items-center gap-2">
+              <img src="/images/manama-logo.jpg" alt="MANAMA TECHNOLOGIES LTD" className="h-6 w-auto bg-white px-1.5 py-0.5 rounded-md object-contain" />
+              <span className="font-bold text-sm sm:text-base hidden sm:inline">Platform Admin</span>
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -960,8 +963,9 @@ export default function App() {
           {/* Footer */}
           <footer className="border-t py-5 px-4 sm:px-8 text-xs" style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
             <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-              <div>
-                <strong style={{ color: 'var(--text-main)' }}>{activeTenant.name}</strong> · Powered by EventPlan Cloud · Ghana Act 843 Compliant
+              <div className="flex flex-wrap items-center gap-2">
+                <strong style={{ color: 'var(--text-main)' }}>{activeTenant.name}</strong>
+                <span>· Powered by <strong>MANAMA TECHNOLOGIES LTD</strong> · Ghana Act 843 Compliant</span>
               </div>
               <div className="flex items-center gap-4">
                 <button

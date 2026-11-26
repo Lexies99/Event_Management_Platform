@@ -193,21 +193,29 @@ export default function PublicLandingPage({
               <button
                 type="button"
                 onClick={() => scrollToSection('home')}
-                className="flex items-center gap-2 bg-transparent border-0 p-0"
+                className="flex items-center gap-2 bg-white px-2.5 py-1 rounded-xl border-0 shadow-sm"
+                aria-label="MANAMA TECHNOLOGIES LTD Home"
               >
-                <EventPlanMonogram size={36} />
-                <span className="font-bold text-base tracking-tight text-white">EventPlan</span>
+                <img
+                  src="/images/manama-logo.jpg"
+                  alt="MANAMA TECHNOLOGIES LTD"
+                  className="h-7 w-auto object-contain block"
+                />
               </button>
             </div>
 
-            {/* Center: Signature Circular Monogram Logo (Desktop) */}
+            {/* Center: Official MANAMA TECHNOLOGIES LTD Logo (Desktop) */}
             <button
               type="button"
               onClick={() => scrollToSection('home')}
-              className="hidden lg:flex items-center justify-center shrink-0 hover:scale-105 transition-transform bg-transparent border-0 p-0 cursor-pointer"
-              aria-label="EventPlan Home"
+              className="hidden lg:flex items-center justify-center shrink-0 bg-white px-3.5 py-1.5 rounded-xl shadow-md hover:scale-105 transition-transform border-0 cursor-pointer"
+              aria-label="MANAMA TECHNOLOGIES LTD Home"
             >
-              <EventPlanMonogram size={48} />
+              <img
+                src="/images/manama-logo.jpg"
+                alt="MANAMA TECHNOLOGIES LTD"
+                className="h-9 w-auto object-contain block"
+              />
             </button>
 
             {/* Right: Actions */}
@@ -1047,12 +1055,15 @@ export default function PublicLandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
             <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <EventPlanMonogram size={38} />
-                <span className="font-bold text-white text-lg">EventPlan</span>
+              <div className="inline-flex items-center bg-white px-3 py-1.5 rounded-xl shadow-sm">
+                <img
+                  src="/images/manama-logo.jpg"
+                  alt="MANAMA TECHNOLOGIES LTD"
+                  className="h-8 w-auto object-contain block"
+                />
               </div>
               <p className="text-xs text-white/70 leading-relaxed m-0">
-                Precision planning for perfect corporate events. Multi-tenant event websites, QR check-in, audit trails, and centered 3.1-inch badging.
+                <strong className="text-white">MANAMA TECHNOLOGIES LTD</strong> — Precision planning for perfect corporate events. Multi-tenant event websites, QR check-in, audit trails, and custom lanyard badging.
               </p>
             </div>
 
@@ -1097,7 +1108,7 @@ export default function PublicLandingPage({
             <div>
               <p className="font-bold text-white text-sm mb-3">Compliance &amp; Legal</p>
               <p className="text-xs text-white/70 leading-relaxed mb-3 mt-0">
-                ManaMa Technologies · Ghana Data Protection Act 2012 (Act 843) compliant multi-tenant event infrastructure.
+                MANAMA TECHNOLOGIES LTD · Ghana Data Protection Act 2012 (Act 843) compliant multi-tenant event infrastructure.
               </p>
               <button
                 type="button"
@@ -1111,7 +1122,7 @@ export default function PublicLandingPage({
           </div>
 
           <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <p className="m-0">&copy; 2026 EventPlan · ManaMa Technologies. All rights reserved.</p>
+            <p className="m-0">&copy; 2026 MANAMA TECHNOLOGIES LTD. All rights reserved.</p>
             <div className="flex items-center gap-3 text-white/60">
               <span className="text-[#DCE7D0]">Dedicated Event Websites</span>
               <span>&bull;</span>

@@ -264,8 +264,9 @@ export default function OnboardOrganizationPage({
           <span>Back to Directory</span>
         </button>
 
-        <div className="font-bold text-sm sm:text-base hidden sm:block">
-          Event Onboarding &amp; Branding
+        <div className="hidden sm:flex items-center gap-2.5 font-bold text-sm sm:text-base">
+          <img src="/images/manama-logo.jpg" alt="MANAMA TECHNOLOGIES LTD" className="h-7 w-auto bg-white px-2 py-0.5 rounded-lg object-contain" />
+          <span>Event Onboarding</span>
         </div>
 
         <button
