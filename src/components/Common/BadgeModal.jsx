@@ -16,6 +16,13 @@ import { printElementCleanly } from '../../utils/print';
 import { DEFAULT_EVENT_DAYS } from '../../data/mockData';
 import { Storage } from '../../data/storage';
 
+const WIDTH_PRESETS = [
+  { id: '2.2', label: '2.2 in (ID)', value: 2.2 },
+  { id: '3.1', label: '3.1 in (Std)', value: 3.1 },
+  { id: '3.5', label: '3.5 in', value: 3.5 },
+  { id: '4.0', label: '4.0 in', value: 4.0 },
+];
+
 const LENGTH_PRESETS = [
   { id: 'auto', label: 'Auto (Fit)', value: 'auto' },
   { id: '3.5', label: '3.5 in', value: 3.5 },
@@ -48,15 +55,17 @@ export default function BadgeModal({
   const [badgeTemplate, setBadgeTemplate] = useState('lanyard_standard');
   const [showCustomizer, setShowCustomizer] = useState(false);
 
-  // Exact 3.1-inch width + customizable print length & paper mode
-  const TAG_WIDTH_IN = 3.1;
+  // Customizable tag width (defaults to 3.1 in) + print length & paper mode
+  const [tagWidthMode, setTagWidthMode] = useState('3.1'); // '2.2' | '3.1' | '3.5' | '4.0' | 'custom'
+  const [customWidthIn, setCustomWidthIn] = useState('3.1');
   const [tagLengthMode, setTagLengthMode] = useState('auto'); // 'auto' | '3.5' | ... | '6.0' | 'custom'
   const [customLengthIn, setCustomLengthIn] = useState('4.5');
-  const [paperMode, setPaperMode] = useState('thermal'); // 'thermal' (3.1in stock) | 'sheet' (centered on A4/Letter)
+  const [paperMode, setPaperMode] = useState('thermal'); // 'thermal' (exact tag stock) | 'sheet' (centered on A4/Letter)
 
-  // Auto-fit scale so shorter / custom stock lengths NEVER clip content
+  // Auto-fit scale so narrower or shorter custom stock sizes NEVER clip content
   const innerBadgeRef = useRef(null);
   const [fitScale, setFitScale] = useState(1);
+  const [scaledAutoHeightPx, setScaledAutoHeightPx] = useState(null);
 
   const eventDays = event?.eventDays || DEFAULT_EVENT_DAYS;
 
@@ -106,6 +115,11 @@ export default function BadgeModal({
     }
   }, [attendee]);
 
+  const parsedCustomWidth = parseFloat(customWidthIn);
+  const resolvedWidthIn = tagWidthMode === 'custom'
+    ? Math.max(1.8, Math.min(6.0, Number.isFinite(parsedCustomWidth) ? parsedCustomWidth : 3.1))
+    : parseFloat(tagWidthMode);
+
   const parsedCustom = parseFloat(customLengthIn);
   const resolvedHeightIn = tagLengthMode === 'auto'
     ? 'auto'
@@ -113,28 +127,39 @@ export default function BadgeModal({
     ? Math.max(2.0, Math.min(11.0, Number.isFinite(parsedCustom) ? parsedCustom : 4.5))
     : parseFloat(tagLengthMode);
 
-  // Measure natural inner badge height and compute proportional fit scale when a fixed height is selected
+  // Measure natural inner badge dimensions and compute proportional fit scale when width or height is constrained
   useLayoutEffect(() => {
     if (!isOpen || !attendee) return;
-    if (resolvedHeightIn === 'auto') {
-      setFitScale(1);
-      return;
-    }
     const el = innerBadgeRef.current;
     if (!el) return;
-    // Measure unscaled natural height (scrollHeight is independent of CSS transform)
+
+    const baseWidthPx = Math.max(3.1, resolvedWidthIn) * 96 - 4;
+    const availableWidthPx = Math.max(120, resolvedWidthIn * 96 - 4);
+    const scaleX = availableWidthPx < baseWidthPx ? availableWidthPx / baseWidthPx : 1;
+
     const naturalHeightPx = el.scrollHeight;
-    const availableHeightPx = Math.max(120, resolvedHeightIn * 96 - 4);
-    if (naturalHeightPx > availableHeightPx) {
-      const nextScale = Math.max(0.32, Math.min(1, availableHeightPx / naturalHeightPx));
-      setFitScale(Number(nextScale.toFixed(4)));
+    let scaleY = 1;
+    if (resolvedHeightIn !== 'auto') {
+      const availableHeightPx = Math.max(120, resolvedHeightIn * 96 - 4);
+      if (naturalHeightPx > availableHeightPx) {
+        scaleY = availableHeightPx / naturalHeightPx;
+      }
+    }
+
+    const nextScale = Math.max(0.32, Math.min(1, scaleX, scaleY));
+    const rounded = Number(nextScale.toFixed(4));
+    setFitScale(rounded);
+
+    if (resolvedHeightIn === 'auto' && rounded < 1) {
+      setScaledAutoHeightPx(Math.ceil(naturalHeightPx * rounded) + 4);
     } else {
-      setFitScale(1);
+      setScaledAutoHeightPx(null);
     }
   }, [
     isOpen,
     attendee,
     badgeTemplate,
+    resolvedWidthIn,
     resolvedHeightIn,
     qrUrl,
     customTitle,
@@ -154,12 +179,15 @@ export default function BadgeModal({
   const showPhoto = badgeTemplate === 'lanyard_photo' || badgeTemplate === 'exec_photo';
 
   const outerHeightStyle = resolvedHeightIn === 'auto'
-    ? { minHeight: '4.4in' }
+    ? scaledAutoHeightPx
+      ? { height: `${scaledAutoHeightPx}px` }
+      : { minHeight: '4.4in' }
     : { height: `${resolvedHeightIn}in`, minHeight: `${resolvedHeightIn}in`, maxHeight: `${resolvedHeightIn}in` };
 
+  const innerDesignWidth = resolvedWidthIn < 3.1 ? '3.1in' : '100%';
   const innerScaleStyle = fitScale < 1
     ? {
-        width: '3.1in',
+        width: innerDesignWidth,
         transform: `scale(${fitScale})`,
         transformOrigin: 'top center',
       }
@@ -170,11 +198,11 @@ export default function BadgeModal({
 
   const handlePrint = () => {
     const variantMeta = BADGE_VARIANTS.find((v) => v.id === badgeTemplate);
-    const formatNote = `3.1in x ${resolvedHeightIn === 'auto' ? 'Auto' : `${resolvedHeightIn}in`} · ${variantMeta?.label || badgeTemplate} (${paperMode === 'thermal' ? '3.1" Thermal Roll' : 'Centered Sheet'})`;
+    const formatNote = `${resolvedWidthIn}in x ${resolvedHeightIn === 'auto' ? 'Auto' : `${resolvedHeightIn}in`} · ${variantMeta?.label || badgeTemplate} (${paperMode === 'thermal' ? `${resolvedWidthIn}" Thermal Roll` : 'Centered Sheet'})`;
     Storage.logBadgePrint(attendee.id, staffUser, formatNote);
-    printElementCleanly('printable-badge', `${customName || attendee?.name || 'Attendee'} - 3.1in Badge`, {
+    printElementCleanly('printable-badge', `${customName || attendee?.name || 'Attendee'} - ${resolvedWidthIn}in Badge`, {
       mode: 'badge',
-      widthIn: TAG_WIDTH_IN,
+      widthIn: resolvedWidthIn,
       heightIn: resolvedHeightIn,
       paperMode,
     });
@@ -188,9 +216,9 @@ export default function BadgeModal({
     }
     setShowReasonBox(false);
     setReprintReason('');
-    printElementCleanly('printable-badge', `${customName || attendee?.name || 'Attendee'} - 3.1in Badge`, {
+    printElementCleanly('printable-badge', `${customName || attendee?.name || 'Attendee'} - ${resolvedWidthIn}in Badge`, {
       mode: 'badge',
-      widthIn: TAG_WIDTH_IN,
+      widthIn: resolvedWidthIn,
       heightIn: resolvedHeightIn,
       paperMode,
     });
@@ -281,16 +309,16 @@ export default function BadgeModal({
             </div>
           </div>
 
-          {/* EXACT 3.1-INCH PRINT DIMENSIONS & STOCK CONTROLS */}
+          {/* CUSTOMIZABLE PRINT DIMENSIONS (WIDTH × LENGTH) & STOCK CONTROLS */}
           <div className="p-3.5 rounded-xl border space-y-3 print:hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold flex items-center gap-1.5">
                 <Ruler className="w-4 h-4" style={{ color: 'var(--fp-olive)' }} />
-                <span>Print Size &amp; Stock Length</span>
+                <span>Print Size (Width × Length)</span>
               </span>
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="fp-tag-sage font-mono text-[11px]">
-                  3.1 in × {resolvedHeightIn === 'auto' ? 'Auto' : `${resolvedHeightIn} in`}
+                  {resolvedWidthIn} in × {resolvedHeightIn === 'auto' ? 'Auto' : `${resolvedHeightIn} in`}
                 </span>
                 {fitScale < 1 && (
                   <span className="fp-tag-olive font-mono text-[10px]">
@@ -301,6 +329,43 @@ export default function BadgeModal({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>Tag Stock Width (inches)</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {WIDTH_PRESETS.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => setTagWidthMode(w.id)}
+                      className={`px-2 py-1 rounded-md border text-[11px] font-semibold ${tagWidthMode === w.id ? 'btn-fp-olive' : 'btn-fp-outline'}`}
+                    >
+                      {w.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setTagWidthMode('custom')}
+                    className={`px-2 py-1 rounded-md border text-[11px] font-semibold ${tagWidthMode === 'custom' ? 'btn-fp-olive' : 'btn-fp-outline'}`}
+                  >
+                    Custom
+                  </button>
+                </div>
+                {tagWidthMode === 'custom' && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="1.8"
+                      max="6.0"
+                      value={customWidthIn}
+                      onChange={(e) => setCustomWidthIn(e.target.value)}
+                      className="fp-input w-24 px-2.5 py-1 text-xs font-mono"
+                    />
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>inches wide (1.8 – 6.0)</span>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>Tag Stock Length (inches)</label>
                 <div className="flex flex-wrap gap-1.5">
@@ -337,25 +402,25 @@ export default function BadgeModal({
                   </div>
                 )}
               </div>
+            </div>
 
-              <div>
-                <label className="block font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>Printer Feed Alignment</label>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setPaperMode('thermal')}
-                    className={`px-2.5 py-1.5 rounded-md border text-[11px] font-semibold ${paperMode === 'thermal' ? 'btn-fp-olive' : 'btn-fp-outline'}`}
-                  >
-                    3.1&quot; Thermal / Tag Stock
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaperMode('sheet')}
-                    className={`px-2.5 py-1.5 rounded-md border text-[11px] font-semibold ${paperMode === 'sheet' ? 'btn-fp-olive' : 'btn-fp-outline'}`}
-                  >
-                    Centered on A4 / Letter
-                  </button>
-                </div>
+            <div className="pt-2 border-t text-xs" style={{ borderColor: 'var(--border-color)' }}>
+              <label className="block font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>Printer Feed Alignment</label>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPaperMode('thermal')}
+                  className={`px-2.5 py-1.5 rounded-md border text-[11px] font-semibold ${paperMode === 'thermal' ? 'btn-fp-olive' : 'btn-fp-outline'}`}
+                >
+                  {resolvedWidthIn}&quot; Thermal / Tag Stock
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaperMode('sheet')}
+                  className={`px-2.5 py-1.5 rounded-md border text-[11px] font-semibold ${paperMode === 'sheet' ? 'btn-fp-olive' : 'btn-fp-outline'}`}
+                >
+                  Centered on A4 / Letter
+                </button>
               </div>
             </div>
           </div>
@@ -389,8 +454,8 @@ export default function BadgeModal({
               id="printable-badge"
               className="bg-white text-slate-900 rounded-2xl border-2 border-slate-300 shadow-lg overflow-hidden flex flex-col items-center justify-start relative select-none shrink-0"
               style={{
-                width: '3.1in',
-                maxWidth: '3.1in',
+                width: `${resolvedWidthIn}in`,
+                maxWidth: `${resolvedWidthIn}in`,
                 margin: '0 auto',
                 ...outerHeightStyle,
                 fontFamily: "'Outfit', 'Inter', sans-serif",
@@ -665,7 +730,7 @@ export default function BadgeModal({
               className="btn-fp-olive px-5 py-2 text-xs sm:text-sm inline-flex items-center gap-1.5"
             >
               <Printer className="w-4 h-4" />
-              <span>Print 3.1&quot; Centered Tag</span>
+              <span>Print {resolvedWidthIn}&quot; Centered Tag</span>
             </button>
           </div>
         </div>
